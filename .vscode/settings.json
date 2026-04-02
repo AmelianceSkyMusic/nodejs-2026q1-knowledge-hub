@@ -1,0 +1,30 @@
+{
+	"files.exclude": {
+		"**/.git": false,
+		"**/.svn": false,
+		"**/.hg": false,
+		"**/.DS_Store": false,
+		"**/Thumbs.db": false
+	},
+	"hide-files.files": [],
+	"editor.formatOnPaste": true,
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.codeActionsOnSave": {
+		"source.fixAll": "never",
+		"source.fixAll.eslint": "explicit"
+	},
+	"cSpell.language": "uk,en,en-US,lorem",
+	"files.eol": "\n",
+	"checkpoints.showActiveFileOnly": true,
+	"[snippets]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	}
+	// "terminal.integrated.defaultProfile.windows": "Git Bash"
+	// "terminal.integrated.defaultProfile.windows": "Git Bash",
+	// "terminal.integrated.profiles.windows": {
+	// 	"bash": {
+	// 		"source": "Git Bash"
+	// 	}
+	// }
+}

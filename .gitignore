@@ -33,3 +33,20 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# temp folders / files
+*._backup*
+*._bash*
+*._legacy*
+*._temp*
+*._labs*
+*._dev*
+.file-status/
+.eslintcache
+.docker
+
+#history
+.history/
+.lh/
+
+.ameliance*.sh

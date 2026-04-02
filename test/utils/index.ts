@@ -5,9 +5,9 @@ import shouldAuthorizationBeTested from './shouldAuthorizationBeTested';
 import generateRefreshToken from './tokens';
 
 export {
-  getTokenAndUserId,
-  getUserTokenByRole,
-  shouldAuthorizationBeTested,
-  removeTokenUser,
-  generateRefreshToken,
+	generateRefreshToken,
+	getTokenAndUserId,
+	getUserTokenByRole,
+	removeTokenUser,
+	shouldAuthorizationBeTested,
 };
