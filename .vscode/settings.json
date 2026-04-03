@@ -20,11 +20,4 @@
 	"[snippets]": {
 		"editor.defaultFormatter": "vscode.json-language-features"
 	}
-	// "terminal.integrated.defaultProfile.windows": "Git Bash"
-	// "terminal.integrated.defaultProfile.windows": "Git Bash",
-	// "terminal.integrated.profiles.windows": {
-	// 	"bash": {
-	// 		"source": "Git Bash"
-	// 	}
-	// }
 }
