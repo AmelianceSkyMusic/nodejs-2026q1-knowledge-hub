@@ -40,7 +40,7 @@ async function bootstrap() {
 	app.use(
 		'/doc',
 		apiReference({
-			content: documentFactory,
+			content: documentFactory(),
 		}),
 	);
 
