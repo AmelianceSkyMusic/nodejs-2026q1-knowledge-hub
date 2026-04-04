@@ -3,8 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { ArticlesService } from 'src/articles/articles.service';
 import { Id } from 'src/common/types/id';
 
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CreateCategoryRequestDto } from './dto/request/create-category.request.dto';
+import { UpdateCategoryRequestDto } from './dto/request/update-category.request.dto';
 import { CategoriesRepository } from './repositories/categories.repository';
 
 import { ERROR } from 'src/common/constants/error';
@@ -27,21 +27,21 @@ export class CategoriesService {
 		return category;
 	}
 
-	create(createCategoryDto: CreateCategoryDto) {
+	create(createCategoryRequestDto: CreateCategoryRequestDto) {
 		const newCategory = {
-			...createCategoryDto,
+			...createCategoryRequestDto,
 			id: randomUUID(),
 		};
 		return this.categoriesRepository.create(newCategory);
 	}
 
-	update(id: Id, updateCategoryDto: UpdateCategoryDto) {
+	update(id: Id, updateCategoryRequestDto: UpdateCategoryRequestDto) {
 		const category = this.categoriesRepository.findOne(id);
 		if (!category) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
 
 		const updatedCategory = {
 			...category,
-			...updateCategoryDto,
+			...updateCategoryRequestDto,
 		};
 		return this.categoriesRepository.update(id, updatedCategory);
 	}

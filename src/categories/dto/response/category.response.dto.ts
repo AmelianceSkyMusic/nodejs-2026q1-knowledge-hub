@@ -2,12 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { Id } from 'src/common/types/id';
 
-import { UserRole } from '../../types/user-role';
-
 import { SWAGGER } from 'src/common/constants/swagger';
 
 @Exclude()
-export class UserResponseDto {
+export class CategoryResponseDto {
 	@ApiProperty({
 		example: SWAGGER.EXAMPLE.ID,
 	})
@@ -15,26 +13,14 @@ export class UserResponseDto {
 	id: Id;
 
 	@ApiProperty({
-		example: 'TestUser',
+		example: 'Technology',
 	})
 	@Expose()
-	login: string;
+	name: string;
 
 	@ApiProperty({
-		example: 'viewer',
+		example: 'Articles about technology',
 	})
 	@Expose()
-	role: UserRole;
-
-	@ApiProperty({
-		example: SWAGGER.EXAMPLE.TIMESTAMP,
-	})
-	@Expose()
-	createdAt: number;
-
-	@ApiProperty({
-		example: SWAGGER.EXAMPLE.TIMESTAMP,
-	})
-	@Expose()
-	updatedAt: number;
+	description: string;
 }

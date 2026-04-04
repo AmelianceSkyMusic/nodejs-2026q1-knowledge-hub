@@ -1,13 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose } from 'class-transformer';
-import { Id } from 'src/common/types/id';
-
-import { UserRole } from '../../types/user-role';
+import { Expose, Type } from 'class-transformer';
 
 import { SWAGGER } from 'src/common/constants/swagger';
 
-@Exclude()
-export class UserResponseDto {
+import type { Id } from 'src/common/types/id';
+
+export class CommentResponseDto {
 	@ApiProperty({
 		example: SWAGGER.EXAMPLE.ID,
 	})
@@ -15,26 +13,27 @@ export class UserResponseDto {
 	id: Id;
 
 	@ApiProperty({
-		example: 'TestUser',
+		example: 'Great article!',
 	})
 	@Expose()
-	login: string;
+	content: string;
 
 	@ApiProperty({
-		example: 'viewer',
+		example: SWAGGER.EXAMPLE.ID,
 	})
 	@Expose()
-	role: UserRole;
+	articleId: Id;
+
+	@ApiProperty({
+		example: SWAGGER.EXAMPLE.ID,
+	})
+	@Expose()
+	authorId: Id | null;
 
 	@ApiProperty({
 		example: SWAGGER.EXAMPLE.TIMESTAMP,
 	})
 	@Expose()
+	@Type(() => Number)
 	createdAt: number;
-
-	@ApiProperty({
-		example: SWAGGER.EXAMPLE.TIMESTAMP,
-	})
-	@Expose()
-	updatedAt: number;
 }

@@ -3,9 +3,9 @@ import { randomUUID } from 'node:crypto';
 import { CommentsService } from 'src/comments/comments.service';
 import { Id } from 'src/common/types/id';
 
-import { CreateArticleDto } from './dto/create-article.dto';
-import { GetArticlesQueryDto } from './dto/get-articles-query-dto';
-import { UpdateArticleDto } from './dto/update-article.dto';
+import { CreateArticleRequestDto } from './dto/request/create-article.request.dto';
+import { GetArticlesQueryRequestDto } from './dto/request/get-articles-query.request.dto';
+import { UpdateArticleRequestDto } from './dto/request/update-article.request.dto';
 import { ArticlesRepository } from './repositories/articles.repository';
 
 import { ERROR } from 'src/common/constants/error';
@@ -18,8 +18,8 @@ export class ArticlesService {
 		private readonly articlesRepository: ArticlesRepository,
 	) {}
 
-	findAllByQuery(getArticlesQueryDto: GetArticlesQueryDto) {
-		const { status, categoryId, tag } = getArticlesQueryDto;
+	findAllByQuery(getArticlesQueryRequestDto: GetArticlesQueryRequestDto) {
+		const { status, categoryId, tag } = getArticlesQueryRequestDto;
 
 		const allArticles = this.articlesRepository.findAll();
 		if (!status && !categoryId && !tag) return allArticles;
@@ -37,13 +37,13 @@ export class ArticlesService {
 		return this.articlesRepository.findOne(id);
 	}
 
-	create(createArticleDto: CreateArticleDto) {
+	create(createArticleRequestDto: CreateArticleRequestDto) {
 		const newArticle = {
-			...createArticleDto,
-			authorId: createArticleDto.authorId ?? null,
-			categoryId: createArticleDto.categoryId ?? null,
-			tags: createArticleDto.tags ?? [],
-			status: createArticleDto.status ?? 'draft',
+			...createArticleRequestDto,
+			authorId: createArticleRequestDto.authorId ?? null,
+			categoryId: createArticleRequestDto.categoryId ?? null,
+			tags: createArticleRequestDto.tags ?? [],
+			status: createArticleRequestDto.status ?? 'draft',
 			id: randomUUID(),
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
@@ -51,13 +51,13 @@ export class ArticlesService {
 		return this.articlesRepository.create(newArticle);
 	}
 
-	update(id: Id, updateArticleDto: UpdateArticleDto) {
+	update(id: Id, updateArticleRequestDto: UpdateArticleRequestDto) {
 		const article = this.articlesRepository.findOne(id);
 		if (!article) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
 
 		const updatedArticle = {
 			...article,
-			...updateArticleDto,
+			...updateArticleRequestDto,
 			updatedAt: Date.now(),
 		};
 		return this.articlesRepository.update(id, updatedArticle);

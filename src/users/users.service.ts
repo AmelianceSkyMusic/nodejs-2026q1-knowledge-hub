@@ -22,17 +22,17 @@ export class UsersService {
 		return this.usersRepository.findAll();
 	}
 
-	findOne(id: Id) {
-		const user = this.usersRepository.findOne(id);
+	findOne(userId: Id) {
+		const user = this.usersRepository.findOne(userId);
 		if (!user) throw new NotFoundException(ERROR.USER.NOT_FOUND);
 
 		return user;
 	}
 
-	create(createUserDto: CreateUserRequestDto) {
+	create(createUserRequestDto: CreateUserRequestDto) {
 		const newUser = {
-			...createUserDto,
-			role: createUserDto.role ?? 'viewer',
+			...createUserRequestDto,
+			role: createUserRequestDto.role ?? 'viewer',
 			id: randomUUID(),
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
@@ -40,29 +40,29 @@ export class UsersService {
 		return this.usersRepository.create(newUser);
 	}
 
-	updatePassword(id: Id, updatePasswordDto: UpdatePasswordRequestDto) {
-		const user = this.usersRepository.findOne(id);
+	updatePassword(userId: Id, updatePasswordRequestDto: UpdatePasswordRequestDto) {
+		const user = this.usersRepository.findOne(userId);
 		if (!user) throw new NotFoundException(ERROR.USER.NOT_FOUND);
 
-		if (user.password !== updatePasswordDto.oldPassword) {
+		if (user.password !== updatePasswordRequestDto.oldPassword) {
 			throw new ForbiddenException(ERROR.PASSWORD.INVALID);
 		}
 
 		const updatedUser = {
 			...user,
-			password: updatePasswordDto.newPassword,
+			password: updatePasswordRequestDto.newPassword,
 			updatedAt: Date.now(),
 		};
-		return this.usersRepository.update(id, updatedUser);
+		return this.usersRepository.update(userId, updatedUser);
 	}
 
-	remove(id: Id) {
-		const isDeleted = this.usersRepository.remove(id);
+	remove(userId: Id) {
+		const isDeleted = this.usersRepository.remove(userId);
 		if (!isDeleted) throw new NotFoundException(ERROR.USER.NOT_FOUND);
 
-		this.articlesService.nullifyAuthor(id);
+		this.articlesService.nullifyAuthor(userId);
 
-		this.commentsService.removeByAuthorId(id);
+		this.commentsService.removeByAuthorId(userId);
 
 		return isDeleted;
 	}

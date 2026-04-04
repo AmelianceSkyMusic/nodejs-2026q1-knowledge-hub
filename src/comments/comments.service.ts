@@ -9,7 +9,7 @@ import { randomUUID } from 'node:crypto';
 import { ArticlesService } from 'src/articles/articles.service';
 import { Id } from 'src/common/types/id';
 
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { CreateCommentRequestDto } from './dto/request/create-comment.request.dto';
 import { CommentsRepository } from './repositories/comments.repository';
 
 import { ERROR } from 'src/common/constants/error';
@@ -33,13 +33,13 @@ export class CommentsService {
 		return comment;
 	}
 
-	create(createCommentDto: CreateCommentDto) {
-		const article = this.articlesService.findOne(createCommentDto.articleId);
+	create(createCommentRequestDto: CreateCommentRequestDto) {
+		const article = this.articlesService.findOne(createCommentRequestDto.articleId);
 		if (!article) throw new UnprocessableEntityException(ERROR.ARTICLE.NOT_FOUND);
 
 		const newComment = {
-			...createCommentDto,
-			authorId: createCommentDto.authorId ?? null,
+			...createCommentRequestDto,
+			authorId: createCommentRequestDto.authorId ?? null,
 			id: randomUUID(),
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
