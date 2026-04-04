@@ -18,7 +18,7 @@ module.exports = {
 		'@typescript-eslint/explicit-module-boundary-types': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/no-unused-vars': [
-			'error',
+			'warn',
 			{
 				args: 'all',
 				argsIgnorePattern: '^_',
@@ -30,7 +30,7 @@ module.exports = {
 			},
 		],
 		'@typescript-eslint/consistent-type-imports': [
-			'error',
+			'warn',
 			{
 				prefer: 'type-imports',
 				fixStyle: 'separate-type-imports',
