@@ -2,6 +2,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { apiReference } from '@scalar/nestjs-api-reference';
 
 import { AppModule } from './app.module';
 
@@ -25,14 +26,23 @@ async function bootstrap() {
 		.addTag('Category')
 		.addTag('Comment')
 		.build();
+
 	const documentFactory = () =>
 		SwaggerModule.createDocument(app, config, {
 			operationIdFactory: (_controllerKey: string, methodKey: string) => methodKey,
 		});
-	SwaggerModule.setup('doc', app, documentFactory, {
+
+	SwaggerModule.setup('doc/swagger', app, documentFactory, {
 		jsonDocumentUrl: 'doc/json',
 		yamlDocumentUrl: 'doc/yaml',
 	});
+
+	app.use(
+		'/doc',
+		apiReference({
+			content: documentFactory,
+		}),
+	);
 
 	const configService = app.get(ConfigService);
 
