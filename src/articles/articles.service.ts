@@ -2,12 +2,15 @@ import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/commo
 import { randomUUID } from 'node:crypto';
 import { CommentsService } from 'src/comments/comments.service';
 import { Id } from 'src/common/types/id';
+import { sort } from 'src/common/utils/sort.util';
 
 import { CreateArticleRequestDto } from './dto/request/create-article.request.dto';
-import { GetArticlesQueryRequestDto } from './dto/request/get-articles-query.request.dto';
+import { GetArticlesWithPaginationQueryRequestDto } from './dto/request/get-articles-with-pagination-query.request.dto';
 import { UpdateArticleRequestDto } from './dto/request/update-article.request.dto';
 import { ArticlesRepository } from './repositories/articles.repository';
 
+import { ORDER } from '../common/constants/order';
+import { ARTICLE_SORT_BY } from './constants/article-sort-by';
 import { ERROR } from 'src/common/constants/error';
 
 @Injectable()
@@ -18,19 +21,40 @@ export class ArticlesService {
 		private readonly articlesRepository: ArticlesRepository,
 	) {}
 
-	findAllByQuery(getArticlesQueryRequestDto: GetArticlesQueryRequestDto) {
-		const { status, categoryId, tag } = getArticlesQueryRequestDto;
+	findAll(getArticlesWithPaginationQueryRequestDto: GetArticlesWithPaginationQueryRequestDto) {
+		const {
+			status,
+			categoryId,
+			tag: tags,
+			page,
+			limit = 10,
+			sortBy = ARTICLE_SORT_BY.CREATED_AT,
+			order = ORDER.DESC,
+		} = getArticlesWithPaginationQueryRequestDto;
 
 		const allArticles = this.articlesRepository.findAll();
-		if (!status && !categoryId && !tag) return allArticles;
+		if (!status && !categoryId && !tags && !page) return sort(allArticles, sortBy, order);
 
 		const filtered = allArticles.filter(
 			(article) =>
 				(!status || article.status === status) &&
 				(!categoryId || article.categoryId === categoryId) &&
-				(!tag || article.tags.includes(tag)),
+				(!tags || article.tags.some((t) => tags.includes(t))),
 		);
-		return filtered;
+
+		const filteredAndSorted = sort(filtered, sortBy, order);
+		if (!page) return filteredAndSorted;
+
+		const offset = (page - 1) * limit;
+
+		const paginatedData = filteredAndSorted.slice(offset, offset + limit);
+
+		return {
+			total: filteredAndSorted.length,
+			page: Number(page),
+			limit: Number(limit),
+			data: paginatedData,
+		};
 	}
 
 	findOne(id: Id) {

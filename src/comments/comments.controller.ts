@@ -20,13 +20,17 @@ import {
 	ApiParam,
 	ApiQuery,
 	ApiTags,
+	getSchemaPath,
 } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
 import { Serialize } from 'src/common/interceptors/serialize.interceptor';
 import { Id } from 'src/common/types/id';
 
 import { CommentsService } from './comments.service';
 import { CreateCommentRequestDto } from './dto/request/create-comment.request.dto';
+import { GetCommentsWithPaginationQueryRequestDto } from './dto/request/get-comment-with-pagination-query.request.dto';
 import { CommentResponseDto } from './dto/response/comment.response.dto';
+import { CommentsWithPaginationResponseDto } from './dto/response/comments-with-pagination.response.dto';
 
 import { SWAGGER } from 'src/common/constants/swagger';
 
@@ -40,7 +44,15 @@ export class CommentsController {
 		summary: 'Get all comments for an article',
 		description: 'Gets all comments for a specific article. Requires articleId query parameter',
 	})
-	@ApiOkResponse({ description: 'Successful operation', type: [CommentResponseDto] })
+	@ApiOkResponse({
+		description: 'Successful operation',
+		schema: {
+			oneOf: [
+				{ $ref: getSchemaPath(CommentResponseDto), type: 'array' },
+				{ $ref: getSchemaPath(CommentsWithPaginationResponseDto) },
+			],
+		},
+	})
 	@ApiQuery({
 		name: 'articleId',
 		required: true,
@@ -48,9 +60,21 @@ export class CommentsController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.OK)
-	@Serialize(CommentResponseDto)
-	findAllForArticle(@Query('articleId') articleId: Id) {
-		return this.commentsService.findAllForArticle(articleId);
+	findAllForArticle(
+		@Query()
+		getCommentsWithPaginationQueryRequestDto: GetCommentsWithPaginationQueryRequestDto,
+	) {
+		const result = this.commentsService.findAllForArticle(
+			getCommentsWithPaginationQueryRequestDto,
+		);
+		if ('data' in result) {
+			return plainToInstance(CommentsWithPaginationResponseDto, result, {
+				excludeExtraneousValues: true,
+			});
+		}
+		return plainToInstance(CommentResponseDto, result, {
+			excludeExtraneousValues: true,
+		});
 	}
 
 	@Get(':id')

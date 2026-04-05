@@ -3,12 +3,16 @@ import { randomUUID } from 'node:crypto';
 import { ArticlesService } from 'src/articles/articles.service';
 import { CommentsService } from 'src/comments/comments.service';
 import { Id } from 'src/common/types/id';
+import { sort } from 'src/common/utils/sort.util';
 
 import { CreateUserRequestDto } from './dto/request/create-user.request.dto';
+import { GetUsersWithPaginationQueryRequestDto } from './dto/request/get-user-with-pagination-query.request.dto';
 import { UpdatePasswordRequestDto } from './dto/request/update-password.request.dto';
 import { UsersRepository } from './repository/users.repository';
 
+import { USER_SORT_BY } from './constants/user-sort-by';
 import { ERROR } from 'src/common/constants/error';
+import { ORDER } from 'src/common/constants/order';
 
 @Injectable()
 export class UsersService {
@@ -18,8 +22,29 @@ export class UsersService {
 		private readonly usersRepository: UsersRepository,
 	) {}
 
-	findAll() {
-		return this.usersRepository.findAll();
+	findAll(getUsersWithPaginationQueryRequestDto: GetUsersWithPaginationQueryRequestDto) {
+		const {
+			page,
+			limit = 10,
+			sortBy = USER_SORT_BY.LOGIN,
+			order = ORDER.ASC,
+		} = getUsersWithPaginationQueryRequestDto;
+
+		const allUsers = this.usersRepository.findAll();
+
+		const sortedUsers = sort(allUsers, sortBy, order);
+		if (!page) return sortedUsers;
+
+		const offset = (page - 1) * limit;
+
+		const paginatedData = sortedUsers.slice(offset, offset + limit);
+
+		return {
+			total: sortedUsers.length,
+			page: Number(page),
+			limit: Number(limit),
+			data: paginatedData,
+		};
 	}
 
 	findOne(userId: Id) {

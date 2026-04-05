@@ -9,6 +9,7 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Put,
+	Query,
 } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
@@ -19,13 +20,17 @@ import {
 	ApiOperation,
 	ApiParam,
 	ApiTags,
+	getSchemaPath,
 } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
 import { Serialize } from 'src/common/interceptors/serialize.interceptor';
 import { Id } from 'src/common/types/id';
 
 import { CreateUserRequestDto } from './dto/request/create-user.request.dto';
+import { GetUsersWithPaginationQueryRequestDto } from './dto/request/get-user-with-pagination-query.request.dto';
 import { UpdatePasswordRequestDto } from './dto/request/update-password.request.dto';
 import { UserResponseDto } from './dto/response/user.response.dto';
+import { UsersWithPaginationResponseDto } from './dto/response/users-with-pagination.response.dto';
 import { UsersService } from './users.service';
 
 import { SWAGGER } from 'src/common/constants/swagger';
@@ -40,11 +45,29 @@ export class UsersController {
 		summary: 'Get all users',
 		description: 'Gets all users.',
 	})
-	@ApiOkResponse({ description: 'Successful operation', type: [UserResponseDto] })
+	@ApiOkResponse({
+		description: 'Successful operation',
+		schema: {
+			oneOf: [
+				{ $ref: getSchemaPath(UserResponseDto), type: 'array' },
+				{ $ref: getSchemaPath(UsersWithPaginationResponseDto) },
+			],
+		},
+	})
 	@HttpCode(HttpStatus.OK)
-	@Serialize(UserResponseDto)
-	findAll() {
-		return this.usersService.findAll();
+	findAll(
+		@Query()
+		getUsersWithPaginationQueryRequestDto: GetUsersWithPaginationQueryRequestDto,
+	) {
+		const result = this.usersService.findAll(getUsersWithPaginationQueryRequestDto);
+		if ('data' in result) {
+			return plainToInstance(UsersWithPaginationResponseDto, result, {
+				excludeExtraneousValues: true,
+			});
+		}
+		return plainToInstance(UserResponseDto, result, {
+			excludeExtraneousValues: true,
+		});
 	}
 
 	@Get(':userId')

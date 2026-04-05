@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsArray, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ArticleStatus } from 'src/articles/types/article-status';
 import { Id } from 'src/common/types/id';
 
@@ -29,7 +30,12 @@ export class GetArticlesQueryRequestDto {
 		description: 'Filter by tag name (can be repeated for multiple tags)',
 		required: false,
 	})
+	@Transform(({ value }) => {
+		if (!value) return value;
+		return Array.isArray(value) ? value : [value];
+	})
 	@IsOptional()
-	@IsString()
-	tag?: string;
+	@IsArray()
+	@IsString({ each: true })
+	tag?: string[];
 }

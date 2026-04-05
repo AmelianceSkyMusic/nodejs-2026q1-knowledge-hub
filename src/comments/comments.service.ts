@@ -8,11 +8,15 @@ import {
 import { randomUUID } from 'node:crypto';
 import { ArticlesService } from 'src/articles/articles.service';
 import { Id } from 'src/common/types/id';
+import { sort } from 'src/common/utils/sort.util';
 
 import { CreateCommentRequestDto } from './dto/request/create-comment.request.dto';
+import { GetCommentsWithPaginationQueryRequestDto } from './dto/request/get-comment-with-pagination-query.request.dto';
 import { CommentsRepository } from './repositories/comments.repository';
 
+import { COMMENT_SORT_BY } from './constants/comment-sort-by';
 import { ERROR } from 'src/common/constants/error';
+import { ORDER } from 'src/common/constants/order';
 
 @Injectable()
 export class CommentsService {
@@ -22,9 +26,34 @@ export class CommentsService {
 		private readonly commentsRepository: CommentsRepository,
 	) {}
 
-	findAllForArticle(articleId: Id) {
+	findAllForArticle(
+		getCommentsWithPaginationQueryRequestDto: GetCommentsWithPaginationQueryRequestDto,
+	) {
+		const {
+			articleId,
+			page,
+			limit = 10,
+			sortBy = COMMENT_SORT_BY.CREATED_AT,
+			order = ORDER.ASC,
+		} = getCommentsWithPaginationQueryRequestDto;
+
 		const allComments = this.commentsRepository.findAll();
-		return allComments.filter((comment) => comment.articleId === articleId);
+
+		const filtered = allComments.filter((comment) => comment.articleId === articleId);
+
+		const filteredAndSorted = sort(filtered, sortBy, order);
+		if (!page) return filteredAndSorted;
+
+		const offset = (page - 1) * limit;
+
+		const paginatedData = filteredAndSorted.slice(offset, offset + limit);
+
+		return {
+			total: filteredAndSorted.length,
+			page: Number(page),
+			limit: Number(limit),
+			data: paginatedData,
+		};
 	}
 
 	findById(id: Id) {

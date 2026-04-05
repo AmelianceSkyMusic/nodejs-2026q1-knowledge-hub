@@ -15,26 +15,31 @@ import {
 import {
 	ApiBadRequestResponse,
 	ApiCreatedResponse,
+	ApiExtraModels,
 	ApiNoContentResponse,
 	ApiNotFoundResponse,
 	ApiOkResponse,
 	ApiOperation,
 	ApiParam,
 	ApiTags,
+	getSchemaPath,
 } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
 import { Serialize } from 'src/common/interceptors/serialize.interceptor';
 import { Id } from 'src/common/types/id';
 
 import { ArticlesService } from './articles.service';
 import { CreateArticleRequestDto } from './dto/request/create-article.request.dto';
-import { GetArticlesQueryRequestDto } from './dto/request/get-articles-query.request.dto';
+import { GetArticlesWithPaginationQueryRequestDto } from './dto/request/get-articles-with-pagination-query.request.dto';
 import { UpdateArticleRequestDto } from './dto/request/update-article.request.dto';
 import { ArticleResponseDto } from './dto/response/article.response.dto';
+import { ArticlesWithPaginationResponseDto } from './dto/response/articles-with-pagination.response.dto';
 
 import { ERROR } from 'src/common/constants/error';
 import { SWAGGER } from 'src/common/constants/swagger';
 
 @ApiTags('Article')
+@ApiExtraModels(ArticlesWithPaginationResponseDto)
 @Controller('article')
 export class ArticlesController {
 	constructor(private readonly articlesService: ArticlesService) {}
@@ -44,11 +49,28 @@ export class ArticlesController {
 		summary: 'Get articles list',
 		description: 'Gets all articles. Supports filtering by status, categoryId, and tag.',
 	})
-	@ApiOkResponse({ description: 'Successful operation', type: [ArticleResponseDto] })
+	@ApiOkResponse({
+		description: 'Successful operation',
+		schema: {
+			oneOf: [
+				{ $ref: getSchemaPath(ArticleResponseDto), type: 'array' },
+				{ $ref: getSchemaPath(ArticlesWithPaginationResponseDto) },
+			],
+		},
+	})
 	@HttpCode(HttpStatus.OK)
-	@Serialize(ArticleResponseDto)
-	findAllByQuery(@Query() getArticlesQueryRequestDto: GetArticlesQueryRequestDto) {
-		return this.articlesService.findAllByQuery(getArticlesQueryRequestDto);
+	findAll(
+		@Query() getArticlesWithPaginationQueryRequestDto: GetArticlesWithPaginationQueryRequestDto,
+	) {
+		const result = this.articlesService.findAll(getArticlesWithPaginationQueryRequestDto);
+		if ('data' in result) {
+			return plainToInstance(ArticlesWithPaginationResponseDto, result, {
+				excludeExtraneousValues: true,
+			});
+		}
+		return plainToInstance(ArticleResponseDto, result, {
+			excludeExtraneousValues: true,
+		});
 	}
 
 	@Get(':id')
