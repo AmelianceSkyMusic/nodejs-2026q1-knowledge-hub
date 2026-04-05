@@ -23,6 +23,8 @@ export class CreateUserRequestDto {
 
 	@ApiProperty({
 		example: 'admin',
+		default: 'viewer',
+		enum: USER_ROLES,
 	})
 	@IsOptional()
 	@IsString({ message: ERROR.ROLE.IS_NOT_STRING })

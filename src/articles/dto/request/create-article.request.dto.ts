@@ -19,6 +19,7 @@ export class CreateArticleRequestDto {
 
 	@ApiProperty({
 		default: ARTICLE_STATUS.DRAFT,
+		enum: ARTICLE_STATUS,
 	})
 	@IsOptional()
 	@IsEnum(ARTICLE_STATUS)
