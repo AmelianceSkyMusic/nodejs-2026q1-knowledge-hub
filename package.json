@@ -23,7 +23,8 @@
 		"test:rbac": "cross-env TEST_MODE=auth jest --testPathPattern rbac --noStackTrace --runInBand",
 		"test:watch": "jest --watch",
 		"test:cov": "jest --coverage",
-		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
+		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+		"test:pagination": "jest --testPathPattern users-pagination.e2e.spec.ts articles-pagination.e2e.spec.ts categories-pagination.e2e.spec.ts comments-pagination.e2e.spec.ts --noStackTrace --runInBand"
 	},
 	"dependencies": {
 		"@nestjs/common": "^10.4.16",
