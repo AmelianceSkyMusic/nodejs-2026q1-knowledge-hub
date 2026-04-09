@@ -1,6 +1,5 @@
-import type { Id } from 'src/common/types/id';
-
-import type { ArticleStatus } from '../types/article-status';
+import type { ArticleStatus } from 'src/_shared/articles/types/article-status';
+import type { Id } from 'src/_shared/common/schemas/id.schema';
 
 export class ArticleEntity {
 	id: Id;

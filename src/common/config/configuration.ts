@@ -1,4 +1,5 @@
 export default () => ({
-	port: parseInt(process.env.PORT, 10) || 4000,
+	port: Number(process.env.PORT) || 4000,
 	apiPrefix: process.env.API_PREFIX || '',
+	nodeEnv: process.env.NODE_ENV || 'production',
 });

@@ -6,17 +6,15 @@ import {
 	UnprocessableEntityException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { Id } from 'src/_shared/common/schemas/id.schema';
 import { ArticlesService } from 'src/articles/articles.service';
-import { Id } from 'src/common/types/id';
 import { sort } from 'src/common/utils/sort.util';
 
-import { CreateCommentRequestDto } from './dto/request/create-comment.request.dto';
-import { GetCommentsWithPaginationQueryRequestDto } from './dto/request/get-comment-with-pagination-query.request.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { GetCommentsWithPaginationQueryDto } from './dto/get-comment-with-pagination-query.dto';
 import { CommentsRepository } from './repositories/comments.repository';
 
-import { COMMENT_SORT_BY } from './constants/comment-sort-by';
-import { ERROR } from 'src/common/constants/error';
-import { ORDER } from 'src/common/constants/order';
+import { ERROR } from 'src/_shared/common/constants/error';
 
 @Injectable()
 export class CommentsService {
@@ -26,16 +24,8 @@ export class CommentsService {
 		private readonly commentsRepository: CommentsRepository,
 	) {}
 
-	findAllForArticle(
-		getCommentsWithPaginationQueryRequestDto: GetCommentsWithPaginationQueryRequestDto,
-	) {
-		const {
-			articleId,
-			page,
-			limit = 10,
-			sortBy = COMMENT_SORT_BY.CREATED_AT,
-			order = ORDER.ASC,
-		} = getCommentsWithPaginationQueryRequestDto;
+	findAllForArticle(getCommentsWithPaginationQueryDto: GetCommentsWithPaginationQueryDto) {
+		const { articleId, page, limit, sortBy, order } = getCommentsWithPaginationQueryDto;
 
 		const allComments = this.commentsRepository.findAll();
 
@@ -50,8 +40,8 @@ export class CommentsService {
 
 		return {
 			total: filteredAndSorted.length,
-			page: Number(page),
-			limit: Number(limit),
+			page,
+			limit,
 			data: paginatedData,
 		};
 	}
@@ -62,16 +52,17 @@ export class CommentsService {
 		return comment;
 	}
 
-	create(createCommentRequestDto: CreateCommentRequestDto) {
-		const article = this.articlesService.findOne(createCommentRequestDto.articleId);
+	create(createCommentDto: CreateCommentDto) {
+		const article = this.articlesService.findOne(createCommentDto.articleId);
 		if (!article) throw new UnprocessableEntityException(ERROR.ARTICLE.NOT_FOUND);
 
+		const timestamp = Date.now();
+
 		const newComment = {
-			...createCommentRequestDto,
-			authorId: createCommentRequestDto.authorId ?? null,
+			...createCommentDto,
 			id: randomUUID(),
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
+			createdAt: timestamp,
+			updatedAt: timestamp,
 		};
 		return this.commentsRepository.create(newComment);
 	}

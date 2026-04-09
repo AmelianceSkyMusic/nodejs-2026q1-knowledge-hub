@@ -1,18 +1,16 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { Id } from 'src/_shared/common/schemas/id.schema';
 import { ArticlesService } from 'src/articles/articles.service';
 import { CommentsService } from 'src/comments/comments.service';
-import { Id } from 'src/common/types/id';
 import { sort } from 'src/common/utils/sort.util';
 
-import { CreateUserRequestDto } from './dto/request/create-user.request.dto';
-import { GetUsersWithPaginationQueryRequestDto } from './dto/request/get-user-with-pagination-query.request.dto';
-import { UpdatePasswordRequestDto } from './dto/request/update-password.request.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { GetUsersWithPaginationQueryDto } from './dto/get-user-with-pagination-query.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UsersRepository } from './repository/users.repository';
 
-import { USER_SORT_BY } from './constants/user-sort-by';
-import { ERROR } from 'src/common/constants/error';
-import { ORDER } from 'src/common/constants/order';
+import { ERROR } from 'src/_shared/common/constants/error';
 
 @Injectable()
 export class UsersService {
@@ -22,13 +20,8 @@ export class UsersService {
 		private readonly usersRepository: UsersRepository,
 	) {}
 
-	findAll(getUsersWithPaginationQueryRequestDto: GetUsersWithPaginationQueryRequestDto) {
-		const {
-			page,
-			limit = 10,
-			sortBy = USER_SORT_BY.LOGIN,
-			order = ORDER.ASC,
-		} = getUsersWithPaginationQueryRequestDto;
+	findAll(getUsersWithPaginationQueryDto: GetUsersWithPaginationQueryDto) {
+		const { page, limit, sortBy, order } = getUsersWithPaginationQueryDto;
 
 		const allUsers = this.usersRepository.findAll();
 
@@ -41,8 +34,8 @@ export class UsersService {
 
 		return {
 			total: sortedUsers.length,
-			page: Number(page),
-			limit: Number(limit),
+			page,
+			limit,
 			data: paginatedData,
 		};
 	}
@@ -54,31 +47,35 @@ export class UsersService {
 		return user;
 	}
 
-	create(createUserRequestDto: CreateUserRequestDto) {
+	create(createUserDto: CreateUserDto) {
+		const timestamp = Date.now();
 		const newUser = {
-			...createUserRequestDto,
-			role: createUserRequestDto.role ?? 'viewer',
+			...createUserDto,
 			id: randomUUID(),
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
+			createdAt: timestamp,
+			updatedAt: timestamp,
 		};
 		return this.usersRepository.create(newUser);
 	}
 
-	updatePassword(userId: Id, updatePasswordRequestDto: UpdatePasswordRequestDto) {
+	updatePassword(userId: Id, updatePasswordDto: UpdatePasswordDto) {
 		const user = this.usersRepository.findOne(userId);
 		if (!user) throw new NotFoundException(ERROR.USER.NOT_FOUND);
 
-		if (user.password !== updatePasswordRequestDto.oldPassword) {
+		if (user.password !== updatePasswordDto.oldPassword) {
 			throw new ForbiddenException(ERROR.PASSWORD.INVALID);
 		}
 
 		const updatedUser = {
 			...user,
-			password: updatePasswordRequestDto.newPassword,
+			password: updatePasswordDto.newPassword,
 			updatedAt: Date.now(),
 		};
-		return this.usersRepository.update(userId, updatedUser);
+
+		const result = this.usersRepository.update(userId, updatedUser);
+		if (!result) throw new NotFoundException(ERROR.USER.NOT_FOUND);
+
+		return result;
 	}
 
 	remove(userId: Id) {

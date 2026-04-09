@@ -6,13 +6,13 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
-	ParseUUIDPipe,
 	Post,
 	Query,
 } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
 	ApiCreatedResponse,
+	ApiExtraModels,
 	ApiNoContentResponse,
 	ApiNotFoundResponse,
 	ApiOkResponse,
@@ -22,19 +22,19 @@ import {
 	ApiTags,
 	getSchemaPath,
 } from '@nestjs/swagger';
-import { plainToInstance } from 'class-transformer';
-import { Serialize } from 'src/common/interceptors/serialize.interceptor';
-import { Id } from 'src/common/types/id';
+import { ZodResponse } from 'nestjs-zod';
+import { IdParamDto } from 'src/_shared/common/dto/id-param.dto';
 
 import { CommentsService } from './comments.service';
-import { CreateCommentRequestDto } from './dto/request/create-comment.request.dto';
-import { GetCommentsWithPaginationQueryRequestDto } from './dto/request/get-comment-with-pagination-query.request.dto';
-import { CommentResponseDto } from './dto/response/comment.response.dto';
-import { CommentsWithPaginationResponseDto } from './dto/response/comments-with-pagination.response.dto';
+import { CommentDto } from './dto/comment.dto';
+import { CommentsWithPaginationDto } from './dto/comments-with-pagination.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { GetCommentsWithPaginationQueryDto } from './dto/get-comment-with-pagination-query.dto';
 
 import { SWAGGER } from 'src/common/constants/swagger';
 
 @ApiTags('Comment')
+@ApiExtraModels(CommentsWithPaginationDto)
 @Controller('comment')
 export class CommentsController {
 	constructor(private readonly commentsService: CommentsService) {}
@@ -48,8 +48,8 @@ export class CommentsController {
 		description: 'Successful operation',
 		schema: {
 			oneOf: [
-				{ $ref: getSchemaPath(CommentResponseDto), type: 'array' },
-				{ $ref: getSchemaPath(CommentsWithPaginationResponseDto) },
+				{ $ref: getSchemaPath(CommentDto), type: 'array' },
+				{ $ref: getSchemaPath(CommentsWithPaginationDto) },
 			],
 		},
 	})
@@ -62,24 +62,16 @@ export class CommentsController {
 	@HttpCode(HttpStatus.OK)
 	findAllForArticle(
 		@Query()
-		getCommentsWithPaginationQueryRequestDto: GetCommentsWithPaginationQueryRequestDto,
+		getCommentsWithPaginationQueryDto: GetCommentsWithPaginationQueryDto,
 	) {
-		const result = this.commentsService.findAllForArticle(
-			getCommentsWithPaginationQueryRequestDto,
-		);
-		if ('data' in result) {
-			return plainToInstance(CommentsWithPaginationResponseDto, result, {
-				excludeExtraneousValues: true,
-			});
-		}
-		return plainToInstance(CommentResponseDto, result, {
-			excludeExtraneousValues: true,
-		});
+		const result = this.commentsService.findAllForArticle(getCommentsWithPaginationQueryDto);
+		if ('data' in result) return CommentsWithPaginationDto.create(result);
+		return result.map((item) => CommentDto.create(item));
 	}
 
 	@Get(':id')
 	@ApiOperation({ summary: 'Get single comment by id', description: 'Gets single comment by id' })
-	@ApiOkResponse({ description: 'Successful operation', type: CommentResponseDto })
+	@ApiOkResponse({ description: 'Successful operation', type: CommentDto })
 	@ApiBadRequestResponse({ description: 'Bad request. CommentId is invalid (not uuid)' })
 	@ApiNotFoundResponse({ description: 'Comment was not found' })
 	@ApiParam({
@@ -89,11 +81,8 @@ export class CommentsController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.OK)
-	@Serialize(CommentResponseDto)
-	findById(
-		@Param('id', new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
-		id: Id,
-	) {
+	@ZodResponse({ type: CommentDto })
+	findById(@Param() { id }: IdParamDto) {
 		return this.commentsService.findById(id);
 	}
 
@@ -102,12 +91,12 @@ export class CommentsController {
 		summary: 'Create comment',
 		description: 'Creates a new comment',
 	})
-	@ApiCreatedResponse({ description: 'Comment is created', type: CommentResponseDto })
+	@ApiCreatedResponse({ description: 'Comment is created', type: CommentDto })
 	@ApiBadRequestResponse({ description: 'Bad request. Body does not contain required fields' })
 	@HttpCode(HttpStatus.CREATED)
-	@Serialize(CommentResponseDto)
-	create(@Body() createCommentRequestDto: CreateCommentRequestDto) {
-		return this.commentsService.create(createCommentRequestDto);
+	@ZodResponse({ type: CommentDto })
+	create(@Body() createCommentDto: CreateCommentDto) {
+		return this.commentsService.create(createCommentDto);
 	}
 
 	@Delete(':id')
@@ -125,10 +114,7 @@ export class CommentsController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.NO_CONTENT)
-	remove(
-		@Param('id', new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
-		id: Id,
-	) {
+	remove(@Param() { id }: IdParamDto) {
 		return this.commentsService.remove(id);
 	}
 }

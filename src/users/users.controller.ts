@@ -6,7 +6,6 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
-	ParseUUIDPipe,
 	Post,
 	Put,
 	Query,
@@ -14,6 +13,7 @@ import {
 import {
 	ApiBadRequestResponse,
 	ApiCreatedResponse,
+	ApiExtraModels,
 	ApiNoContentResponse,
 	ApiNotFoundResponse,
 	ApiOkResponse,
@@ -22,20 +22,20 @@ import {
 	ApiTags,
 	getSchemaPath,
 } from '@nestjs/swagger';
-import { plainToInstance } from 'class-transformer';
-import { Serialize } from 'src/common/interceptors/serialize.interceptor';
-import { Id } from 'src/common/types/id';
+import { ZodResponse } from 'nestjs-zod';
+import { IdParamDto } from 'src/_shared/common/dto/id-param.dto';
 
-import { CreateUserRequestDto } from './dto/request/create-user.request.dto';
-import { GetUsersWithPaginationQueryRequestDto } from './dto/request/get-user-with-pagination-query.request.dto';
-import { UpdatePasswordRequestDto } from './dto/request/update-password.request.dto';
-import { UserResponseDto } from './dto/response/user.response.dto';
-import { UsersWithPaginationResponseDto } from './dto/response/users-with-pagination.response.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { GetUsersWithPaginationQueryDto } from './dto/get-user-with-pagination-query.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UserDto } from './dto/user.dto';
+import { UsersWithPaginationDto } from './dto/users-with-pagination.dto';
 import { UsersService } from './users.service';
 
 import { SWAGGER } from 'src/common/constants/swagger';
 
 @ApiTags('User')
+@ApiExtraModels(UsersWithPaginationDto)
 @Controller('user')
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
@@ -49,47 +49,35 @@ export class UsersController {
 		description: 'Successful operation',
 		schema: {
 			oneOf: [
-				{ $ref: getSchemaPath(UserResponseDto), type: 'array' },
-				{ $ref: getSchemaPath(UsersWithPaginationResponseDto) },
+				{ $ref: getSchemaPath(UserDto), type: 'array' },
+				{ $ref: getSchemaPath(UsersWithPaginationDto) },
 			],
 		},
 	})
 	@HttpCode(HttpStatus.OK)
 	findAll(
 		@Query()
-		getUsersWithPaginationQueryRequestDto: GetUsersWithPaginationQueryRequestDto,
+		getUsersWithPaginationQueryDto: GetUsersWithPaginationQueryDto,
 	) {
-		const result = this.usersService.findAll(getUsersWithPaginationQueryRequestDto);
-		if ('data' in result) {
-			return plainToInstance(UsersWithPaginationResponseDto, result, {
-				excludeExtraneousValues: true,
-			});
-		}
-		return plainToInstance(UserResponseDto, result, {
-			excludeExtraneousValues: true,
-		});
+		const result = this.usersService.findAll(getUsersWithPaginationQueryDto);
+		if ('data' in result) return UsersWithPaginationDto.create(result);
+		return result.map((user) => UserDto.create(user));
 	}
 
-	@Get(':userId')
+	@Get(':id')
 	@ApiOperation({ summary: 'Get single user by id', description: 'Gets single user by id' })
-	@ApiOkResponse({ description: 'Successful operation', type: UserResponseDto })
+	@ApiOkResponse({ description: 'Successful operation', type: UserDto })
 	@ApiBadRequestResponse({ description: 'Bad request. UserId is invalid (not uuid)' })
 	@ApiNotFoundResponse({ description: 'User was not found' })
 	@ApiParam({
-		name: 'userId',
+		name: 'id',
 		required: true,
 		description: 'User id',
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.OK)
-	@Serialize(UserResponseDto)
-	findOne(
-		@Param(
-			'userId',
-			new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
-		)
-		userId: Id,
-	) {
+	@ZodResponse({ type: UserDto })
+	findOne(@Param() { id: userId }: IdParamDto) {
 		return this.usersService.findOne(userId);
 	}
 
@@ -98,42 +86,38 @@ export class UsersController {
 		summary: 'Create user',
 		description: 'Creates a new user (admin only)',
 	})
-	@ApiCreatedResponse({ description: 'User is created', type: UserResponseDto })
+	@ApiCreatedResponse({ description: 'User is created', type: UserDto })
 	@ApiBadRequestResponse({ description: 'Bad request. Body does not contain required fields' })
 	@HttpCode(HttpStatus.CREATED)
-	@Serialize(UserResponseDto)
-	create(@Body() createUserRequestDto: CreateUserRequestDto) {
-		return this.usersService.create(createUserRequestDto);
+	@ZodResponse({ type: UserDto })
+	create(@Body() createUserDto: CreateUserDto) {
+		return this.usersService.create(createUserDto);
 	}
 
-	@Put(':userId')
+	@Put(':id')
 	@ApiOperation({
 		summary: 'Update user password',
 		description: 'Update user password by ID',
 	})
-	@ApiOkResponse({ description: 'The user has been updated', type: UserResponseDto })
+	@ApiOkResponse({ description: 'The user has been updated', type: UserDto })
 	@ApiBadRequestResponse({ description: 'Bad request. UserId is invalid (not uuid)' })
 	@ApiNotFoundResponse({ description: 'User was not found' })
 	@ApiParam({
-		name: 'userId',
+		name: 'id',
 		required: true,
 		description: 'User id',
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.OK)
-	@Serialize(UserResponseDto)
+	@ZodResponse({ type: UserDto })
 	updatePassword(
-		@Param(
-			'userId',
-			new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
-		)
-		userId: Id,
-		@Body() updatePasswordRequestDto: UpdatePasswordRequestDto,
+		@Param() { id: userId }: IdParamDto,
+		@Body() updatePasswordDto: UpdatePasswordDto,
 	) {
-		return this.usersService.updatePassword(userId, updatePasswordRequestDto);
+		return this.usersService.updatePassword(userId, updatePasswordDto);
 	}
 
-	@Delete(':userId')
+	@Delete(':id')
 	@ApiOperation({
 		summary: 'Delete user',
 		description:
@@ -143,19 +127,13 @@ export class UsersController {
 	@ApiBadRequestResponse({ description: 'Bad request. UserId is invalid (not uuid)' })
 	@ApiNotFoundResponse({ description: 'User was not found' })
 	@ApiParam({
-		name: 'userId',
+		name: 'id',
 		required: true,
 		description: 'User id',
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.NO_CONTENT)
-	remove(
-		@Param(
-			'userId',
-			new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }),
-		)
-		userId: Id,
-	) {
+	remove(@Param() { id: userId }: IdParamDto) {
 		return this.usersService.remove(userId);
 	}
 }
