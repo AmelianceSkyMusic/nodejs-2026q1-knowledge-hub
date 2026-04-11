@@ -1,21 +1,14 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 import { AppModule } from './app.module';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
-
-	app.useGlobalPipes(
-		new ValidationPipe({
-			whitelist: true,
-			forbidNonWhitelisted: true,
-			transform: true,
-		}),
-	);
 
 	const config = new DocumentBuilder()
 		.setTitle('Knowledge Hub')
@@ -28,9 +21,11 @@ async function bootstrap() {
 		.build();
 
 	const documentFactory = () =>
-		SwaggerModule.createDocument(app, config, {
-			operationIdFactory: (_controllerKey: string, methodKey: string) => methodKey,
-		});
+		cleanupOpenApiDoc(
+			SwaggerModule.createDocument(app, config, {
+				operationIdFactory: (_controllerKey: string, methodKey: string) => methodKey,
+			}),
+		);
 
 	SwaggerModule.setup('doc/swagger', app, documentFactory, {
 		jsonDocumentUrl: 'doc/json',

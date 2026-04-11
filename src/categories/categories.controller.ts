@@ -6,7 +6,6 @@ import {
 	HttpCode,
 	HttpStatus,
 	Param,
-	ParseUUIDPipe,
 	Post,
 	Put,
 	Query,
@@ -14,6 +13,7 @@ import {
 import {
 	ApiBadRequestResponse,
 	ApiCreatedResponse,
+	ApiExtraModels,
 	ApiNoContentResponse,
 	ApiNotFoundResponse,
 	ApiOkResponse,
@@ -22,53 +22,43 @@ import {
 	ApiTags,
 	getSchemaPath,
 } from '@nestjs/swagger';
-import { plainToInstance } from 'class-transformer';
-import { Serialize } from 'src/common/interceptors/serialize.interceptor';
-import { Id } from 'src/common/types/id';
+import { ZodResponse } from 'nestjs-zod';
+import { IdParamDto } from 'src/_shared/common/dto/id-param.dto';
 
 import { CategoriesService } from './categories.service';
-import { CreateCategoryRequestDto } from './dto/request/create-category.request.dto';
-import { GetCategoriesWithPaginationQueryRequestDto } from './dto/request/get-categories-with-pagination-query.request.dto';
-import { UpdateCategoryRequestDto } from './dto/request/update-category.request.dto';
-import { CategoriesWithPaginationResponseDto } from './dto/response/categories-with-pagination.response.dto';
-import { CategoryResponseDto } from './dto/response/category.response.dto';
+import { CategoriesWithPaginationDto } from './dto/categories-with-pagination.dto';
+import { CategoryDto } from './dto/category.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { GetCategoriesWithPaginationQueryDto } from './dto/get-categories-with-pagination-query.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
 import { SWAGGER } from 'src/common/constants/swagger';
 
 @ApiTags('Category')
+@ApiExtraModels(CategoriesWithPaginationDto)
 @Controller('category')
 export class CategoriesController {
 	constructor(private readonly categoriesService: CategoriesService) {}
 
 	@Get()
-	@ApiOperation({
-		summary: 'Get all categories',
-		description: 'Gets all categories.',
-	})
-	@ApiOkResponse({ description: 'Successful operation', type: [CategoryResponseDto] })
+	@ApiOperation({ summary: 'Get all categories', description: 'Gets all categories' })
 	@ApiOkResponse({
 		description: 'Successful operation',
 		schema: {
 			oneOf: [
-				{ $ref: getSchemaPath(CategoryResponseDto), type: 'array' },
-				{ $ref: getSchemaPath(CategoriesWithPaginationResponseDto) },
+				{ $ref: getSchemaPath(CategoryDto), type: 'array' },
+				{ $ref: getSchemaPath(CategoriesWithPaginationDto) },
 			],
 		},
 	})
 	@HttpCode(HttpStatus.OK)
 	findAll(
 		@Query()
-		getCategoriesWithPaginationQueryRequestDto: GetCategoriesWithPaginationQueryRequestDto,
+		getCategoriesWithPaginationQueryDto: GetCategoriesWithPaginationQueryDto,
 	) {
-		const result = this.categoriesService.findAll(getCategoriesWithPaginationQueryRequestDto);
-		if ('data' in result) {
-			return plainToInstance(CategoriesWithPaginationResponseDto, result, {
-				excludeExtraneousValues: true,
-			});
-		}
-		return plainToInstance(CategoryResponseDto, result, {
-			excludeExtraneousValues: true,
-		});
+		const result = this.categoriesService.findAll(getCategoriesWithPaginationQueryDto);
+		if ('data' in result) return CategoriesWithPaginationDto.create(result);
+		return result.map((item) => CategoryDto.create(item));
 	}
 
 	@Get(':id')
@@ -76,7 +66,7 @@ export class CategoriesController {
 		summary: 'Get single category by id',
 		description: 'Gets single category by id',
 	})
-	@ApiOkResponse({ description: 'Successful operation', type: CategoryResponseDto })
+	@ApiOkResponse({ description: 'Successful operation', type: CategoryDto })
 	@ApiBadRequestResponse({ description: 'Bad request. CategoryId is invalid (not uuid)' })
 	@ApiNotFoundResponse({ description: 'Category was not found' })
 	@ApiParam({
@@ -86,11 +76,8 @@ export class CategoriesController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.OK)
-	@Serialize(CategoryResponseDto)
-	findOne(
-		@Param('id', new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
-		id: Id,
-	) {
+	@ZodResponse({ type: CategoryDto })
+	findOne(@Param() { id }: IdParamDto) {
 		return this.categoriesService.findOne(id);
 	}
 
@@ -99,12 +86,12 @@ export class CategoriesController {
 		summary: 'Add new category',
 		description: 'Add new category (admin only)',
 	})
-	@ApiCreatedResponse({ description: 'Category is created', type: CategoryResponseDto })
+	@ApiCreatedResponse({ description: 'Category is created', type: CategoryDto })
 	@ApiBadRequestResponse({ description: 'Bad request. Body does not contain required fields' })
 	@HttpCode(HttpStatus.CREATED)
-	@Serialize(CategoryResponseDto)
-	create(@Body() createCategoryRequestDto: CreateCategoryRequestDto) {
-		return this.categoriesService.create(createCategoryRequestDto);
+	@ZodResponse({ type: CategoryDto })
+	create(@Body() createCategoryDto: CreateCategoryDto) {
+		return this.categoriesService.create(createCategoryDto);
 	}
 
 	@Put(':id')
@@ -112,7 +99,7 @@ export class CategoriesController {
 		summary: 'Update category information',
 		description: 'Update category information by UUID (admin only)',
 	})
-	@ApiOkResponse({ description: 'The category has been updated', type: CategoryResponseDto })
+	@ApiOkResponse({ description: 'The category has been updated', type: CategoryDto })
 	@ApiBadRequestResponse({ description: 'Bad request. CategoryId is invalid (not uuid)' })
 	@ApiNotFoundResponse({ description: 'Category was not found' })
 	@ApiParam({
@@ -122,13 +109,9 @@ export class CategoriesController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.OK)
-	@Serialize(CategoryResponseDto)
-	update(
-		@Param('id', new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
-		id: Id,
-		@Body() updateCategoryRequestDto: UpdateCategoryRequestDto,
-	) {
-		return this.categoriesService.update(id, updateCategoryRequestDto);
+	@ZodResponse({ type: CategoryDto })
+	update(@Param() { id }: IdParamDto, @Body() updateCategoryDto: UpdateCategoryDto) {
+		return this.categoriesService.update(id, updateCategoryDto);
 	}
 
 	@Delete(':id')
@@ -146,10 +129,7 @@ export class CategoriesController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.NO_CONTENT)
-	remove(
-		@Param('id', new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
-		id: Id,
-	) {
+	remove(@Param() { id }: IdParamDto) {
 		return this.categoriesService.remove(id);
 	}
 }

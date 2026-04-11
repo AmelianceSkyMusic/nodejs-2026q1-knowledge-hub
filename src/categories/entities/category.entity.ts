@@ -1,4 +1,4 @@
-import type { Id } from 'src/common/types/id';
+import type { Id } from 'src/_shared/common/schemas/id.schema';
 
 export class CategoryEntity {
 	id: Id;

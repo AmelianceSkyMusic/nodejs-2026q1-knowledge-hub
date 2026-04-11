@@ -7,7 +7,6 @@ import {
 	HttpStatus,
 	NotFoundException,
 	Param,
-	ParseUUIDPipe,
 	Post,
 	Put,
 	Query,
@@ -24,22 +23,21 @@ import {
 	ApiTags,
 	getSchemaPath,
 } from '@nestjs/swagger';
-import { plainToInstance } from 'class-transformer';
-import { Serialize } from 'src/common/interceptors/serialize.interceptor';
-import { Id } from 'src/common/types/id';
+import { ZodResponse } from 'nestjs-zod';
+import { IdParamDto } from 'src/_shared/common/dto/id-param.dto';
 
 import { ArticlesService } from './articles.service';
-import { CreateArticleRequestDto } from './dto/request/create-article.request.dto';
-import { GetArticlesWithPaginationQueryRequestDto } from './dto/request/get-articles-with-pagination-query.request.dto';
-import { UpdateArticleRequestDto } from './dto/request/update-article.request.dto';
-import { ArticleResponseDto } from './dto/response/article.response.dto';
-import { ArticlesWithPaginationResponseDto } from './dto/response/articles-with-pagination.response.dto';
+import { ArticleDto } from './dto/article.dto';
+import { ArticlesWithPaginationDto } from './dto/articles-with-pagination.dto';
+import { CreateArticleDto } from './dto/create-article.dto';
+import { GetArticlesWithPaginationQueryDto } from './dto/get-articles-with-pagination.query.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
 
-import { ERROR } from 'src/common/constants/error';
+import { ERROR } from 'src/_shared/common/constants/error';
 import { SWAGGER } from 'src/common/constants/swagger';
 
 @ApiTags('Article')
-@ApiExtraModels(ArticlesWithPaginationResponseDto)
+@ApiExtraModels(ArticlesWithPaginationDto)
 @Controller('article')
 export class ArticlesController {
 	constructor(private readonly articlesService: ArticlesService) {}
@@ -53,29 +51,21 @@ export class ArticlesController {
 		description: 'Successful operation',
 		schema: {
 			oneOf: [
-				{ $ref: getSchemaPath(ArticleResponseDto), type: 'array' },
-				{ $ref: getSchemaPath(ArticlesWithPaginationResponseDto) },
+				{ $ref: getSchemaPath(ArticleDto), type: 'array' },
+				{ $ref: getSchemaPath(ArticlesWithPaginationDto) },
 			],
 		},
 	})
 	@HttpCode(HttpStatus.OK)
-	findAll(
-		@Query() getArticlesWithPaginationQueryRequestDto: GetArticlesWithPaginationQueryRequestDto,
-	) {
-		const result = this.articlesService.findAll(getArticlesWithPaginationQueryRequestDto);
-		if ('data' in result) {
-			return plainToInstance(ArticlesWithPaginationResponseDto, result, {
-				excludeExtraneousValues: true,
-			});
-		}
-		return plainToInstance(ArticleResponseDto, result, {
-			excludeExtraneousValues: true,
-		});
+	findAll(@Query() getArticlesWithPaginationQueryDto: GetArticlesWithPaginationQueryDto) {
+		const result = this.articlesService.findAll(getArticlesWithPaginationQueryDto);
+		if ('data' in result) return ArticlesWithPaginationDto.create(result);
+		return result.map((article) => ArticleDto.create(article));
 	}
 
 	@Get(':id')
 	@ApiOperation({ summary: 'Get single article by id', description: 'Gets single article by id' })
-	@ApiOkResponse({ description: 'Successful operation', type: ArticleResponseDto })
+	@ApiOkResponse({ description: 'Successful operation', type: ArticleDto })
 	@ApiBadRequestResponse({ description: 'Bad request. ArticleId is invalid (not uuid)' })
 	@ApiNotFoundResponse({ description: 'Article was not found' })
 	@ApiParam({
@@ -85,11 +75,8 @@ export class ArticlesController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.OK)
-	@Serialize(ArticleResponseDto)
-	findOne(
-		@Param('id', new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
-		id: Id,
-	) {
+	@ZodResponse({ type: ArticleDto })
+	findOne(@Param() { id }: IdParamDto) {
 		const article = this.articlesService.findOne(id);
 		if (!article) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
 		return article;
@@ -100,12 +87,12 @@ export class ArticlesController {
 		summary: 'Add new article',
 		description: 'Add new article (editor can create own, admin can create any)',
 	})
-	@ApiCreatedResponse({ description: 'Article is created', type: ArticleResponseDto })
+	@ApiCreatedResponse({ description: 'Article is created', type: ArticleDto })
 	@ApiBadRequestResponse({ description: 'Bad request. Body does not contain required fields' })
 	@HttpCode(HttpStatus.CREATED)
-	@Serialize(ArticleResponseDto)
-	create(@Body() createArticleRequestDto: CreateArticleRequestDto) {
-		return this.articlesService.create(createArticleRequestDto);
+	@ZodResponse({ type: ArticleDto })
+	create(@Body() createArticleDto: CreateArticleDto) {
+		return this.articlesService.create(createArticleDto);
 	}
 
 	@Put(':id')
@@ -113,7 +100,7 @@ export class ArticlesController {
 		summary: 'Update article information',
 		description: 'Update article by UUID (editor can update own, admin can update any)',
 	})
-	@ApiOkResponse({ description: 'The article has been updated', type: ArticleResponseDto })
+	@ApiOkResponse({ description: 'The article has been updated', type: ArticleDto })
 	@ApiBadRequestResponse({ description: 'Bad request. ArticleId is invalid (not uuid)' })
 	@ApiNotFoundResponse({ description: 'Article was not found' })
 	@ApiParam({
@@ -123,13 +110,9 @@ export class ArticlesController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.OK)
-	@Serialize(ArticleResponseDto)
-	update(
-		@Param('id', new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
-		id: Id,
-		@Body() updateArticleRequestDto: UpdateArticleRequestDto,
-	) {
-		return this.articlesService.update(id, updateArticleRequestDto);
+	@ZodResponse({ type: ArticleDto })
+	update(@Param() { id }: IdParamDto, @Body() updateArticleDto: UpdateArticleDto) {
+		return this.articlesService.update(id, updateArticleDto);
 	}
 
 	@Delete(':id')
@@ -147,10 +130,7 @@ export class ArticlesController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.NO_CONTENT)
-	remove(
-		@Param('id', new ParseUUIDPipe({ version: '4', errorHttpStatusCode: HttpStatus.BAD_REQUEST }))
-		id: Id,
-	) {
+	remove(@Param() { id }: IdParamDto) {
 		return this.articlesService.remove(id);
 	}
 }

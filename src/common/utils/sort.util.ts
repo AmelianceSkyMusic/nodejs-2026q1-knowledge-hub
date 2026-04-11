@@ -1,6 +1,6 @@
-import { ORDER } from '../constants/order';
+import { ORDER } from 'src/_shared/common/constants/order';
 
-import type { Order } from '../types/order';
+import type { Order } from 'src/_shared/common/types/order';
 
 export function sort<T>(data: T[], sortBy: keyof T, order: Order): T[] {
 	return [...data].sort((a, b) => {

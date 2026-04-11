@@ -1,17 +1,15 @@
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { Id } from 'src/_shared/common/schemas/id.schema';
 import { CommentsService } from 'src/comments/comments.service';
-import { Id } from 'src/common/types/id';
 import { sort } from 'src/common/utils/sort.util';
 
-import { CreateArticleRequestDto } from './dto/request/create-article.request.dto';
-import { GetArticlesWithPaginationQueryRequestDto } from './dto/request/get-articles-with-pagination-query.request.dto';
-import { UpdateArticleRequestDto } from './dto/request/update-article.request.dto';
+import { CreateArticleDto } from './dto/create-article.dto';
+import { GetArticlesWithPaginationQueryDto } from './dto/get-articles-with-pagination.query.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticlesRepository } from './repositories/articles.repository';
 
-import { ORDER } from '../common/constants/order';
-import { ARTICLE_SORT_BY } from './constants/article-sort-by';
-import { ERROR } from 'src/common/constants/error';
+import { ERROR } from 'src/_shared/common/constants/error';
 
 @Injectable()
 export class ArticlesService {
@@ -21,16 +19,16 @@ export class ArticlesService {
 		private readonly articlesRepository: ArticlesRepository,
 	) {}
 
-	findAll(getArticlesWithPaginationQueryRequestDto: GetArticlesWithPaginationQueryRequestDto) {
+	findAll(getArticlesWithPaginationQueryDto: GetArticlesWithPaginationQueryDto) {
 		const {
 			status,
 			categoryId,
 			tag: tags,
 			page,
-			limit = 10,
-			sortBy = ARTICLE_SORT_BY.CREATED_AT,
-			order = ORDER.DESC,
-		} = getArticlesWithPaginationQueryRequestDto;
+			limit,
+			sortBy,
+			order,
+		} = getArticlesWithPaginationQueryDto;
 
 		const allArticles = this.articlesRepository.findAll();
 		if (!status && !categoryId && !tags && !page) return sort(allArticles, sortBy, order);
@@ -61,30 +59,31 @@ export class ArticlesService {
 		return this.articlesRepository.findOne(id);
 	}
 
-	create(createArticleRequestDto: CreateArticleRequestDto) {
+	create(createArticleDto: CreateArticleDto) {
+		const timestamp = Date.now();
 		const newArticle = {
-			...createArticleRequestDto,
-			authorId: createArticleRequestDto.authorId ?? null,
-			categoryId: createArticleRequestDto.categoryId ?? null,
-			tags: createArticleRequestDto.tags ?? [],
-			status: createArticleRequestDto.status ?? 'draft',
+			...createArticleDto,
 			id: randomUUID(),
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
+			createdAt: timestamp,
+			updatedAt: timestamp,
 		};
 		return this.articlesRepository.create(newArticle);
 	}
 
-	update(id: Id, updateArticleRequestDto: UpdateArticleRequestDto) {
+	update(id: Id, updateArticleDto: UpdateArticleDto) {
 		const article = this.articlesRepository.findOne(id);
 		if (!article) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
 
 		const updatedArticle = {
 			...article,
-			...updateArticleRequestDto,
+			...updateArticleDto,
 			updatedAt: Date.now(),
 		};
-		return this.articlesRepository.update(id, updatedArticle);
+
+		const result = this.articlesRepository.update(id, updatedArticle);
+		if (!result) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
+
+		return result;
 	}
 
 	remove(id: Id) {
