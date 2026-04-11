@@ -4,6 +4,51 @@
 
 - Git - [Download & Install Git](https://git-scm.com/downloads).
 - Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
+- Docker - [Download & Install Docker](https://www.docker.com/get-started).
+
+## Docker
+
+### Docker Hub Image
+
+- [Link to Docker Hub Image →](https://hub.docker.com/r/amelianceskymusic/knowledge-hub-app)
+
+### Running application with Docker
+
+1. Create `.env` file from `.env.example`.
+2. Start services:
+   ```bash
+   docker-compose up --build
+   ```
+3. Database management tools (optional):
+
+   - **Adminer** (lightweight for crosschecking): [http://localhost:8080](http://localhost:8080)
+
+      ```bash
+      docker-compose --profile debug up --build
+      ```
+
+   - **pgAdmin** (feature-rich for development): [http://localhost:8888](http://localhost:8888)
+      ```bash
+      docker-compose --profile pgadmin up --build
+      ```
+
+4. Stop and cleanup:
+
+   - **Basic cleanup** (stops API and Database):
+     ```bash
+     docker-compose down -v
+     ```
+
+   - **Full cleanup** (stops everything including management tools):
+     ```bash
+     docker-compose --profile "*" down -v
+     ```
+
+After startup, you can access:
+
+- **API**: [http://localhost:4000](http://localhost:4000)
+- **Health Check**: [http://localhost:4000/health](http://localhost:4000/health)
+- **Documentation**: [http://localhost:4000/doc](http://localhost:4000/doc)
 
 ## Downloading
 
