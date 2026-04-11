@@ -10,6 +10,7 @@ import configuration from './common/config/configuration';
 import { ZodExceptionFilter } from './common/exception-filters/zod-exception-filter';
 import { LoggerMiddleware } from './common/middleware/logger-middleware.middleware';
 import { CustomZodValidationPipe } from './common/pipes/custom-zod-validation.pipe';
+import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { UsersModule } from './users/users.module';
 		CategoriesModule,
 		UsersModule,
 		CommentsModule,
+		HealthModule,
 	],
 	providers: [
 		{
