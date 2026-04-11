@@ -12,5 +12,10 @@ quote_type = single
 [*.{json,html,css,scss}]
 quote_type = double
 
+[*.{yml,yaml}]
+trim_trailing_whitespace = false
+indent_style = space
+indent_size = 3
+
 [*.md]
 trim_trailing_whitespace = false
