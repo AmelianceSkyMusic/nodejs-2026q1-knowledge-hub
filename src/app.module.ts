@@ -11,6 +11,7 @@ import { ZodExceptionFilter } from './common/exception-filters/zod-exception-fil
 import { LoggerMiddleware } from './common/middleware/logger-middleware.middleware';
 import { CustomZodValidationPipe } from './common/pipes/custom-zod-validation.pipe';
 import { HealthModule } from './health/health.module';
+import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -21,6 +22,7 @@ import { UsersModule } from './users/users.module';
 		UsersModule,
 		CommentsModule,
 		HealthModule,
+		PrismaModule,
 	],
 	providers: [
 		{
