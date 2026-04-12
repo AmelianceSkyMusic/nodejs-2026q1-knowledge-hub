@@ -1,5 +1,5 @@
 import type { Prisma } from 'generated/prisma/client';
-import type { Article } from 'src/_shared/articles/schemas/article.schema';
+import type { Article } from 'shared/articles/schemas/article.schema';
 
 export type ArticleWithRelations = Prisma.ArticleGetPayload<{
 	include: { tags: true; author: true; category: true };

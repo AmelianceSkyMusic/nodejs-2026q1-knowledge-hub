@@ -5,13 +5,13 @@ import {
 	UnprocessableEntityException,
 } from '@nestjs/common';
 import { Prisma } from 'generated/prisma/client';
-import { CreateComment } from 'src/_shared/comments/schemas/create-comment.schema';
-import { GetCommentsWithPaginationQuery } from 'src/_shared/comments/schemas/get-comment-with-pagination-query.schema';
-import { Id } from 'src/_shared/common/schemas/id.schema';
+import { CreateComment } from 'shared/comments/schemas/create-comment.schema';
+import { GetCommentsWithPaginationQuery } from 'shared/comments/schemas/get-comment-with-pagination-query.schema';
+import { Id } from 'shared/common/schemas/id.schema';
 
 import { CommentsRepository } from './repositories/comments.repository';
 
-import { ERROR } from 'src/_shared/common/constants/error';
+import { ERROR } from 'shared/common/constants/error';
 
 @Injectable()
 export class CommentsService {

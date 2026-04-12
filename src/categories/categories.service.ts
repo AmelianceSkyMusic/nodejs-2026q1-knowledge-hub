@@ -1,13 +1,13 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from 'generated/prisma/client';
-import { CreateCategory } from 'src/_shared/categories/schemas/create-category.schema';
-import { GetCategoriesWithPaginationQuery } from 'src/_shared/categories/schemas/get-categories-with-pagination-query.schema';
-import { UpdateCategory } from 'src/_shared/categories/schemas/update-category.schema';
-import { Id } from 'src/_shared/common/schemas/id.schema';
+import { CreateCategory } from 'shared/categories/schemas/create-category.schema';
+import { GetCategoriesWithPaginationQuery } from 'shared/categories/schemas/get-categories-with-pagination-query.schema';
+import { UpdateCategory } from 'shared/categories/schemas/update-category.schema';
+import { Id } from 'shared/common/schemas/id.schema';
 
 import { CategoriesRepository } from './repositories/categories.repository';
 
-import { ERROR } from 'src/_shared/common/constants/error';
+import { ERROR } from 'shared/common/constants/error';
 
 @Injectable()
 export class CategoriesService {

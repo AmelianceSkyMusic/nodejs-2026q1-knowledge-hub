@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { GetArticlesWithPaginationQuerySchema } from 'src/_shared/articles/schemas/get-articles-with-pagination.query.schema';
+import { GetArticlesWithPaginationQuerySchema } from 'shared/articles/schemas/get-articles-with-pagination.query.schema';
 
 import { ARTICLE_SWAGGER } from './article.swagger';
 

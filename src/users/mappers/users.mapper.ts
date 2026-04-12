@@ -1,5 +1,5 @@
 import type { Prisma } from 'generated/prisma/client';
-import type { User } from 'src/_shared/users/schemas/user.schema';
+import type { User } from 'shared/users/schemas/user.schema';
 
 export const mapUser = (raw: Prisma.UserGetPayload<object>) => ({
 	id: raw.id,

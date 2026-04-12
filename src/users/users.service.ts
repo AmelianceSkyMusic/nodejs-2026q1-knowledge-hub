@@ -5,14 +5,14 @@ import {
 	NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from 'generated/prisma/client';
-import { Id } from 'src/_shared/common/schemas/id.schema';
-import { CreateUser } from 'src/_shared/users/schemas/create-user.schema';
-import { GetUsersWithPaginationQuery } from 'src/_shared/users/schemas/get-user-with-pagination-query.schema';
-import { UpdatePassword } from 'src/_shared/users/schemas/update-password.schema';
+import { Id } from 'shared/common/schemas/id.schema';
+import { CreateUser } from 'shared/users/schemas/create-user.schema';
+import { GetUsersWithPaginationQuery } from 'shared/users/schemas/get-user-with-pagination-query.schema';
+import { UpdatePassword } from 'shared/users/schemas/update-password.schema';
 
 import { UsersRepository } from './repository/users.repository';
 
-import { ERROR } from 'src/_shared/common/constants/error';
+import { ERROR } from 'shared/common/constants/error';
 
 @Injectable()
 export class UsersService {

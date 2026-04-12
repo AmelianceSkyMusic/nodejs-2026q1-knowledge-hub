@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Id } from 'src/_shared/common/schemas/id.schema';
-import { CreateUser } from 'src/_shared/users/schemas/create-user.schema';
-import { GetUsersWithPaginationQuery } from 'src/_shared/users/schemas/get-user-with-pagination-query.schema';
-import { UpdateUser } from 'src/_shared/users/schemas/update-user.schema';
+import { Id } from 'shared/common/schemas/id.schema';
+import { CreateUser } from 'shared/users/schemas/create-user.schema';
+import { GetUsersWithPaginationQuery } from 'shared/users/schemas/get-user-with-pagination-query.schema';
+import { UpdateUser } from 'shared/users/schemas/update-user.schema';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import { mapUser } from '../mappers/users.mapper';

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CreateComment } from 'src/_shared/comments/schemas/create-comment.schema';
-import { GetCommentsWithPaginationQuery } from 'src/_shared/comments/schemas/get-comment-with-pagination-query.schema';
-import { Id } from 'src/_shared/common/schemas/id.schema';
+import { CreateComment } from 'shared/comments/schemas/create-comment.schema';
+import { GetCommentsWithPaginationQuery } from 'shared/comments/schemas/get-comment-with-pagination-query.schema';
+import { Id } from 'shared/common/schemas/id.schema';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import { mapComment } from '../mappers/comments.mapper';

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { CategoriesWithPaginationSchema } from 'src/_shared/categories/schemas/categories-with-pagination.schema';
+import { CategoriesWithPaginationSchema } from 'shared/categories/schemas/categories-with-pagination.schema';
 
 import { CATEGORY_SWAGGER } from './categories.swagger';
 

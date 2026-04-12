@@ -1,5 +1,5 @@
-import { ARTICLE_SORT_BY } from 'src/_shared/articles/constants/article-sort-by';
-import { ARTICLE_STATUS } from 'src/_shared/articles/constants/article-status';
+import { ARTICLE_SORT_BY } from 'shared/articles/constants/article-sort-by';
+import { ARTICLE_STATUS } from 'shared/articles/constants/article-status';
 import { SWAGGER } from 'src/common/constants/swagger';
 
 export const ARTICLE_SWAGGER = {

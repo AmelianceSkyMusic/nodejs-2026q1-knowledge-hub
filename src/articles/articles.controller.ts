@@ -24,7 +24,7 @@ import {
 	getSchemaPath,
 } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
-import { IdParamDto } from 'src/_shared/common/dto/id-param.dto';
+import { IdParamDto } from 'shared/common/dto/id-param.dto';
 
 import { ArticlesService } from './articles.service';
 import { ArticleDto } from './dto/article.dto';
@@ -33,7 +33,7 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { GetArticlesWithPaginationQueryDto } from './dto/get-articles-with-pagination.query.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 
-import { ERROR } from 'src/_shared/common/constants/error';
+import { ERROR } from 'shared/common/constants/error';
 import { SWAGGER } from 'src/common/constants/swagger';
 
 @ApiTags('Article')

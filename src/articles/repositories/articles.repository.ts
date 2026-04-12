@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CreateArticle } from 'src/_shared/articles/schemas/create-article.schema';
-import { GetArticlesWithPaginationQuery } from 'src/_shared/articles/schemas/get-articles-with-pagination.query.schema';
-import { UpdateArticle } from 'src/_shared/articles/schemas/update-article.schema';
-import { Id } from 'src/_shared/common/schemas/id.schema';
+import { CreateArticle } from 'shared/articles/schemas/create-article.schema';
+import { GetArticlesWithPaginationQuery } from 'shared/articles/schemas/get-articles-with-pagination.query.schema';
+import { UpdateArticle } from 'shared/articles/schemas/update-article.schema';
+import { Id } from 'shared/common/schemas/id.schema';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import { mapArticle } from '../mappers/articles.mapper';

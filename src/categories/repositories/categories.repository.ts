@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCategory } from 'src/_shared/categories/schemas/create-category.schema';
-import { GetCategoriesWithPaginationQuery } from 'src/_shared/categories/schemas/get-categories-with-pagination-query.schema';
-import { UpdateCategory } from 'src/_shared/categories/schemas/update-category.schema';
-import { Id } from 'src/_shared/common/schemas/id.schema';
+import { CreateCategory } from 'shared/categories/schemas/create-category.schema';
+import { GetCategoriesWithPaginationQuery } from 'shared/categories/schemas/get-categories-with-pagination-query.schema';
+import { UpdateCategory } from 'shared/categories/schemas/update-category.schema';
+import { Id } from 'shared/common/schemas/id.schema';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import { mapCategory } from '../mapper/categories.mapper';

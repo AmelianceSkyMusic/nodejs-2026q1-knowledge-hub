@@ -1,4 +1,4 @@
-import { COMMENT_SORT_BY } from 'src/_shared/comments/constants/comment-sort-by';
+import { COMMENT_SORT_BY } from 'shared/comments/constants/comment-sort-by';
 import { SWAGGER } from 'src/common/constants/swagger';
 
 export const COMMENT_SWAGGER = {
