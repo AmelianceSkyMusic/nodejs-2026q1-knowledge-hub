@@ -57,8 +57,8 @@ export class ArticlesController {
 		},
 	})
 	@HttpCode(HttpStatus.OK)
-	findAll(@Query() getArticlesWithPaginationQueryDto: GetArticlesWithPaginationQueryDto) {
-		const result = this.articlesService.findAll(getArticlesWithPaginationQueryDto);
+	async findAll(@Query() getArticlesWithPaginationQueryDto: GetArticlesWithPaginationQueryDto) {
+		const result = await this.articlesService.findAll(getArticlesWithPaginationQueryDto);
 		if ('data' in result) return ArticlesWithPaginationDto.create(result);
 		return result.map((article) => ArticleDto.create(article));
 	}
@@ -76,8 +76,8 @@ export class ArticlesController {
 	})
 	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: ArticleDto })
-	findOne(@Param() { id }: IdParamDto) {
-		const article = this.articlesService.findOne(id);
+	async findOne(@Param() { id }: IdParamDto) {
+		const article = await this.articlesService.findOne(id);
 		if (!article) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
 		return article;
 	}
@@ -91,8 +91,8 @@ export class ArticlesController {
 	@ApiBadRequestResponse({ description: 'Bad request. Body does not contain required fields' })
 	@HttpCode(HttpStatus.CREATED)
 	@ZodResponse({ type: ArticleDto })
-	create(@Body() createArticleDto: CreateArticleDto) {
-		return this.articlesService.create(createArticleDto);
+	async create(@Body() createArticleDto: CreateArticleDto) {
+		return await this.articlesService.create(createArticleDto);
 	}
 
 	@Put(':id')
@@ -111,8 +111,8 @@ export class ArticlesController {
 	})
 	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: ArticleDto })
-	update(@Param() { id }: IdParamDto, @Body() updateArticleDto: UpdateArticleDto) {
-		return this.articlesService.update(id, updateArticleDto);
+	async update(@Param() { id }: IdParamDto, @Body() updateArticleDto: UpdateArticleDto) {
+		return await this.articlesService.update(id, updateArticleDto);
 	}
 
 	@Delete(':id')
@@ -130,7 +130,7 @@ export class ArticlesController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.NO_CONTENT)
-	remove(@Param() { id }: IdParamDto) {
-		return this.articlesService.remove(id);
+	async remove(@Param() { id }: IdParamDto) {
+		return await this.articlesService.remove(id);
 	}
 }

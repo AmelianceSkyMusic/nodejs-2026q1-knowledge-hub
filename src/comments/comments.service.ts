@@ -1,84 +1,55 @@
 import {
-	forwardRef,
-	Inject,
+	ConflictException,
 	Injectable,
 	NotFoundException,
 	UnprocessableEntityException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { Prisma } from 'generated/prisma/client';
+import { CreateComment } from 'src/_shared/comments/schemas/create-comment.schema';
+import { GetCommentsWithPaginationQuery } from 'src/_shared/comments/schemas/get-comment-with-pagination-query.schema';
 import { Id } from 'src/_shared/common/schemas/id.schema';
-import { ArticlesService } from 'src/articles/articles.service';
-import { sort } from 'src/common/utils/sort.util';
 
-import { CreateCommentDto } from './dto/create-comment.dto';
-import { GetCommentsWithPaginationQueryDto } from './dto/get-comment-with-pagination-query.dto';
 import { CommentsRepository } from './repositories/comments.repository';
 
 import { ERROR } from 'src/_shared/common/constants/error';
 
 @Injectable()
 export class CommentsService {
-	constructor(
-		@Inject(forwardRef(() => ArticlesService))
-		private readonly articlesService: ArticlesService,
-		private readonly commentsRepository: CommentsRepository,
-	) {}
+	constructor(private readonly commentsRepository: CommentsRepository) {}
 
-	findAllForArticle(getCommentsWithPaginationQueryDto: GetCommentsWithPaginationQueryDto) {
-		const { articleId, page, limit, sortBy, order } = getCommentsWithPaginationQueryDto;
-
-		const allComments = this.commentsRepository.findAll();
-
-		const filtered = allComments.filter((comment) => comment.articleId === articleId);
-
-		const filteredAndSorted = sort(filtered, sortBy, order);
-		if (!page) return filteredAndSorted;
-
-		const offset = (page - 1) * limit;
-
-		const paginatedData = filteredAndSorted.slice(offset, offset + limit);
-
-		return {
-			total: filteredAndSorted.length,
-			page,
-			limit,
-			data: paginatedData,
-		};
+	async findAllForArticle(getCommentsWithPaginationQuery: GetCommentsWithPaginationQuery) {
+		return await this.commentsRepository.findAll(getCommentsWithPaginationQuery);
 	}
 
-	findById(id: Id) {
-		const comment = this.commentsRepository.findOne(id);
+	async findById(id: Id) {
+		const comment = await this.commentsRepository.findOne(id);
 		if (!comment) throw new NotFoundException(ERROR.COMMENT.NOT_FOUND);
 		return comment;
 	}
 
-	create(createCommentDto: CreateCommentDto) {
-		const article = this.articlesService.findOne(createCommentDto.articleId);
-		if (!article) throw new UnprocessableEntityException(ERROR.ARTICLE.NOT_FOUND);
+	async create(createComment: CreateComment) {
+		try {
+			return await this.commentsRepository.create(createComment);
+		} catch (error) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError) {
+				if (error.code === 'P2003') {
+					throw new UnprocessableEntityException(ERROR.ARTICLE.NOT_FOUND);
+				}
 
-		const timestamp = Date.now();
-
-		const newComment = {
-			...createCommentDto,
-			id: randomUUID(),
-			createdAt: timestamp,
-			updatedAt: timestamp,
-		};
-		return this.commentsRepository.create(newComment);
+				if (error.code === 'P2002') throw new ConflictException(ERROR.USER.ALREADY_EXISTS);
+			}
+			throw error;
+		}
 	}
 
-	remove(id: Id) {
-		const isDeleted = this.commentsRepository.remove(id);
-		if (!isDeleted) throw new NotFoundException(ERROR.COMMENT.NOT_FOUND);
-
-		return isDeleted;
-	}
-
-	removeByArticleId(articleId: Id) {
-		this.commentsRepository.removeByArticleId(articleId);
-	}
-
-	removeByAuthorId(authorId: Id) {
-		this.commentsRepository.removeByAuthorId(authorId);
+	async remove(id: Id) {
+		try {
+			return await this.commentsRepository.remove(id);
+		} catch (error) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+				throw new NotFoundException(ERROR.COMMENT.NOT_FOUND);
+			}
+			throw error;
+		}
 	}
 }

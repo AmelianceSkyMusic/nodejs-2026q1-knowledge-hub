@@ -1,5 +1,6 @@
+import { COMMENT_SORT_BY } from './comment-sort-by';
+
 import { ORDER } from '../../common/constants/order';
-import { COMMENT_SORT_BY } from '../constants/comment-sort-by';
 
 export const COMMENT_DEFAULTS = {
 	authorId: null,

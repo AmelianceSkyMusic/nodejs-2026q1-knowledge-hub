@@ -60,11 +60,13 @@ export class CommentsController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.OK)
-	findAllForArticle(
+	async findAllForArticle(
 		@Query()
 		getCommentsWithPaginationQueryDto: GetCommentsWithPaginationQueryDto,
 	) {
-		const result = this.commentsService.findAllForArticle(getCommentsWithPaginationQueryDto);
+		const result = await this.commentsService.findAllForArticle(
+			getCommentsWithPaginationQueryDto,
+		);
 		if ('data' in result) return CommentsWithPaginationDto.create(result);
 		return result.map((item) => CommentDto.create(item));
 	}
@@ -82,8 +84,8 @@ export class CommentsController {
 	})
 	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: CommentDto })
-	findById(@Param() { id }: IdParamDto) {
-		return this.commentsService.findById(id);
+	async findById(@Param() { id }: IdParamDto) {
+		return await this.commentsService.findById(id);
 	}
 
 	@Post()
@@ -95,8 +97,8 @@ export class CommentsController {
 	@ApiBadRequestResponse({ description: 'Bad request. Body does not contain required fields' })
 	@HttpCode(HttpStatus.CREATED)
 	@ZodResponse({ type: CommentDto })
-	create(@Body() createCommentDto: CreateCommentDto) {
-		return this.commentsService.create(createCommentDto);
+	async create(@Body() createCommentDto: CreateCommentDto) {
+		return await this.commentsService.create(createCommentDto);
 	}
 
 	@Delete(':id')
@@ -114,7 +116,7 @@ export class CommentsController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.NO_CONTENT)
-	remove(@Param() { id }: IdParamDto) {
-		return this.commentsService.remove(id);
+	async remove(@Param() { id }: IdParamDto) {
+		return await this.commentsService.remove(id);
 	}
 }

@@ -1,79 +1,58 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from 'generated/prisma/client';
+import { CreateCategory } from 'src/_shared/categories/schemas/create-category.schema';
+import { GetCategoriesWithPaginationQuery } from 'src/_shared/categories/schemas/get-categories-with-pagination-query.schema';
+import { UpdateCategory } from 'src/_shared/categories/schemas/update-category.schema';
 import { Id } from 'src/_shared/common/schemas/id.schema';
-import { ArticlesService } from 'src/articles/articles.service';
-import { sort } from 'src/common/utils/sort.util';
 
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { GetCategoriesWithPaginationQueryDto } from './dto/get-categories-with-pagination-query.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoriesRepository } from './repositories/categories.repository';
 
 import { ERROR } from 'src/_shared/common/constants/error';
 
 @Injectable()
 export class CategoriesService {
-	constructor(
-		private readonly articlesService: ArticlesService,
-		private readonly categoriesRepository: CategoriesRepository,
-	) {}
+	constructor(private readonly categoriesRepository: CategoriesRepository) {}
 
-	findAll(getCategoriesWithPaginationQueryDto: GetCategoriesWithPaginationQueryDto) {
-		const { page, limit, sortBy, order } = getCategoriesWithPaginationQueryDto;
-
-		const allCategories = this.categoriesRepository.findAll();
-
-		const sortedCategories = sort(allCategories, sortBy, order);
-		if (!page) return sortedCategories;
-
-		const offset = (page - 1) * limit;
-
-		const paginatedData = sortedCategories.slice(offset, offset + limit);
-
-		return {
-			total: sortedCategories.length,
-			page,
-			limit,
-			data: paginatedData,
-		};
+	async findAll(getCategoriesWithPaginationQuery: GetCategoriesWithPaginationQuery) {
+		return await this.categoriesRepository.findAll(getCategoriesWithPaginationQuery);
 	}
 
-	findOne(id: Id) {
-		const category = this.categoriesRepository.findOne(id);
-		if (!category) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
-
-		return category;
-	}
-
-	create(createCategoryDto: CreateCategoryDto) {
-		const newCategory = {
-			...createCategoryDto,
-			id: randomUUID(),
-		};
-		return this.categoriesRepository.create(newCategory);
-	}
-
-	update(id: Id, updateCategoryDto: UpdateCategoryDto) {
-		const category = this.categoriesRepository.findOne(id);
-		if (!category) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
-
-		const updatedCategory = {
-			...category,
-			...updateCategoryDto,
-		};
-
-		const result = this.categoriesRepository.update(id, updatedCategory);
+	async findOne(id: Id) {
+		const result = await this.categoriesRepository.findOne(id);
 		if (!result) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
-
 		return result;
 	}
 
-	remove(id: Id) {
-		const isDeleted = this.categoriesRepository.remove(id);
-		if (!isDeleted) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
+	async create(createCategory: CreateCategory) {
+		try {
+			return await this.categoriesRepository.create(createCategory);
+		} catch (error) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError) {
+				if (error.code === 'P2002') throw new ConflictException(ERROR.ARTICLE.ALREADY_EXISTS);
+			}
+			throw error;
+		}
+	}
 
-		this.articlesService.nullifyCategory(id);
+	async update(id: Id, updateCategory: UpdateCategory) {
+		try {
+			return await this.categoriesRepository.update(id, updateCategory);
+		} catch (error) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+				throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
+			}
+			throw error;
+		}
+	}
 
-		return isDeleted;
+	async remove(id: Id) {
+		try {
+			return await this.categoriesRepository.remove(id);
+		} catch (error) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+				throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
+			}
+			throw error;
+		}
 	}
 }

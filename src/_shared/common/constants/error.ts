@@ -1,9 +1,11 @@
 export const ERROR = {
 	USER: {
 		NOT_FOUND: 'User not found',
+		ALREADY_EXISTS: 'User already exists',
 	},
 	ARTICLE: {
 		NOT_FOUND: 'Article not found',
+		ALREADY_EXISTS: 'Article already exists',
 		TITLE_IS_EMPTY: 'Title is empty',
 		TITLE_IS_NOT_STRING: 'Title is not a string',
 		CONTENT_IS_EMPTY: 'Content is empty',

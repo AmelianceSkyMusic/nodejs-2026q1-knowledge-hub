@@ -1,91 +1,71 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import {
+	ConflictException,
+	ForbiddenException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from 'generated/prisma/client';
 import { Id } from 'src/_shared/common/schemas/id.schema';
-import { ArticlesService } from 'src/articles/articles.service';
-import { CommentsService } from 'src/comments/comments.service';
-import { sort } from 'src/common/utils/sort.util';
+import { CreateUser } from 'src/_shared/users/schemas/create-user.schema';
+import { GetUsersWithPaginationQuery } from 'src/_shared/users/schemas/get-user-with-pagination-query.schema';
+import { UpdatePassword } from 'src/_shared/users/schemas/update-password.schema';
 
-import { CreateUserDto } from './dto/create-user.dto';
-import { GetUsersWithPaginationQueryDto } from './dto/get-user-with-pagination-query.dto';
-import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UsersRepository } from './repository/users.repository';
 
 import { ERROR } from 'src/_shared/common/constants/error';
 
 @Injectable()
 export class UsersService {
-	constructor(
-		private readonly articlesService: ArticlesService,
-		private readonly commentsService: CommentsService,
-		private readonly usersRepository: UsersRepository,
-	) {}
+	constructor(private readonly usersRepository: UsersRepository) {}
 
-	findAll(getUsersWithPaginationQueryDto: GetUsersWithPaginationQueryDto) {
-		const { page, limit, sortBy, order } = getUsersWithPaginationQueryDto;
-
-		const allUsers = this.usersRepository.findAll();
-
-		const sortedUsers = sort(allUsers, sortBy, order);
-		if (!page) return sortedUsers;
-
-		const offset = (page - 1) * limit;
-
-		const paginatedData = sortedUsers.slice(offset, offset + limit);
-
-		return {
-			total: sortedUsers.length,
-			page,
-			limit,
-			data: paginatedData,
-		};
+	async findAll(getUsersWithPaginationQuery: GetUsersWithPaginationQuery) {
+		return await this.usersRepository.findAll(getUsersWithPaginationQuery);
 	}
 
-	findOne(userId: Id) {
-		const user = this.usersRepository.findOne(userId);
+	async findOne(userId: Id) {
+		const user = await this.usersRepository.findOne(userId);
 		if (!user) throw new NotFoundException(ERROR.USER.NOT_FOUND);
 
 		return user;
 	}
 
-	create(createUserDto: CreateUserDto) {
-		const timestamp = Date.now();
-		const newUser = {
-			...createUserDto,
-			id: randomUUID(),
-			createdAt: timestamp,
-			updatedAt: timestamp,
-		};
-		return this.usersRepository.create(newUser);
+	async create(createUser: CreateUser) {
+		try {
+			return await this.usersRepository.create(createUser);
+		} catch (error) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError) {
+				if (error.code === 'P2002') throw new ConflictException(ERROR.USER.ALREADY_EXISTS);
+			}
+			throw error;
+		}
 	}
 
-	updatePassword(userId: Id, updatePasswordDto: UpdatePasswordDto) {
-		const user = this.usersRepository.findOne(userId);
+	async updatePassword(userId: Id, updatePassword: UpdatePassword) {
+		const user = await this.usersRepository.findWithPassword(userId);
 		if (!user) throw new NotFoundException(ERROR.USER.NOT_FOUND);
 
-		if (user.password !== updatePasswordDto.oldPassword) {
+		if (user.password !== updatePassword.oldPassword) {
 			throw new ForbiddenException(ERROR.PASSWORD.INVALID);
 		}
 
-		const updatedUser = {
-			...user,
-			password: updatePasswordDto.newPassword,
-			updatedAt: Date.now(),
-		};
-
-		const result = this.usersRepository.update(userId, updatedUser);
-		if (!result) throw new NotFoundException(ERROR.USER.NOT_FOUND);
-
-		return result;
+		try {
+			return await this.usersRepository.update(userId, { password: updatePassword.newPassword });
+		} catch (error) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+				throw new NotFoundException(ERROR.USER.NOT_FOUND);
+			}
+			throw error;
+		}
 	}
 
-	remove(userId: Id) {
-		const isDeleted = this.usersRepository.remove(userId);
-		if (!isDeleted) throw new NotFoundException(ERROR.USER.NOT_FOUND);
-
-		this.articlesService.nullifyAuthor(userId);
-
-		this.commentsService.removeByAuthorId(userId);
-
-		return isDeleted;
+	async remove(userId: Id) {
+		try {
+			return await this.usersRepository.remove(userId);
+		} catch (error) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+				throw new NotFoundException(ERROR.USER.NOT_FOUND);
+			}
+			throw error;
+		}
 	}
 }
