@@ -4,10 +4,10 @@ import {
 	NotFoundException,
 	UnprocessableEntityException,
 } from '@nestjs/common';
-import { Prisma } from 'generated/prisma/client';
 import { CreateComment } from 'shared/comments/schemas/create-comment.schema';
 import { GetCommentsWithPaginationQuery } from 'shared/comments/schemas/get-comment-with-pagination-query.schema';
 import { Id } from 'shared/common/schemas/id.schema';
+import { Prisma } from 'src/generated/prisma/client';
 
 import { CommentsRepository } from './repositories/comments.repository';
 

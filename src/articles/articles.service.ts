@@ -1,9 +1,9 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from 'generated/prisma/client';
 import { CreateArticle } from 'shared/articles/schemas/create-article.schema';
 import { GetArticlesWithPaginationQuery } from 'shared/articles/schemas/get-articles-with-pagination.query.schema';
 import { UpdateArticle } from 'shared/articles/schemas/update-article.schema';
 import { Id } from 'shared/common/schemas/id.schema';
+import { Prisma } from 'src/generated/prisma/client';
 
 import { ArticlesRepository } from './repositories/articles.repository';
 

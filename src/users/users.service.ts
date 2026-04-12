@@ -4,11 +4,11 @@ import {
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from 'generated/prisma/client';
 import { Id } from 'shared/common/schemas/id.schema';
 import { CreateUser } from 'shared/users/schemas/create-user.schema';
 import { GetUsersWithPaginationQuery } from 'shared/users/schemas/get-user-with-pagination-query.schema';
 import { UpdatePassword } from 'shared/users/schemas/update-password.schema';
+import { Prisma } from 'src/generated/prisma/client';
 
 import { UsersRepository } from './repository/users.repository';
 

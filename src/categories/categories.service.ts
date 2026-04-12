@@ -1,9 +1,9 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from 'generated/prisma/client';
 import { CreateCategory } from 'shared/categories/schemas/create-category.schema';
 import { GetCategoriesWithPaginationQuery } from 'shared/categories/schemas/get-categories-with-pagination-query.schema';
 import { UpdateCategory } from 'shared/categories/schemas/update-category.schema';
 import { Id } from 'shared/common/schemas/id.schema';
+import { Prisma } from 'src/generated/prisma/client';
 
 import { CategoriesRepository } from './repositories/categories.repository';
 

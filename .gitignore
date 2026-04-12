@@ -55,3 +55,4 @@ __spec__
 .env
 
 /generated/prisma
+src/generated

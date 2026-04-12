@@ -1,6 +1,5 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-
-import { ArticleStatus, PrismaClient } from '../generated/prisma/client';
+import { ArticleStatus, PrismaClient } from 'src/generated/prisma/client';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 
