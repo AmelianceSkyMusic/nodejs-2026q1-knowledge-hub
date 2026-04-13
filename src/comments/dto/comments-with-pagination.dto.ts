@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { CommentsWithPaginationSchema } from 'src/_shared/comments/schemas/comments-with-pagination.schema';
+import { CommentsWithPaginationSchema } from 'shared/comments/schemas/comments-with-pagination.schema';
 
 import { COMMENT_SWAGGER } from './comment.swagger';
 

@@ -23,7 +23,7 @@ import {
 	getSchemaPath,
 } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
-import { IdParamDto } from 'src/_shared/common/dto/id-param.dto';
+import { IdParamDto } from 'shared/common/dto/id-param.dto';
 
 import { CategoriesService } from './categories.service';
 import { CategoriesWithPaginationDto } from './dto/categories-with-pagination.dto';
@@ -52,11 +52,11 @@ export class CategoriesController {
 		},
 	})
 	@HttpCode(HttpStatus.OK)
-	findAll(
+	async findAll(
 		@Query()
 		getCategoriesWithPaginationQueryDto: GetCategoriesWithPaginationQueryDto,
 	) {
-		const result = this.categoriesService.findAll(getCategoriesWithPaginationQueryDto);
+		const result = await this.categoriesService.findAll(getCategoriesWithPaginationQueryDto);
 		if ('data' in result) return CategoriesWithPaginationDto.create(result);
 		return result.map((item) => CategoryDto.create(item));
 	}
@@ -77,8 +77,8 @@ export class CategoriesController {
 	})
 	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: CategoryDto })
-	findOne(@Param() { id }: IdParamDto) {
-		return this.categoriesService.findOne(id);
+	async findOne(@Param() { id }: IdParamDto) {
+		return await this.categoriesService.findOne(id);
 	}
 
 	@Post()
@@ -90,8 +90,8 @@ export class CategoriesController {
 	@ApiBadRequestResponse({ description: 'Bad request. Body does not contain required fields' })
 	@HttpCode(HttpStatus.CREATED)
 	@ZodResponse({ type: CategoryDto })
-	create(@Body() createCategoryDto: CreateCategoryDto) {
-		return this.categoriesService.create(createCategoryDto);
+	async create(@Body() createCategoryDto: CreateCategoryDto) {
+		return await this.categoriesService.create(createCategoryDto);
 	}
 
 	@Put(':id')
@@ -110,8 +110,8 @@ export class CategoriesController {
 	})
 	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: CategoryDto })
-	update(@Param() { id }: IdParamDto, @Body() updateCategoryDto: UpdateCategoryDto) {
-		return this.categoriesService.update(id, updateCategoryDto);
+	async update(@Param() { id }: IdParamDto, @Body() updateCategoryDto: UpdateCategoryDto) {
+		return await this.categoriesService.update(id, updateCategoryDto);
 	}
 
 	@Delete(':id')
@@ -129,7 +129,7 @@ export class CategoriesController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.NO_CONTENT)
-	remove(@Param() { id }: IdParamDto) {
-		return this.categoriesService.remove(id);
+	async remove(@Param() { id }: IdParamDto) {
+		return await this.categoriesService.remove(id);
 	}
 }

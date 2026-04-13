@@ -23,7 +23,7 @@ import {
 	getSchemaPath,
 } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
-import { IdParamDto } from 'src/_shared/common/dto/id-param.dto';
+import { IdParamDto } from 'shared/common/dto/id-param.dto';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetUsersWithPaginationQueryDto } from './dto/get-user-with-pagination-query.dto';
@@ -55,11 +55,11 @@ export class UsersController {
 		},
 	})
 	@HttpCode(HttpStatus.OK)
-	findAll(
+	async findAll(
 		@Query()
 		getUsersWithPaginationQueryDto: GetUsersWithPaginationQueryDto,
 	) {
-		const result = this.usersService.findAll(getUsersWithPaginationQueryDto);
+		const result = await this.usersService.findAll(getUsersWithPaginationQueryDto);
 		if ('data' in result) return UsersWithPaginationDto.create(result);
 		return result.map((user) => UserDto.create(user));
 	}
@@ -77,8 +77,8 @@ export class UsersController {
 	})
 	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: UserDto })
-	findOne(@Param() { id: userId }: IdParamDto) {
-		return this.usersService.findOne(userId);
+	async findOne(@Param() { id: userId }: IdParamDto) {
+		return await this.usersService.findOne(userId);
 	}
 
 	@Post()
@@ -90,8 +90,8 @@ export class UsersController {
 	@ApiBadRequestResponse({ description: 'Bad request. Body does not contain required fields' })
 	@HttpCode(HttpStatus.CREATED)
 	@ZodResponse({ type: UserDto })
-	create(@Body() createUserDto: CreateUserDto) {
-		return this.usersService.create(createUserDto);
+	async create(@Body() createUserDto: CreateUserDto) {
+		return await this.usersService.create(createUserDto);
 	}
 
 	@Put(':id')
@@ -110,11 +110,11 @@ export class UsersController {
 	})
 	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: UserDto })
-	updatePassword(
+	async updatePassword(
 		@Param() { id: userId }: IdParamDto,
 		@Body() updatePasswordDto: UpdatePasswordDto,
 	) {
-		return this.usersService.updatePassword(userId, updatePasswordDto);
+		return await this.usersService.updatePassword(userId, updatePasswordDto);
 	}
 
 	@Delete(':id')
@@ -133,7 +133,7 @@ export class UsersController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.NO_CONTENT)
-	remove(@Param() { id: userId }: IdParamDto) {
-		return this.usersService.remove(userId);
+	async remove(@Param() { id: userId }: IdParamDto) {
+		return await this.usersService.remove(userId);
 	}
 }

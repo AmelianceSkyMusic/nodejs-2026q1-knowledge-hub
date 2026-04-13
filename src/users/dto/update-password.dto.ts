@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { UpdatePasswordSchema } from 'src/_shared/users/schemas/update-password.schema';
+import { UpdatePasswordSchema } from 'shared/users/schemas/update-password.schema';
 
 import { USER_SWAGGER } from './user.swagger';
 

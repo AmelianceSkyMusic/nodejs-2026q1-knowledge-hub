@@ -1,4 +1,4 @@
-import { CATEGORY_SORT_BY } from 'src/_shared/categories/constants/category-sort-by';
+import { CATEGORY_SORT_BY } from 'shared/categories/constants/category-sort-by';
 import { SWAGGER } from 'src/common/constants/swagger';
 
 export const CATEGORY_SWAGGER = {

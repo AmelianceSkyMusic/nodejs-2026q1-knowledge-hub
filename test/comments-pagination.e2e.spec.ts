@@ -1,8 +1,15 @@
 import { StatusCodes } from 'http-status-codes';
 import { request } from './lib';
-import { articlesRoutes, commentsRoutes } from './endpoints';
+import { articlesRoutes, commentsRoutes, usersRoutes } from './endpoints';
 
-const randomUUID = '0a35dd62-e09f-444b-a628-f4e7c6954f57';
+
+const userDto = {
+	login: 'test-login',
+	password: 'test-password',
+	role: 'viewer',
+
+};
+
 
 const createArticleDto = {
 	title: 'TEST_ARTICLE',
@@ -14,7 +21,6 @@ const createArticleDto = {
 };
 
 const createCommentDto = {
-	authorId: randomUUID,
 	content: 'Test comment content',
 };
 
@@ -24,8 +30,16 @@ describe('Comments pagination (e2e)', () => {
 	const unauthorizedRequest = request;
 	const randomUUIDs: string[] = [];
 	let articleId: string;
+	let userId: string;
 
 	beforeAll(async () => {
+
+			const user = await unauthorizedRequest
+			.post(usersRoutes.create)
+			.send(userDto);
+
+			userId = user.body.id;
+
 		const article = await unauthorizedRequest
 			.post(articlesRoutes.create)
 			.send(createArticleDto);
@@ -35,6 +49,7 @@ describe('Comments pagination (e2e)', () => {
 		for (const char of chars) {
 			const commentDto = {
 				...createCommentDto,
+				authorId: userId,
 				content: `${char} ${createCommentDto.content}`,
 				articleId,
 			}
@@ -58,6 +73,18 @@ describe('Comments pagination (e2e)', () => {
 
 				expect(response.statusCode).toBe(StatusCodes.NO_CONTENT);
 			}
+		}
+
+		if (articleId) {
+			const response = await unauthorizedRequest.delete(articlesRoutes.delete(articleId));
+
+			expect(response.statusCode).toBe(StatusCodes.NO_CONTENT);
+		}
+
+		if(userId) {
+			const response = await unauthorizedRequest.delete(usersRoutes.delete(userId));
+
+			expect(response.statusCode).toBe(StatusCodes.NO_CONTENT);
 		}
 	});
 

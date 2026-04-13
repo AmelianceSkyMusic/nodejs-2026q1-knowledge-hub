@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { ArticleSchema } from 'src/_shared/articles/schemas/article.schema';
+import { ArticleSchema } from 'shared/articles/schemas/article.schema';
 
 import { ARTICLE_SWAGGER } from './article.swagger';
 

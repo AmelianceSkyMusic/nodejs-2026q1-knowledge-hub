@@ -1,5 +1,5 @@
-import { USER_ROLES } from 'src/_shared/users/constants/user-role';
-import { USER_SORT_BY } from 'src/_shared/users/constants/user-sort-by';
+import { USER_ROLES } from 'shared/users/constants/user-role';
+import { USER_SORT_BY } from 'shared/users/constants/user-sort-by';
 import { SWAGGER } from 'src/common/constants/swagger';
 
 export const USER_SWAGGER = {

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { CommentSchema } from 'src/_shared/comments/schemas/comment.schema';
+import { CommentSchema } from 'shared/comments/schemas/comment.schema';
 
 import { COMMENT_SWAGGER } from './comment.swagger';
 
