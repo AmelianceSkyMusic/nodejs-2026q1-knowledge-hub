@@ -7,6 +7,7 @@ export const relations = defineRelations(schema, (r) => ({
 		articles: r.many.articles(),
 		comments: r.many.comments(),
 	},
+
 	articles: {
 		author: r.one.users({
 			from: r.articles.authorId,
@@ -22,9 +23,11 @@ export const relations = defineRelations(schema, (r) => ({
 			to: r.tags.id.through(r.articleToTag.tagId),
 		}),
 	},
+
 	categories: {
 		articles: r.many.articles(),
 	},
+
 	comments: {
 		author: r.one.users({
 			from: r.comments.authorId,
@@ -36,12 +39,14 @@ export const relations = defineRelations(schema, (r) => ({
 			optional: false,
 		}),
 	},
+
 	tags: {
 		articles: r.many.articles({
 			from: r.tags.id.through(r.articleToTag.tagId),
 			to: r.articles.id.through(r.articleToTag.articleId),
 		}),
 	},
+
 	articleToTag: {
 		article: r.one.articles({
 			from: r.articleToTag.articleId,

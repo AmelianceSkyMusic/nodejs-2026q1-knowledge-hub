@@ -1,11 +1,12 @@
 import { Injectable, Logger as NestLogger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'drizzle-orm/logger';
-import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 
 import { relations } from './db/relations';
 import * as schema from './db/schema';
+import { DrizzleDb } from './types/drizzle-db';
 
 const SQL_KEYWORDS_REGEX =
 	/\b(select|from|where|insert into|values|returning|update|set|delete from|inner join|left join|and|or|order by|group by|limit|offset)\b/gi;
@@ -26,7 +27,7 @@ class DrizzleLogger implements Logger {
 
 @Injectable()
 export class DrizzleService implements OnModuleInit, OnModuleDestroy {
-	public db: NodePgDatabase<typeof schema, typeof relations>;
+	public db: DrizzleDb;
 	private pool: Pool;
 
 	constructor(configService: ConfigService) {

@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { getTableName, sql, Table } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 
@@ -14,14 +15,17 @@ const db = drizzle({ client: pool, schema, relations });
 async function main() {
 	console.log('🌱 Start seeding...');
 
-	await db.delete(schema.articleToTag);
-	await db.delete(schema.comments);
-	await db.delete(schema.articles);
-	await db.delete(schema.categories);
-	await db.delete(schema.tags);
-	await db.delete(schema.users);
+	const tableNames = Object.values(schema)
+		.filter((entity) => entity instanceof Table)
+		.map((table) => `"${getTableName(table)}"`);
 
-	console.log('🗑️ Cleaned existing data');
+	if (tableNames.length > 0) {
+		await db.execute(
+			sql.raw(`TRUNCATE TABLE ${tableNames.join(', ')} RESTART IDENTITY CASCADE;`),
+		);
+	}
+
+	console.log('   🧹 Cleaned existing data');
 
 	const usersData = [
 		{ login: 'admin', password: 'Admin1234!', role: 'ADMIN' as const },
@@ -31,7 +35,7 @@ async function main() {
 
 	const [admin, editor, viewer] = await db.insert(schema.users).values(usersData).returning();
 
-	console.log('👤 Created users');
+	console.log('   👤 Created users');
 
 	const categoriesData = [
 		{ name: 'Node.js', description: 'Everything about Node' },
@@ -44,7 +48,7 @@ async function main() {
 		.values(categoriesData)
 		.returning();
 
-	console.log('📁 Created categories');
+	console.log('   📁 Created categories');
 
 	const tagsData = [
 		{ name: 'node' },
@@ -61,7 +65,7 @@ async function main() {
 		.values(tagsData)
 		.returning();
 
-	console.log('🏷️ Created tags');
+	console.log('   🔖 Created tags');
 
 	const articlesContent = [
 		{
@@ -144,7 +148,7 @@ async function main() {
 		}
 	}
 
-	console.log('📝 Created articles');
+	console.log('   📝 Created articles');
 
 	const commentTexts = [
 		'🔥 Finally a proper guide on Node.js! Thanks!',
@@ -189,9 +193,9 @@ async function main() {
 		})),
 	);
 
-	console.log('💬 Created comments');
+	console.log('   💬 Created comments');
 
-	console.log('✅ Seeding finished.');
+	console.log('✅ Seeding finished');
 	process.exit(0);
 }
 
