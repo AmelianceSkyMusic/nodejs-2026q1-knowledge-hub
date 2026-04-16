@@ -3,7 +3,7 @@ import type { Relations } from 'src/drizzle/db/relations';
 
 export type CategoryRaw = BuildQueryResult<Relations, Relations['categories'], true>;
 
-export const mapCategory = (raw: CategoryRaw) => {
+export const mapCategory = (raw: CategoryRaw | null | undefined) => {
 	if (!raw) return null;
 	return {
 		id: raw.id,

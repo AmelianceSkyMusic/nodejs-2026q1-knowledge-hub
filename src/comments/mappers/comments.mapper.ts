@@ -3,7 +3,7 @@ import type { Relations } from 'src/drizzle/db/relations';
 
 export type CommentRaw = BuildQueryResult<Relations, Relations['comments'], true>;
 
-export const mapComment = (raw: CommentRaw) => {
+export const mapComment = (raw: CommentRaw | null | undefined) => {
 	if (!raw) return null;
 	return {
 		id: raw.id,

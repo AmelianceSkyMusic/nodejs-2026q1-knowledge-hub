@@ -5,7 +5,7 @@ import type { Relations } from 'src/drizzle/db/relations';
 
 export type UserRaw = BuildQueryResult<Relations, Relations['users'], true>;
 
-export const mapUser = (raw: UserRaw) => {
+export const mapUser = (raw: UserRaw | null | undefined) => {
 	if (!raw) return null;
 	return {
 		id: raw.id,

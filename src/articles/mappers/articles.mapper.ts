@@ -15,7 +15,7 @@ export type ArticleWithRelations = BuildQueryResult<
 	}
 >;
 
-export const mapArticle = (raw: ArticleWithRelations) => {
+export const mapArticle = (raw: ArticleWithRelations | null | undefined) => {
 	if (!raw) return null;
 	return {
 		id: raw.id,
