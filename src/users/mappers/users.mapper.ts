@@ -1,10 +1,17 @@
-import type { User } from 'shared/users/schemas/user.schema';
-import type { Prisma } from 'src/generated/prisma/client';
+import { USER_ROLES } from 'shared/users/constants/user-role';
 
-export const mapUser = (raw: Prisma.UserGetPayload<object>) => ({
-	id: raw.id,
-	login: raw.login,
-	role: raw.role.toLowerCase() as User['role'],
-	createdAt: raw.createdAt.getTime(),
-	updatedAt: raw.updatedAt.getTime(),
-});
+import type { BuildQueryResult } from 'drizzle-orm';
+import type { Relations } from 'src/drizzle/db/relations';
+
+export type UserRaw = BuildQueryResult<Relations, Relations['users'], true>;
+
+export const mapUser = (raw: UserRaw) => {
+	if (!raw) return null;
+	return {
+		id: raw.id,
+		login: raw.login,
+		role: USER_ROLES[raw.role],
+		createdAt: raw.createdAt.getTime(),
+		updatedAt: raw.updatedAt.getTime(),
+	};
+};

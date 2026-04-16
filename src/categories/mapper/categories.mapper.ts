@@ -1,7 +1,13 @@
-import type { Prisma } from 'src/generated/prisma/client';
+import type { BuildQueryResult } from 'drizzle-orm';
+import type { Relations } from 'src/drizzle/db/relations';
 
-export const mapCategory = (raw: Prisma.CategoryGetPayload<object>) => ({
-	id: raw.id,
-	name: raw.name,
-	description: raw.description,
-});
+export type CategoryRaw = BuildQueryResult<Relations, Relations['categories'], true>;
+
+export const mapCategory = (raw: CategoryRaw) => {
+	if (!raw) return null;
+	return {
+		id: raw.id,
+		name: raw.name,
+		description: raw.description,
+	};
+};

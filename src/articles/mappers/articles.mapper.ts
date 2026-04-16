@@ -1,18 +1,31 @@
-import type { Article } from 'shared/articles/schemas/article.schema';
-import type { Prisma } from 'src/generated/prisma/client';
+import { ARTICLE_STATUS } from 'shared/articles/constants/article-status';
 
-export type ArticleWithRelations = Prisma.ArticleGetPayload<{
-	include: { tags: true; author: true; category: true };
-}>;
+import type { BuildQueryResult } from 'drizzle-orm';
+import type { Relations } from 'src/drizzle/db/relations';
 
-export const mapArticle = (raw: ArticleWithRelations) => ({
-	id: raw.id,
-	title: raw.title,
-	content: raw.content,
-	status: raw.status.toLowerCase() as Article['status'],
-	authorId: raw.authorId,
-	categoryId: raw.categoryId,
-	tags: raw.tags.map((tag) => tag.name),
-	createdAt: raw.createdAt.getTime(),
-	updatedAt: raw.updatedAt.getTime(),
-});
+export type ArticleWithRelations = BuildQueryResult<
+	Relations,
+	Relations['articles'],
+	{
+		with: {
+			tags: true;
+			author: true;
+			category: true;
+		};
+	}
+>;
+
+export const mapArticle = (raw: ArticleWithRelations) => {
+	if (!raw) return null;
+	return {
+		id: raw.id,
+		title: raw.title,
+		content: raw.content,
+		status: ARTICLE_STATUS[raw.status],
+		authorId: raw.authorId,
+		categoryId: raw.categoryId,
+		tags: raw.tags.map((tag) => tag.name),
+		createdAt: raw.createdAt.getTime(),
+		updatedAt: raw.updatedAt.getTime(),
+	};
+};
