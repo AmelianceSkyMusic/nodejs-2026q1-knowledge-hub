@@ -32,7 +32,7 @@
 		"test:comments": "jest --testPathPattern comments.e2e.spec.ts --noStackTrace --runInBand",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
-		"db:push": "drizzle-kit push",
+		"db:push:dev-only": "drizzle-kit push",
 		"db:seed": "tsx src/drizzle/db/seed.ts",
 		"db:studio": "drizzle-kit studio",
 		"docker:down": "docker-compose down -v",
