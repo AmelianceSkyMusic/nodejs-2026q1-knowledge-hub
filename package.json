@@ -25,11 +25,11 @@
 		"test:watch": "jest --watch",
 		"test:cov": "jest --coverage",
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-		"test:pagination": "jest --testPathPattern users-pagination.e2e.spec.ts articles-pagination.e2e.spec.ts categories-pagination.e2e.spec.ts comments-pagination.e2e.spec.ts --noStackTrace --runInBand",
-		"test:users": "jest --testPathPattern users.e2e.spec.ts --noStackTrace --runInBand",
-		"test:articles": "jest --testPathPattern articles.e2e.spec.ts --noStackTrace --runInBand",
-		"test:categories": "jest --testPathPattern categories.e2e.spec.ts --noStackTrace --runInBand",
-		"test:comments": "jest --testPathPattern comments.e2e.spec.ts --noStackTrace --runInBand",
+		"test:pagination": "jest --testPathPattern test/pagination --noStackTrace --runInBand",
+		"test:users": "jest --testPathPattern test/users.e2e.spec.ts --noStackTrace --runInBand",
+		"test:articles": "jest --testPathPattern test/articles.e2e.spec.ts --noStackTrace --runInBand",
+		"test:categories": "jest --testPathPattern test/categories.e2e.spec.ts --noStackTrace --runInBand",
+		"test:comments": "jest --testPathPattern test/comments.e2e.spec.ts --noStackTrace --runInBand",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:push:dev-only": "drizzle-kit push",
@@ -41,7 +41,8 @@
 		"docker:db": "docker-compose up db -d",
 		"docker:db:logs": "docker-compose logs -f db",
 		"docker:rerun": "npm run docker:down && npm run docker:up",
-		"docker:rerun-db": "npm run docker:down && npm run docker:db"
+		"docker:rerun-db": "npm run docker:down && npm run docker:db",
+		"db:reset": "npm run docker:down && npm run docker:db && powershell -Command \"Start-Sleep -s 3\" && npm run db:migrate && npm run db:studio"
 	},
 	"dependencies": {
 		"@nestjs/common": "^10.4.16",
