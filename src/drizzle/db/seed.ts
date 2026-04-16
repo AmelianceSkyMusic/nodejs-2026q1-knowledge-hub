@@ -1,57 +1,52 @@
-import { PrismaPg } from '@prisma/adapter-pg';
-import { ArticleStatus, PrismaClient } from 'src/generated/prisma/client';
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+import { relations } from './relations';
+import * as schema from './schema';
 
-const prisma = new PrismaClient({ adapter });
+const pool = new Pool({
+	connectionString: process.env.DATABASE_URL,
+});
+
+const db = drizzle({ client: pool, schema, relations });
 
 async function main() {
 	console.log('🌱 Start seeding...');
 
-	await prisma.user.deleteMany();
-	await prisma.comment.deleteMany();
-	await prisma.article.deleteMany();
-	await prisma.category.deleteMany();
-	await prisma.tag.deleteMany();
+	await db.delete(schema.articleToTag);
+	await db.delete(schema.comments);
+	await db.delete(schema.articles);
+	await db.delete(schema.categories);
+	await db.delete(schema.tags);
+	await db.delete(schema.users);
 
-	const users = [
-		{ login: 'admin', password: 'Admin1234!', role: 'ADMIN' },
-		{ login: 'editor', password: 'Editor1234!', role: 'EDITOR' },
-		{ login: 'viewer', password: 'Viewer1234!', role: 'VIEWER' },
-	] as const;
+	console.log('🗑️ Cleaned existing data');
 
-	const [admin, editor, viewer] = await Promise.all(
-		users.map((user) => {
-			return prisma.user.upsert({
-				where: { login: user.login },
-				update: {},
-				create: {
-					login: user.login,
-					password: user.password,
-					role: user.role,
-				},
-			});
-		}),
-	);
+	const usersData = [
+		{ login: 'admin', password: 'Admin1234!', role: 'ADMIN' as const },
+		{ login: 'editor', password: 'Editor1234!', role: 'EDITOR' as const },
+		{ login: 'viewer', password: 'Viewer1234!', role: 'VIEWER' as const },
+	];
 
-	const categories = [
+	const [admin, editor, viewer] = await db.insert(schema.users).values(usersData).returning();
+
+	console.log('👤 Created users');
+
+	const categoriesData = [
 		{ name: 'Node.js', description: 'Everything about Node' },
 		{ name: 'Databases', description: 'Postgresql, mongodb and others' },
 		{ name: 'Frontend', description: 'Everything about Frontend' },
-	] as const;
+	];
 
-	const [nodeJs, databases, frontend] = await Promise.all(
-		categories.map((category) => {
-			return prisma.category.create({
-				data: {
-					name: category.name,
-					description: category.description,
-				},
-			});
-		}),
-	);
+	const [nodeJs, databases, frontend] = await db
+		.insert(schema.categories)
+		.values(categoriesData)
+		.returning();
 
-	const tags = [
+	console.log('📁 Created categories');
+
+	const tagsData = [
 		{ name: 'node' },
 		{ name: 'db' },
 		{ name: 'nest' },
@@ -59,107 +54,97 @@ async function main() {
 		{ name: 'ts' },
 		{ name: 'be' },
 		{ name: 'fe' },
-	] as const;
+	];
 
-	const [node, db, nest, js, ts, be, fe] = await Promise.all(
-		tags.map((tag) => {
-			return prisma.tag.upsert({
-				where: { name: tag.name },
-				update: {},
-				create: {
-					name: tag.name,
-				},
-			});
-		}),
-	);
+	const [nodeTag, dbTag, nestTag, jsTag, tsTag, beTag, feTag] = await db
+		.insert(schema.tags)
+		.values(tagsData)
+		.returning();
+
+	console.log('🏷️ Created tags');
 
 	const articlesContent = [
 		{
 			title: 'Node.js',
-			status: ArticleStatus.DRAFT,
+			status: 'DRAFT' as const,
 			content:
 				'Node.js is a cross-platform, open-source JavaScript runtime environment that can run on Windows, Linux, Unix, macOS, and more. It is built on the Chrome V8 engine and uses an asynchronous event-driven model, making it ideal for building scalable and high-performance network applications.',
 			authorId: admin.id,
 			categoryId: nodeJs.id,
-			tags: {
-				connect: [{ id: node.id }, { id: be.id }],
-			},
+			tags: [nodeTag, beTag],
 		},
 		{
 			title: 'PostgreSQL or MongoDB?',
-			status: ArticleStatus.PUBLISHED,
+			status: 'PUBLISHED' as const,
 			content:
 				'Choosing between PostgreSQL and MongoDB depends on your applications needs for data structure and consistency. PostgreSQL is a powerful relational database that excels at complex queries and ACID compliance, while MongoDB is a popular NoSQL document store that offers horizontal scaling and a flexible JSON-like schema.',
 			authorId: editor.id,
 			categoryId: databases.id,
-			tags: {
-				connect: [{ id: db.id }, { id: be.id }],
-			},
+			tags: [dbTag, beTag],
 		},
 		{
 			title: 'Why you should use NestJS?',
-			status: ArticleStatus.ARCHIVED,
+			status: 'ARCHIVED' as const,
 			content:
 				'NestJS is a progressive Node.js framework for building efficient, reliable, and scalable server-side applications. It leverages TypeScript, combines elements of OOP, FP, and FRP, and provides an out-of-the-box application architecture that allows developers to create highly testable and maintainable code.',
 			authorId: editor.id,
 			categoryId: nodeJs.id,
-			tags: {
-				connect: [{ id: node.id }, { id: nest.id }, { id: be.id }],
-			},
+			tags: [nodeTag, nestTag, beTag],
 		},
 		{
 			title: 'How to use NestJS with PostgreSQL in Docker?',
-			status: ArticleStatus.PUBLISHED,
+			status: 'PUBLISHED' as const,
 			content:
 				'Containerizing your NestJS and PostgreSQL setup with Docker ensures environment consistency across development and production. By using docker-compose, you can easily orchestrate services, manage environment variables, and define persistent storage volumes for your database, simplifying the deployment pipeline.',
 			authorId: editor.id,
 			categoryId: nodeJs.id,
-			tags: {
-				connect: [{ id: node.id }, { id: nest.id }, { id: be.id }],
-			},
+			tags: [nodeTag, nestTag, beTag],
 		},
 		{
 			title: 'How to create fullstack app with only Next.js?',
-			status: ArticleStatus.DRAFT,
+			status: 'DRAFT' as const,
 			content:
 				'Next.js has evolved into a comprehensive framework that supports full-stack development through Server Components and Route Handlers. By integrating frontend logic with server-side API routes and database connections, developers can build complete, high-performance web applications within a single unified codebase.',
 			authorId: editor.id,
 			categoryId: nodeJs.id,
-			tags: {
-				connect: [{ id: node.id }, { id: ts.id }, { id: be.id }, { id: fe.id }],
-			},
+			tags: [nodeTag, tsTag, beTag, feTag],
 		},
 		{
 			title: "You don't need TypeScript when existing JS code is perfect",
-			status: ArticleStatus.ARCHIVED,
+			status: 'ARCHIVED' as const,
 			content:
 				"While TypeScript provides valuable type safety and tooling for large projects, pure JavaScript remains a potent choice for smaller or legacy applications. If your existing code is well-tested and your team is highly proficient in JS, you might decide that the overhead of a build step and typing isn't necessary for every project.",
 			authorId: editor.id,
 			categoryId: nodeJs.id,
-			tags: {
-				connect: [{ id: node.id }, { id: js.id }, { id: ts.id }, { id: be.id }],
-			},
+			tags: [nodeTag, jsTag, tsTag, beTag],
 		},
 		{
 			title: 'How to create SPA with React Create App in 2026?',
-			status: ArticleStatus.PUBLISHED,
+			status: 'PUBLISHED' as const,
 			content:
 				'Creating a Single Page Application with specialized tools provides a streamlined development experience for rich client-side interfaces. In 2026, modern builders like Vite have largely superseded Create React App, offering significantly faster HMR and optimized production builds for building state-of-the-art SPAs.',
 			authorId: editor.id,
 			categoryId: frontend.id,
-			tags: {
-				connect: [{ id: js.id }, { id: ts.id }, { id: fe.id }],
-			},
+			tags: [jsTag, tsTag, feTag],
 		},
 	];
 
-	const articles = await Promise.all(
-		articlesContent.map((article) => {
-			return prisma.article.create({
-				data: article,
-			});
-		}),
-	);
+	const articles: (typeof schema.articles.$inferSelect)[] = [];
+	for (const { tags, ...articleData } of articlesContent) {
+		const [article] = await db.insert(schema.articles).values(articleData).returning();
+		articles.push(article);
+
+		if (tags && tags.length > 0) {
+			await db.insert(schema.articleToTag).values(
+				tags.map((tag) => ({
+					articleId: article.id,
+					tagId: tag.id,
+				})),
+			);
+		}
+	}
+
+	console.log('📝 Created articles');
 
 	const commentTexts = [
 		'🔥 Finally a proper guide on Node.js! Thanks!',
@@ -196,26 +181,21 @@ async function main() {
 
 	const userIds = [admin.id, editor.id, viewer.id];
 
-	await Promise.all(
-		commentTexts.map((text, index) => {
-			return prisma.comment.create({
-				data: {
-					content: text,
-					authorId: userIds[index % userIds.length],
-					articleId: articles[index % articles.length].id,
-				},
-			});
-		}),
+	await db.insert(schema.comments).values(
+		commentTexts.map((text, index) => ({
+			content: text,
+			authorId: userIds[index % userIds.length],
+			articleId: articles[index % articles.length].id,
+		})),
 	);
 
+	console.log('💬 Created comments');
+
 	console.log('✅ Seeding finished.');
+	process.exit(0);
 }
 
-main()
-	.catch((e) => {
-		console.error(e);
-		process.exit(1);
-	})
-	.finally(async () => {
-		await prisma.$disconnect();
-	});
+main().catch((e) => {
+	console.error(e);
+	process.exit(1);
+});
