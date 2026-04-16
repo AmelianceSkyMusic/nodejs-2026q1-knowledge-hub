@@ -1,13 +1,13 @@
 import {
-	ConflictException,
 	Injectable,
+	InternalServerErrorException,
 	NotFoundException,
 	UnprocessableEntityException,
 } from '@nestjs/common';
 import { CreateComment } from 'shared/comments/schemas/create-comment.schema';
 import { GetCommentsWithPaginationQuery } from 'shared/comments/schemas/get-comment-with-pagination-query.schema';
 import { Id } from 'shared/common/schemas/id.schema';
-import { Prisma } from 'src/generated/prisma/client';
+import { pgError } from 'src/common/utils/pg-error';
 
 import { CommentsRepository } from './repositories/comments.repository';
 
@@ -29,27 +29,23 @@ export class CommentsService {
 
 	async create(createComment: CreateComment) {
 		try {
-			return await this.commentsRepository.create(createComment);
+			const result = await this.commentsRepository.create(createComment);
+			if (!result) throw new InternalServerErrorException(ERROR.COMMENT.CREATE_FAILED);
+			return result;
 		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError) {
-				if (error.code === 'P2003') {
-					throw new UnprocessableEntityException(ERROR.ARTICLE.NOT_FOUND);
-				}
+			const dbError = pgError(error);
 
-				if (error.code === 'P2002') throw new ConflictException(ERROR.USER.ALREADY_EXISTS);
+			if (dbError.isForeignKeyViolation) {
+				throw new UnprocessableEntityException(ERROR.ARTICLE.NOT_FOUND);
 			}
+
 			throw error;
 		}
 	}
 
 	async remove(id: Id) {
-		try {
-			return await this.commentsRepository.remove(id);
-		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-				throw new NotFoundException(ERROR.COMMENT.NOT_FOUND);
-			}
-			throw error;
-		}
+		const result = await this.commentsRepository.remove(id);
+		if (!result) throw new NotFoundException(ERROR.COMMENT.NOT_FOUND);
+		return result;
 	}
 }

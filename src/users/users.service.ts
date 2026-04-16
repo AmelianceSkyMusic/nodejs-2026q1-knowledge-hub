@@ -2,13 +2,14 @@ import {
 	ConflictException,
 	ForbiddenException,
 	Injectable,
+	InternalServerErrorException,
 	NotFoundException,
 } from '@nestjs/common';
 import { Id } from 'shared/common/schemas/id.schema';
 import { CreateUser } from 'shared/users/schemas/create-user.schema';
 import { GetUsersWithPaginationQuery } from 'shared/users/schemas/get-user-with-pagination-query.schema';
 import { UpdatePassword } from 'shared/users/schemas/update-password.schema';
-import { Prisma } from 'src/generated/prisma/client';
+import { pgError } from 'src/common/utils/pg-error';
 
 import { UsersRepository } from './repository/users.repository';
 
@@ -31,10 +32,12 @@ export class UsersService {
 
 	async create(createUser: CreateUser) {
 		try {
-			return await this.usersRepository.create(createUser);
+			const result = await this.usersRepository.create(createUser);
+			if (!result) throw new InternalServerErrorException(ERROR.USER.CREATE_FAILED);
+			return result;
 		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError) {
-				if (error.code === 'P2002') throw new ConflictException(ERROR.USER.ALREADY_EXISTS);
+			if (pgError(error).isUniqueViolation) {
+				throw new ConflictException(ERROR.USER.ALREADY_EXISTS);
 			}
 			throw error;
 		}
@@ -48,24 +51,16 @@ export class UsersService {
 			throw new ForbiddenException(ERROR.PASSWORD.INVALID);
 		}
 
-		try {
-			return await this.usersRepository.update(userId, { password: updatePassword.newPassword });
-		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-				throw new NotFoundException(ERROR.USER.NOT_FOUND);
-			}
-			throw error;
-		}
+		const result = await this.usersRepository.update(userId, {
+			password: updatePassword.newPassword,
+		});
+		if (!result) throw new NotFoundException(ERROR.USER.NOT_FOUND);
+		return result;
 	}
 
 	async remove(userId: Id) {
-		try {
-			return await this.usersRepository.remove(userId);
-		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-				throw new NotFoundException(ERROR.USER.NOT_FOUND);
-			}
-			throw error;
-		}
+		const result = await this.usersRepository.remove(userId);
+		if (!result) throw new NotFoundException(ERROR.USER.NOT_FOUND);
+		return result;
 	}
 }

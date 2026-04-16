@@ -1,9 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateCategory } from 'shared/categories/schemas/create-category.schema';
 import { GetCategoriesWithPaginationQuery } from 'shared/categories/schemas/get-categories-with-pagination-query.schema';
 import { UpdateCategory } from 'shared/categories/schemas/update-category.schema';
 import { Id } from 'shared/common/schemas/id.schema';
-import { Prisma } from 'src/generated/prisma/client';
 
 import { CategoriesRepository } from './repositories/categories.repository';
 
@@ -24,35 +23,20 @@ export class CategoriesService {
 	}
 
 	async create(createCategory: CreateCategory) {
-		try {
-			return await this.categoriesRepository.create(createCategory);
-		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError) {
-				if (error.code === 'P2002') throw new ConflictException(ERROR.ARTICLE.ALREADY_EXISTS);
-			}
-			throw error;
-		}
+		const result = await this.categoriesRepository.create(createCategory);
+		if (!result) throw new InternalServerErrorException(ERROR.CATEGORY.CREATE_FAILED);
+		return result;
 	}
 
 	async update(id: Id, updateCategory: UpdateCategory) {
-		try {
-			return await this.categoriesRepository.update(id, updateCategory);
-		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-				throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
-			}
-			throw error;
-		}
+		const result = await this.categoriesRepository.update(id, updateCategory);
+		if (!result) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
+		return result;
 	}
 
 	async remove(id: Id) {
-		try {
-			return await this.categoriesRepository.remove(id);
-		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-				throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
-			}
-			throw error;
-		}
+		const result = await this.categoriesRepository.remove(id);
+		if (!result) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
+		return result;
 	}
 }
