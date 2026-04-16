@@ -1,19 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { ArticlesWithPaginationSchema } from 'shared/articles/schemas/articles-with-pagination.schema';
+import {
+	ArticlesWithPagination,
+	ArticlesWithPaginationSchema,
+} from 'shared/articles/schemas/articles-with-pagination.schema';
 
 import { ARTICLE_SWAGGER } from './article.swagger';
 
 export class ArticlesWithPaginationDto extends createZodDto(ArticlesWithPaginationSchema) {
 	@ApiProperty(ARTICLE_SWAGGER.TOTAL)
-	total: any;
+	total: ArticlesWithPagination['total'];
 
 	@ApiProperty(ARTICLE_SWAGGER.PAGE)
-	page: any;
+	page: ArticlesWithPagination['page'];
 
 	@ApiProperty(ARTICLE_SWAGGER.LIMIT)
-	limit: any;
+	limit: ArticlesWithPagination['limit'];
 
 	@ApiProperty(ARTICLE_SWAGGER.DATA)
-	data: any;
+	data: ArticlesWithPagination['data'];
 }
