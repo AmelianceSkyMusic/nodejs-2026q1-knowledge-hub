@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
-import { request } from './lib';
-import { categoriesRoutes } from './endpoints';
+import { request } from '../lib';
+import { categoriesRoutes } from '../endpoints';
 
 const createCategoryDto = {
 	name: 'TEST_CATEGORY',

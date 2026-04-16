@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
-import { request } from './lib';
-import { articlesRoutes, commentsRoutes, usersRoutes } from './endpoints';
+import { request } from '../lib';
+import { articlesRoutes, commentsRoutes, usersRoutes } from '../endpoints';
 
 
 const userDto = {
