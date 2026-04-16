@@ -52,10 +52,10 @@ export const tags = pgTable('tags', {
 export const articleToTag = pgTable(
 	'article_to_tags',
 	{
-		articleId: uuid('A')
+		articleId: uuid('article_id')
 			.notNull()
 			.references(() => articles.id, { onDelete: 'cascade' }),
-		tagId: uuid('B')
+		tagId: uuid('tag_id')
 			.notNull()
 			.references(() => tags.id, { onDelete: 'cascade' }),
 	},
