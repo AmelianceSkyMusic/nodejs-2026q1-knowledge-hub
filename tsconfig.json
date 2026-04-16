@@ -17,5 +17,19 @@
 		"strictBindCallApply": false,
 		"forceConsistentCasingInFileNames": false,
 		"noFallthroughCasesInSwitch": false
-	}
+	},
+	"exclude": [
+		"node_modules",
+		"dist",
+		"*._backup*",
+		"*._bash*",
+		"*._legacy*",
+		"*._temp*",
+		"*._labs*",
+		"*._dev*",
+		".file-status",
+		".eslintcache",
+		".history",
+		".lh"
+	]
 }
