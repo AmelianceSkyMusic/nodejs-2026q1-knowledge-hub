@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "54d47520-33ba-4148-91f1-9feede17a071",
+  "id": "3d6bf487-b2c1-4a06-bae7-13f92cfa3179",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -70,7 +70,7 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "A",
+      "name": "article_id",
       "entityType": "columns",
       "schema": "public",
       "table": "article_to_tags"
@@ -83,7 +83,7 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "B",
+      "name": "tag_id",
       "entityType": "columns",
       "schema": "public",
       "table": "article_to_tags"
@@ -445,7 +445,7 @@
     {
       "nameExplicit": false,
       "columns": [
-        "A"
+        "article_id"
       ],
       "schemaTo": "public",
       "tableTo": "articles",
@@ -454,7 +454,7 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
-      "name": "article_to_tags_A_articles_id_fkey",
+      "name": "article_to_tags_article_id_articles_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "article_to_tags"
@@ -462,7 +462,7 @@
     {
       "nameExplicit": false,
       "columns": [
-        "B"
+        "tag_id"
       ],
       "schemaTo": "public",
       "tableTo": "tags",
@@ -471,7 +471,7 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
-      "name": "article_to_tags_B_tags_id_fkey",
+      "name": "article_to_tags_tag_id_tags_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "article_to_tags"
@@ -546,8 +546,8 @@
     },
     {
       "columns": [
-        "A",
-        "B"
+        "article_id",
+        "tag_id"
       ],
       "nameExplicit": false,
       "name": "article_to_tags_pkey",
