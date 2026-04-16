@@ -30,6 +30,13 @@
 		"db:push": "drizzle-kit push",
 		"db:seed": "tsx src/drizzle/db/seed.ts",
 		"db:studio": "drizzle-kit studio",
+		"docker:down": "docker-compose down -v",
+		"docker:rebuild": "docker-compose up --build",
+		"docker:up": "docker-compose up -d",
+		"docker:db": "docker-compose up db -d",
+		"docker:db:logs": "docker-compose logs -f db",
+		"docker:rerun": "npm run docker:down && npm run docker:up",
+		"docker:rerun-db": "npm run docker:down && npm run docker:db"
 	},
 	"dependencies": {
 		"@nestjs/common": "^10.4.16",
