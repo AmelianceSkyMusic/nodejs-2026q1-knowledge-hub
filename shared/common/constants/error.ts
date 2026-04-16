@@ -2,10 +2,11 @@ export const ERROR = {
 	USER: {
 		NOT_FOUND: 'User not found',
 		ALREADY_EXISTS: 'User already exists',
+		CREATE_FAILED: 'User creation failed',
 	},
 	ARTICLE: {
 		NOT_FOUND: 'Article not found',
-		ALREADY_EXISTS: 'Article already exists',
+		CREATE_FAILED: 'Article creation failed',
 		TITLE_IS_EMPTY: 'Title is empty',
 		TITLE_IS_NOT_STRING: 'Title is not a string',
 		CONTENT_IS_EMPTY: 'Content is empty',
@@ -13,6 +14,7 @@ export const ERROR = {
 	},
 	CATEGORY: {
 		NOT_FOUND: 'Category not found',
+		CREATE_FAILED: 'Category creation failed',
 		NAME_IS_EMPTY: 'Name is empty',
 		NAME_IS_NOT_STRING: 'Name is not a string',
 		DESCRIPTION_IS_EMPTY: 'Description is empty',
@@ -20,6 +22,7 @@ export const ERROR = {
 	},
 	COMMENT: {
 		NOT_FOUND: 'Comment not found',
+		CREATE_FAILED: 'Comment creation failed',
 		CONTENT_IS_EMPTY: 'Comment content is empty',
 		CONTENT_IS_NOT_STRING: 'Comment content is not a string',
 	},
@@ -33,7 +36,6 @@ export const ERROR = {
 		INVALID: 'Invalid Password',
 	},
 	ROLE: {
-		IS_NOT_STRING: 'Role is not a string',
 		INVALID: 'Invalid role',
 	},
 	VALIDATION: {
