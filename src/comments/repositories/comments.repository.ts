@@ -1,38 +1,40 @@
 import { Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import { CreateComment } from 'shared/comments/schemas/create-comment.schema';
 import { GetCommentsWithPaginationQuery } from 'shared/comments/schemas/get-comment-with-pagination-query.schema';
 import { Id } from 'shared/common/schemas/id.schema';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { InjectDrizzle } from 'src/drizzle/decorators/drizzle.decorator';
+import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
+import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
+import * as schema from '../../drizzle/db/schema';
 import { mapComment } from '../mappers/comments.mapper';
 
 @Injectable()
 export class CommentsRepository {
-	constructor(private prisma: PrismaService) {}
+	constructor(@InjectDrizzle() private readonly db: DrizzleDb) {}
 
 	async findAll(getCommentsWithPaginationQuery: GetCommentsWithPaginationQuery) {
 		const { articleId, page, limit, sortBy, order } = getCommentsWithPaginationQuery;
+
+		const baseQuery = { where: { articleId }, orderBy: { [sortBy]: order } };
+
 		if (!page) {
-			const result = await this.prisma.comment.findMany({
-				orderBy: { [sortBy]: order },
-				where: { articleId },
-			});
+			const result = await this.db.query.comments.findMany(baseQuery);
 			return result.map(mapComment);
 		}
 
-		return await this.prisma.$transaction(async (tx) => {
-			const total = await tx.comment.count({ where: { articleId } });
+		return await this.db.transaction(async (tx) => {
+			const total = await tx.$count(schema.comments, eq(schema.comments.articleId, articleId));
+
 			if (total === 0) return { total, page, limit, data: [] };
 
-			const pages = Math.ceil(total / limit) || 1;
-			const currentPage = Math.min(Math.max(1, page), pages);
-			const offset = (currentPage - 1) * limit;
+			const { currentPage, offset } = calculatePagination(total, page, limit);
 
-			const result = await tx.comment.findMany({
-				skip: offset,
-				take: limit,
-				orderBy: { [sortBy]: order },
-				where: { articleId },
+			const result = await tx.query.comments.findMany({
+				...baseQuery,
+				offset,
+				limit,
 			});
 
 			const data = result.map(mapComment);
@@ -42,17 +44,22 @@ export class CommentsRepository {
 	}
 
 	async findOne(id: Id) {
-		const result = await this.prisma.comment.findUnique({ where: { id } });
-		if (!result) return null;
+		const result = await this.db.query.comments.findFirst({
+			where: { id },
+		});
 		return mapComment(result);
 	}
 
 	async create(createComment: CreateComment) {
-		const result = await this.prisma.comment.create({ data: createComment });
-		return mapComment(result);
+		const [inserted] = await this.db.insert(schema.comments).values(createComment).returning();
+		return mapComment(inserted);
 	}
 
 	async remove(id: Id) {
-		return await this.prisma.comment.delete({ where: { id } });
+		const [result] = await this.db
+			.delete(schema.comments)
+			.where(eq(schema.comments.id, id))
+			.returning();
+		return mapComment(result);
 	}
 }
