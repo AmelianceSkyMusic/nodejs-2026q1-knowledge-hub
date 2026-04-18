@@ -2,8 +2,8 @@ import * as bcrypt from 'bcrypt';
 import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import { relations } from 'src/drizzle/db/relations';
-import * as schema from 'src/drizzle/db/schema';
+import { relations } from '../../src/drizzle/db/relations';
+import * as schema from '../../src/drizzle/db/schema';
 
 export const SEED_ADMIN_LOGIN = 'TEST_SEED_ADMIN';
 export const SEED_ADMIN_PASSWORD = 'TestSeedAdmin123!';

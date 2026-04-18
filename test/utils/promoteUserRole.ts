@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import * as schema from 'src/drizzle/db/schema';
+import * as schema from '../../src/drizzle/db/schema';
 import drizzle from "../lib/drizzle";
 
 type Role = 'viewer' | 'editor' | 'admin';
