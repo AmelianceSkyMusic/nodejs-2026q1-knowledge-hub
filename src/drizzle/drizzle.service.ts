@@ -45,6 +45,7 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
 			client: this.pool,
 			schema,
 			relations,
+			casing: 'snake_case', //* convert all table and column names to snake_case, so we don't to describe it in schema
 			logger: isDevelopment ? new DrizzleLogger() : false,
 		});
 	}

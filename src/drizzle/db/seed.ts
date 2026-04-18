@@ -10,7 +10,12 @@ const pool = new Pool({
 	connectionString: process.env.DATABASE_URL,
 });
 
-const db = drizzle({ client: pool, schema, relations });
+const db = drizzle({
+	client: pool,
+	schema,
+	relations,
+	casing: 'snake_case',
+});
 
 async function main() {
 	console.log('🌱 Start seeding...');

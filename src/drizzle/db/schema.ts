@@ -19,10 +19,10 @@ export const articles = pgTable(
 		...pgBase(),
 		title: text().notNull(),
 		content: text().notNull(),
-		status: articleStatus().default('DRAFT').notNull(),
+		status: articleStatus().default('draft').notNull(),
 
-		authorId: uuid('author_id').references(() => users.id, { onDelete: 'set null' }),
-		categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),
+		authorId: uuid().references(() => users.id, { onDelete: 'set null' }),
+		categoryId: uuid().references(() => categories.id, { onDelete: 'set null' }),
 	},
 	(table) => [index('status_idx').on(table.status), index('category_id_idx').on(table.categoryId)],
 );
@@ -32,8 +32,8 @@ export const comments = pgTable('comments', {
 	createdAt: pgBase().createdAt,
 	content: text().notNull(),
 
-	authorId: uuid('author_id').references(() => users.id, { onDelete: 'cascade' }),
-	articleId: uuid('article_id')
+	authorId: uuid().references(() => users.id, { onDelete: 'cascade' }),
+	articleId: uuid()
 		.references(() => articles.id, { onDelete: 'cascade' })
 		.notNull(),
 });
@@ -52,10 +52,10 @@ export const tags = pgTable('tags', {
 export const articleToTag = pgTable(
 	'article_to_tags',
 	{
-		articleId: uuid('article_id')
+		articleId: uuid()
 			.notNull()
 			.references(() => articles.id, { onDelete: 'cascade' }),
-		tagId: uuid('tag_id')
+		tagId: uuid()
 			.notNull()
 			.references(() => tags.id, { onDelete: 'cascade' }),
 	},
