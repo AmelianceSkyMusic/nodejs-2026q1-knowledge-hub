@@ -1,28 +1,28 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "3d6bf487-b2c1-4a06-bae7-13f92cfa3179",
+  "id": "ac9adfdd-cdb3-4348-8b51-54a6ec9bb702",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
     {
       "values": [
-        "DRAFT",
-        "PUBLISHED",
-        "ARCHIVED"
+        "draft",
+        "published",
+        "archived"
       ],
-      "name": "ArticleStatus",
+      "name": "article_status",
       "entityType": "enums",
       "schema": "public"
     },
     {
       "values": [
-        "ADMIN",
-        "EDITOR",
-        "VIEWER"
+        "admin",
+        "editor",
+        "viewer"
       ],
-      "name": "UserRole",
+      "name": "user_role",
       "entityType": "enums",
       "schema": "public"
     },
@@ -154,11 +154,11 @@
       "table": "articles"
     },
     {
-      "type": "ArticleStatus",
+      "type": "article_status",
       "typeSchema": "public",
       "notNull": true,
       "dimensions": 0,
-      "default": "'DRAFT'",
+      "default": "'draft'",
       "generated": null,
       "identity": null,
       "name": "status",
@@ -388,11 +388,11 @@
       "table": "users"
     },
     {
-      "type": "UserRole",
+      "type": "user_role",
       "typeSchema": "public",
       "notNull": true,
       "dimensions": 0,
-      "default": "'VIEWER'",
+      "default": "'viewer'",
       "generated": null,
       "identity": null,
       "name": "role",

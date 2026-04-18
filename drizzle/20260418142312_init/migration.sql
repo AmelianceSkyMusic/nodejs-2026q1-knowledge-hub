@@ -1,5 +1,5 @@
-CREATE TYPE "ArticleStatus" AS ENUM('DRAFT', 'PUBLISHED', 'ARCHIVED');--> statement-breakpoint
-CREATE TYPE "UserRole" AS ENUM('ADMIN', 'EDITOR', 'VIEWER');--> statement-breakpoint
+CREATE TYPE "article_status" AS ENUM('draft', 'published', 'archived');--> statement-breakpoint
+CREATE TYPE "user_role" AS ENUM('admin', 'editor', 'viewer');--> statement-breakpoint
 CREATE TABLE "article_to_tags" (
 	"article_id" uuid,
 	"tag_id" uuid,
@@ -12,7 +12,7 @@ CREATE TABLE "articles" (
 	"updated_at" timestamp(3) DEFAULT now() NOT NULL,
 	"title" text NOT NULL,
 	"content" text NOT NULL,
-	"status" "ArticleStatus" DEFAULT 'DRAFT'::"ArticleStatus" NOT NULL,
+	"status" "article_status" DEFAULT 'draft'::"article_status" NOT NULL,
 	"author_id" uuid,
 	"category_id" uuid
 );
@@ -42,7 +42,7 @@ CREATE TABLE "users" (
 	"updated_at" timestamp(3) DEFAULT now() NOT NULL,
 	"login" text NOT NULL UNIQUE,
 	"password" text NOT NULL,
-	"role" "UserRole" DEFAULT 'VIEWER'::"UserRole" NOT NULL
+	"role" "user_role" DEFAULT 'viewer'::"user_role" NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX "status_idx" ON "articles" ("status");--> statement-breakpoint

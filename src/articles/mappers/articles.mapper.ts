@@ -1,5 +1,3 @@
-import { ARTICLE_STATUS } from 'shared/articles/constants/article-status';
-
 import type { BuildQueryResult } from 'drizzle-orm';
 import type { Relations } from 'src/drizzle/db/relations';
 
@@ -21,7 +19,7 @@ export const mapArticle = (raw: ArticleWithRelations | null | undefined) => {
 		id: raw.id,
 		title: raw.title,
 		content: raw.content,
-		status: ARTICLE_STATUS[raw.status],
+		status: raw.status,
 		authorId: raw.authorId,
 		categoryId: raw.categoryId,
 		tags: raw.tags.map((tag) => tag.name),
