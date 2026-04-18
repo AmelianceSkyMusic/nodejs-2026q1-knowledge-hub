@@ -2,16 +2,16 @@ import { index, pgEnum, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-c
 
 import { pgBase } from './pg-base';
 
-export const userRole = pgEnum('UserRole', ['ADMIN', 'EDITOR', 'VIEWER']);
+export const userRole = pgEnum('user_role', ['admin', 'editor', 'viewer']);
 
 export const users = pgTable('users', {
 	...pgBase(),
 	login: text().unique().notNull(),
 	password: text().notNull(),
-	role: userRole().notNull().default('VIEWER'),
+	role: userRole().notNull().default('viewer'),
 });
 
-export const articleStatus = pgEnum('ArticleStatus', ['DRAFT', 'PUBLISHED', 'ARCHIVED']);
+export const articleStatus = pgEnum('article_status', ['draft', 'published', 'archived']);
 
 export const articles = pgTable(
 	'articles',

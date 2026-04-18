@@ -33,9 +33,9 @@ async function main() {
 	console.log('   🧹 Cleaned existing data');
 
 	const usersData = [
-		{ login: 'admin', password: 'Admin1234!', role: 'ADMIN' as const },
-		{ login: 'editor', password: 'Editor1234!', role: 'EDITOR' as const },
-		{ login: 'viewer', password: 'Viewer1234!', role: 'VIEWER' as const },
+		{ login: 'admin', password: 'Admin1234!', role: 'admin' as const },
+		{ login: 'editor', password: 'Editor1234!', role: 'editor' as const },
+		{ login: 'viewer', password: 'Viewer1234!', role: 'viewer' as const },
 	];
 
 	const [admin, editor, viewer] = await db.insert(schema.users).values(usersData).returning();
@@ -75,7 +75,7 @@ async function main() {
 	const articlesContent = [
 		{
 			title: 'Node.js',
-			status: 'DRAFT' as const,
+			status: 'draft' as const,
 			content:
 				'Node.js is a cross-platform, open-source JavaScript runtime environment that can run on Windows, Linux, Unix, macOS, and more. It is built on the Chrome V8 engine and uses an asynchronous event-driven model, making it ideal for building scalable and high-performance network applications.',
 			authorId: admin.id,
@@ -84,7 +84,7 @@ async function main() {
 		},
 		{
 			title: 'PostgreSQL or MongoDB?',
-			status: 'PUBLISHED' as const,
+			status: 'published' as const,
 			content:
 				'Choosing between PostgreSQL and MongoDB depends on your applications needs for data structure and consistency. PostgreSQL is a powerful relational database that excels at complex queries and ACID compliance, while MongoDB is a popular NoSQL document store that offers horizontal scaling and a flexible JSON-like schema.',
 			authorId: editor.id,
@@ -93,7 +93,7 @@ async function main() {
 		},
 		{
 			title: 'Why you should use NestJS?',
-			status: 'ARCHIVED' as const,
+			status: 'archived' as const,
 			content:
 				'NestJS is a progressive Node.js framework for building efficient, reliable, and scalable server-side applications. It leverages TypeScript, combines elements of OOP, FP, and FRP, and provides an out-of-the-box application architecture that allows developers to create highly testable and maintainable code.',
 			authorId: editor.id,
@@ -102,7 +102,7 @@ async function main() {
 		},
 		{
 			title: 'How to use NestJS with PostgreSQL in Docker?',
-			status: 'PUBLISHED' as const,
+			status: 'published' as const,
 			content:
 				'Containerizing your NestJS and PostgreSQL setup with Docker ensures environment consistency across development and production. By using docker-compose, you can easily orchestrate services, manage environment variables, and define persistent storage volumes for your database, simplifying the deployment pipeline.',
 			authorId: editor.id,
@@ -111,7 +111,7 @@ async function main() {
 		},
 		{
 			title: 'How to create fullstack app with only Next.js?',
-			status: 'DRAFT' as const,
+			status: 'draft' as const,
 			content:
 				'Next.js has evolved into a comprehensive framework that supports full-stack development through Server Components and Route Handlers. By integrating frontend logic with server-side API routes and database connections, developers can build complete, high-performance web applications within a single unified codebase.',
 			authorId: editor.id,
@@ -120,7 +120,7 @@ async function main() {
 		},
 		{
 			title: "You don't need TypeScript when existing JS code is perfect",
-			status: 'ARCHIVED' as const,
+			status: 'archived' as const,
 			content:
 				"While TypeScript provides valuable type safety and tooling for large projects, pure JavaScript remains a potent choice for smaller or legacy applications. If your existing code is well-tested and your team is highly proficient in JS, you might decide that the overhead of a build step and typing isn't necessary for every project.",
 			authorId: editor.id,
@@ -129,7 +129,7 @@ async function main() {
 		},
 		{
 			title: 'How to create SPA with React Create App in 2026?',
-			status: 'PUBLISHED' as const,
+			status: 'published' as const,
 			content:
 				'Creating a Single Page Application with specialized tools provides a streamlined development experience for rich client-side interfaces. In 2026, modern builders like Vite have largely superseded Create React App, offering significantly faster HMR and optimized production builds for building state-of-the-art SPAs.',
 			authorId: editor.id,
