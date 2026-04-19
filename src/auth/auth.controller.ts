@@ -3,6 +3,7 @@ import {
 	ApiBadRequestResponse,
 	ApiCreatedResponse,
 	ApiForbiddenResponse,
+	ApiNoContentResponse,
 	ApiOkResponse,
 	ApiOperation,
 	ApiTags,
@@ -80,5 +81,18 @@ export class AuthController {
 	@ZodResponse({ type: TokensDto })
 	refresh(@Body() refreshDto: RefreshDto) {
 		return this.authService.refresh(refreshDto);
+	}
+
+	@Post('logout')
+	@Public()
+	@ApiOperation({
+		summary: 'Logout',
+		description: 'Invalidate refresh token and end session',
+		security: [],
+	})
+	@ApiNoContentResponse({ description: 'Logout successful' })
+	@HttpCode(HttpStatus.NO_CONTENT)
+	logout(@Body() refreshDto: RefreshDto) {
+		return this.authService.logout(refreshDto);
 	}
 }

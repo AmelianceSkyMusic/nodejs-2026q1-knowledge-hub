@@ -40,6 +40,12 @@ export class AuthService {
 		const payload = this.tokensService.verifyRefreshToken(refreshDto.refreshToken);
 		if (!payload) throw new ForbiddenException(ERROR.TOKEN.INVALID);
 
+		const isValid = await this.tokensService.validateRefreshToken(
+			payload.userId,
+			refreshDto.refreshToken,
+		);
+		if (!isValid) throw new ForbiddenException(ERROR.TOKEN.INVALID);
+
 		const user = await this.usersService.findOne(payload.userId);
 		if (!user) throw new ForbiddenException(ERROR.TOKEN.INVALID);
 
@@ -48,5 +54,14 @@ export class AuthService {
 			login: user.login,
 			role: user.role,
 		});
+	}
+
+	async logout(refreshDto: RefreshDto) {
+		if (!refreshDto.refreshToken) throw new UnauthorizedException(ERROR.TOKEN.EMPTY);
+
+		const payload = this.tokensService.verifyRefreshToken(refreshDto.refreshToken);
+		if (!payload) throw new ForbiddenException(ERROR.TOKEN.INVALID);
+
+		await this.tokensService.removeRefreshToken(payload.userId, refreshDto.refreshToken);
 	}
 }

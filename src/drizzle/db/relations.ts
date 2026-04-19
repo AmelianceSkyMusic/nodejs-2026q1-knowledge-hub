@@ -6,6 +6,10 @@ export const relations = defineRelations(schema, (r) => ({
 	users: {
 		articles: r.many.articles(),
 		comments: r.many.comments(),
+		token: r.one.tokens({
+			from: r.users.id,
+			to: r.tokens.userId,
+		}),
 	},
 
 	articles: {
@@ -44,6 +48,13 @@ export const relations = defineRelations(schema, (r) => ({
 		articles: r.many.articles({
 			from: r.tags.id.through(r.articleToTag.tagId),
 			to: r.articles.id.through(r.articleToTag.articleId),
+		}),
+	},
+
+	tokens: {
+		user: r.one.users({
+			from: r.tokens.userId,
+			to: r.users.id,
 		}),
 	},
 

@@ -5,15 +5,23 @@ import { JwtUser } from 'shared/auth/schemas/jwt-user.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 import { UserRole } from 'shared/users/types/user-role';
 
+import { TokensRepository } from './repositories/tokens.repository';
+
 import { ERROR } from 'shared/common/constants/error';
 
 @Injectable()
 export class TokensService {
-	constructor(private readonly configService: ConfigService) {}
+	constructor(
+		private readonly configService: ConfigService,
+		private readonly tokensRepository: TokensRepository,
+	) {}
 
-	generateTokens(payload: { userId: Id; login: string; role: UserRole }) {
+	async generateTokens(payload: { userId: Id; login: string; role: UserRole }) {
 		const accessToken = this.generateAccessToken(payload);
 		const refreshToken = this.generateRefreshToken(payload);
+
+		await this.tokensRepository.create(payload.userId, refreshToken);
+
 		return { accessToken, refreshToken };
 	}
 
@@ -25,6 +33,14 @@ export class TokensService {
 	verifyRefreshToken(token: string) {
 		const jwtRefreshSecret = this.getJwtRefreshSecret();
 		return this.verifyToken(token, jwtRefreshSecret);
+	}
+
+	async removeRefreshToken(userId: Id, token: string) {
+		return await this.tokensRepository.deleteByUserId(userId, token);
+	}
+
+	async validateRefreshToken(userId: Id, token: string) {
+		return await this.tokensRepository.validate(userId, token);
 	}
 
 	private generateAccessToken(payload: { userId: Id; login: string; role: UserRole }) {

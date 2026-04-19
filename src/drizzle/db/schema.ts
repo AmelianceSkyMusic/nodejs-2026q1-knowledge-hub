@@ -49,6 +49,16 @@ export const tags = pgTable('tags', {
 	name: text().unique().notNull(),
 });
 
+export const tokens = pgTable('tokens', {
+	id: pgBase().id,
+	createdAt: pgBase().createdAt,
+	userId: uuid()
+		.unique()
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	token: text().notNull(),
+});
+
 export const articleToTag = pgTable(
 	'article_to_tags',
 	{
