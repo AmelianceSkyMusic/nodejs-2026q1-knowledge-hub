@@ -36,6 +36,15 @@ export class AuthService {
 
 	async refresh(refreshDto: RefreshDto) {
 		const payload = this.tokensService.verifyRefreshToken(refreshDto.refreshToken);
-		return this.tokensService.generateTokens(payload);
+		if (!payload) throw new ForbiddenException(ERROR.TOKEN.INVALID);
+
+		const user = await this.usersService.findOne(payload.userId);
+		if (!user) throw new ForbiddenException(ERROR.TOKEN.INVALID);
+
+		return this.tokensService.generateTokens({
+			userId: user.id,
+			login: user.login,
+			role: user.role,
+		});
 	}
 }
