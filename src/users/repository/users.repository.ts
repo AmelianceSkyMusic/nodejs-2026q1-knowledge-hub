@@ -9,7 +9,6 @@ import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
 import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
 import * as schema from '../../drizzle/db/schema';
-import { mapUser } from '../mappers/users.mapper';
 
 @Injectable()
 export class UsersRepository {
@@ -20,10 +19,7 @@ export class UsersRepository {
 
 		const orderBy = { [sortBy]: order };
 
-		if (!page) {
-			const result = await this.db.query.users.findMany({ orderBy });
-			return result.map(mapUser);
-		}
+		if (!page) return await this.db.query.users.findMany({ orderBy });
 
 		return await this.db.transaction(async (tx) => {
 			const total = await tx.$count(schema.users);
@@ -37,14 +33,12 @@ export class UsersRepository {
 				orderBy,
 			});
 
-			const data = result.map(mapUser);
-
-			return { total, page: currentPage, limit, data };
+			return { total, page: currentPage, limit, data: result };
 		});
 	}
 
 	async findOne(id: Id) {
-		const result = await this.db.query.users.findFirst({
+		return await this.db.query.users.findFirst({
 			where: { id },
 		});
 	}
@@ -63,7 +57,7 @@ export class UsersRepository {
 
 	async create(createUser: CreateUser) {
 		const [inserted] = await this.db.insert(schema.users).values(createUser).returning();
-		return mapUser(inserted);
+		return inserted;
 	}
 
 	async update(id: Id, updateUser: UpdateUser) {
@@ -72,7 +66,7 @@ export class UsersRepository {
 			.set(updateUser)
 			.where(eq(schema.users.id, id))
 			.returning();
-		return mapUser(updated);
+		return updated;
 	}
 
 	async remove(id: Id) {
@@ -80,6 +74,6 @@ export class UsersRepository {
 			.delete(schema.users)
 			.where(eq(schema.users.id, id))
 			.returning();
-		return mapUser(result);
+		return result;
 	}
 }

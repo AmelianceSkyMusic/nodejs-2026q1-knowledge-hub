@@ -9,18 +9,16 @@ import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
 import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
 import * as schema from '../../drizzle/db/schema';
-import { mapArticle } from '../mappers/articles.mapper';
 
 @Injectable()
 export class ArticlesRepository {
 	constructor(@InjectDrizzle() private readonly db: DrizzleDb) {}
 
 	private async findOneWithTx(tx: DrizzleDb, id: Id) {
-		const result = await tx.query.articles.findFirst({
+		return await tx.query.articles.findFirst({
 			where: { id },
 			with: { author: true, category: true, tags: true },
 		});
-		return mapArticle(result);
 	}
 
 	private async upsertTags(tx: DrizzleDb, articleId: Id, tags: string[]) {
@@ -66,10 +64,7 @@ export class ArticlesRepository {
 			with: { author: true, category: true, tags: true },
 		};
 
-		if (!page) {
-			const result = await this.db.query.articles.findMany(baseQuery);
-			return result.map(mapArticle);
-		}
+		if (!page) return await this.db.query.articles.findMany(baseQuery);
 
 		return await this.db.transaction(async (tx) => {
 			const countSQL = relationsFilterToSQL(schema.articles, baseQuery.where);
@@ -84,9 +79,7 @@ export class ArticlesRepository {
 				limit,
 			});
 
-			const data = result.map(mapArticle);
-
-			return { total, page: currentPage, limit, data };
+			return { total, page: currentPage, limit, data: result };
 		});
 	}
 
@@ -157,7 +150,7 @@ export class ArticlesRepository {
 					);
 			}
 
-			return mapArticle(article);
+			return article;
 		});
 	}
 }

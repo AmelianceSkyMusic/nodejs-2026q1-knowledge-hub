@@ -8,7 +8,6 @@ import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
 import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
 import * as schema from '../../drizzle/db/schema';
-import { mapComment } from '../mappers/comments.mapper';
 
 @Injectable()
 export class CommentsRepository {
@@ -19,10 +18,7 @@ export class CommentsRepository {
 
 		const baseQuery = { where: { articleId }, orderBy: { [sortBy]: order } };
 
-		if (!page) {
-			const result = await this.db.query.comments.findMany(baseQuery);
-			return result.map(mapComment);
-		}
+		if (!page) return await this.db.query.comments.findMany(baseQuery);
 
 		return await this.db.transaction(async (tx) => {
 			const total = await tx.$count(schema.comments, eq(schema.comments.articleId, articleId));
@@ -37,22 +33,19 @@ export class CommentsRepository {
 				limit,
 			});
 
-			const data = result.map(mapComment);
-
-			return { total, page: currentPage, limit, data };
+			return { total, page: currentPage, limit, data: result };
 		});
 	}
 
 	async findOne(id: Id) {
-		const result = await this.db.query.comments.findFirst({
+		return await this.db.query.comments.findFirst({
 			where: { id },
 		});
-		return mapComment(result);
 	}
 
 	async create(createComment: CreateComment) {
 		const [inserted] = await this.db.insert(schema.comments).values(createComment).returning();
-		return mapComment(inserted);
+		return inserted;
 	}
 
 	async remove(id: Id) {
@@ -60,6 +53,6 @@ export class CommentsRepository {
 			.delete(schema.comments)
 			.where(eq(schema.comments.id, id))
 			.returning();
-		return mapComment(result);
+		return result;
 	}
 }

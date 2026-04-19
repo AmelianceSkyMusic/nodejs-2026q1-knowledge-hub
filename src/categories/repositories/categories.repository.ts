@@ -9,7 +9,6 @@ import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
 import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
 import * as schema from '../../drizzle/db/schema';
-import { mapCategory } from '../mapper/categories.mapper';
 
 @Injectable()
 export class CategoriesRepository {
@@ -20,10 +19,7 @@ export class CategoriesRepository {
 
 		const orderBy = { [sortBy]: order };
 
-		if (!page) {
-			const result = await this.db.query.categories.findMany({ orderBy });
-			return result.map(mapCategory);
-		}
+		if (!page) return await this.db.query.categories.findMany({ orderBy });
 
 		return await this.db.transaction(async (tx) => {
 			const total = await tx.$count(schema.categories);
@@ -37,22 +33,19 @@ export class CategoriesRepository {
 				orderBy,
 			});
 
-			const data = result.map(mapCategory);
-
-			return { total, page: currentPage, limit, data };
+			return { total, page: currentPage, limit, data: result };
 		});
 	}
 
 	async findOne(id: Id) {
-		const result = await this.db.query.categories.findFirst({
+		return await this.db.query.categories.findFirst({
 			where: { id },
 		});
-		return mapCategory(result);
 	}
 
 	async create(data: CreateCategory) {
 		const [result] = await this.db.insert(schema.categories).values(data).returning();
-		return mapCategory(result);
+		return result;
 	}
 
 	async update(id: Id, updateCategory: UpdateCategory) {
@@ -61,7 +54,7 @@ export class CategoriesRepository {
 			.set(updateCategory)
 			.where(eq(schema.categories.id, id))
 			.returning();
-		return mapCategory(result);
+		return result;
 	}
 
 	async remove(id: Id) {
@@ -69,6 +62,6 @@ export class CategoriesRepository {
 			.delete(schema.categories)
 			.where(eq(schema.categories.id, id))
 			.returning();
-		return mapCategory(result);
+		return result;
 	}
 }
