@@ -4,6 +4,7 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor } from 'nestjs-zod';
 
 import { ArticlesModule } from './articles/articles.module';
+import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
 import { CommentsModule } from './comments/comments.module';
 import configuration from './common/config/configuration';
@@ -12,6 +13,7 @@ import { LoggerMiddleware } from './common/middleware/logger-middleware.middlewa
 import { CustomZodValidationPipe } from './common/pipes/custom-zod-validation.pipe';
 import { DrizzleModule } from './drizzle/drizzle.module';
 import { HealthModule } from './health/health.module';
+import { TokensModule } from './tokens/tokens.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -23,6 +25,8 @@ import { UsersModule } from './users/users.module';
 		CommentsModule,
 		HealthModule,
 		DrizzleModule,
+		AuthModule,
+		TokensModule,
 	],
 	providers: [
 		{

@@ -47,7 +47,12 @@ export class UsersRepository {
 		const result = await this.db.query.users.findFirst({
 			where: { id },
 		});
-		return mapUser(result);
+	}
+
+	async findOneByLoginWithPassword(login: string) {
+		return await this.db.query.users.findFirst({
+			where: { login },
+		});
 	}
 
 	async findWithPassword(id: Id) {
