@@ -23,7 +23,7 @@
 		"test:refresh": "cross-env TEST_MODE=auth jest refresh --noStackTrace --runInBand",
 		"test:rbac": "cross-env TEST_MODE=auth jest rbac --noStackTrace --runInBand",
 		"test:auth:all": "cross-env TEST_MODE=auth jest \"(auth|refresh|rbac)\" --noStackTrace --runInBand",
-		"test-cleanup": "tsx test/cleanup/cleanup-after-test.ts",
+		"test-cleanup": "tsx test/helpers/cleanup-after-test.ts",
 		"test:watch": "jest --watch",
 		"test:cov": "jest --coverage",
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
