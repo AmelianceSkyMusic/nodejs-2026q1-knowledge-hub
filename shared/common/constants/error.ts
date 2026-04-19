@@ -3,6 +3,7 @@ export const ERROR = {
 		NOT_FOUND: 'User not found',
 		ALREADY_EXISTS: 'User already exists',
 		CREATE_FAILED: 'User creation failed',
+		LOGIN_ALREADY_TAKEN: 'Login already taken',
 	},
 	ARTICLE: {
 		NOT_FOUND: 'Article not found',
@@ -40,5 +41,17 @@ export const ERROR = {
 	},
 	VALIDATION: {
 		INVALID_UUID: 'Invalid UUID format',
+	},
+	AUTH: {
+		INVALID_LOGIN_OR_PASSWORD: 'Invalid login or password',
+	},
+	TOKEN: {
+		INVALID: 'Invalid token',
+	},
+	ENV: {
+		JWT_SECRET_NOT_FOUND: 'JWT secret not found',
+		JWT_REFRESH_SECRET_NOT_FOUND: 'JWT refresh secret not found',
+		JWT_ACCESS_TTL_NOT_FOUND: 'JWT access TTL not found',
+		JWT_REFRESH_TTL_NOT_FOUND: 'JWT refresh TTL not found',
 	},
 } as const;

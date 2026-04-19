@@ -1,15 +1,13 @@
 import { StatusCodes } from 'http-status-codes';
-import { request } from '../lib';
-import { articlesRoutes, commentsRoutes, usersRoutes } from '../endpoints';
 
+import { articlesRoutes, commentsRoutes, usersRoutes } from '../endpoints';
+import { request } from '../lib';
 
 const userDto = {
 	login: 'test-login',
 	password: 'test-password',
 	role: 'viewer',
-
 };
-
 
 const createArticleDto = {
 	title: 'TEST_ARTICLE',
@@ -33,16 +31,11 @@ describe('Comments pagination (e2e)', () => {
 	let userId: string;
 
 	beforeAll(async () => {
+		const user = await unauthorizedRequest.post(usersRoutes.create).send(userDto);
 
-			const user = await unauthorizedRequest
-			.post(usersRoutes.create)
-			.send(userDto);
+		userId = user.body.id;
 
-			userId = user.body.id;
-
-		const article = await unauthorizedRequest
-			.post(articlesRoutes.create)
-			.send(createArticleDto);
+		const article = await unauthorizedRequest.post(articlesRoutes.create).send(createArticleDto);
 
 		articleId = article.body.id;
 
@@ -52,24 +45,19 @@ describe('Comments pagination (e2e)', () => {
 				authorId: userId,
 				content: `${char} ${createCommentDto.content}`,
 				articleId,
-			}
-			const response = await unauthorizedRequest
-				.post(commentsRoutes.create)
-				.send(commentDto);
+			};
+			const response = await unauthorizedRequest.post(commentsRoutes.create).send(commentDto);
 
 			randomUUIDs.push(response.body.id);
 
 			expect(response.statusCode).toBe(StatusCodes.CREATED);
 		}
-
-
 	});
 
 	afterAll(async () => {
 		for (const id of randomUUIDs) {
 			if (id) {
-				const response = await unauthorizedRequest
-					.delete(commentsRoutes.delete(id));
+				const response = await unauthorizedRequest.delete(commentsRoutes.delete(id));
 
 				expect(response.statusCode).toBe(StatusCodes.NO_CONTENT);
 			}
@@ -81,7 +69,7 @@ describe('Comments pagination (e2e)', () => {
 			expect(response.statusCode).toBe(StatusCodes.NO_CONTENT);
 		}
 
-		if(userId) {
+		if (userId) {
 			const response = await unauthorizedRequest.delete(usersRoutes.delete(userId));
 
 			expect(response.statusCode).toBe(StatusCodes.NO_CONTENT);
@@ -90,17 +78,17 @@ describe('Comments pagination (e2e)', () => {
 
 	describe('GET', () => {
 		it('should correctly get comments array without pagination', async () => {
-			const response = await unauthorizedRequest
-			.get(commentsRoutes.getByArticle(articleId))
+			const response = await unauthorizedRequest.get(commentsRoutes.getByArticle(articleId));
 
 			expect(response.status).toBe(StatusCodes.OK);
 			expect(response.body).toBeInstanceOf(Array);
 			expect(response.body.length).toBeGreaterThanOrEqual(chars.length);
 		});
 
-		it('should correctly get comments object without pagination', async () => {;
-			const response = await unauthorizedRequest
-			.get(`${commentsRoutes.getByArticle(articleId)}&page=1`)
+		it('should correctly get comments object without pagination', async () => {
+			const response = await unauthorizedRequest.get(
+				`${commentsRoutes.getByArticle(articleId)}&page=1`,
+			);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			expect(response.body).toHaveProperty('total');
@@ -110,9 +98,9 @@ describe('Comments pagination (e2e)', () => {
 		});
 
 		it('should not get comments with pagination when only limit is set', async () => {
-			const response = await unauthorizedRequest
-				.get(`${commentsRoutes.getByArticle(articleId)}&limit=10`)
-
+			const response = await unauthorizedRequest.get(
+				`${commentsRoutes.getByArticle(articleId)}&limit=10`,
+			);
 
 			expect(response.status).toBe(StatusCodes.OK);
 
@@ -124,8 +112,9 @@ describe('Comments pagination (e2e)', () => {
 		});
 
 		it('should order comments by creation date when order is asc', async () => {
-			const response = await unauthorizedRequest
-				.get(`${commentsRoutes.getByArticle(articleId)}&page=1&order=asc`)
+			const response = await unauthorizedRequest.get(
+				`${commentsRoutes.getByArticle(articleId)}&page=1&order=asc`,
+			);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			const { data } = response.body;
@@ -139,8 +128,9 @@ describe('Comments pagination (e2e)', () => {
 		});
 
 		it('should order comments by creation date when order is desc', async () => {
-			const response = await unauthorizedRequest
-				.get(`${commentsRoutes.getByArticle(articleId)}&page=1&order=desc`)
+			const response = await unauthorizedRequest.get(
+				`${commentsRoutes.getByArticle(articleId)}&page=1&order=desc`,
+			);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			const { data } = response.body;

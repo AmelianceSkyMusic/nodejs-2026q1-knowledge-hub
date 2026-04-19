@@ -1,6 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
-import { request } from '../lib';
+
 import { categoriesRoutes } from '../endpoints';
+import { request } from '../lib';
 
 const createCategoryDto = {
 	name: 'TEST_CATEGORY',
@@ -18,15 +19,12 @@ describe('Categories pagination (e2e)', () => {
 	const randomUUIDs: string[] = [];
 
 	beforeAll(async () => {
-
 		for (const char of chars) {
 			const categoryDto = {
 				...createCategoryDto,
 				name: `${char} ${createCategoryDto.name}`,
-			}
-			const response = await unauthorizedRequest
-				.post(categoriesRoutes.create)
-				.send(categoryDto);
+			};
+			const response = await unauthorizedRequest.post(categoriesRoutes.create).send(categoryDto);
 
 			randomUUIDs.push(response.body.id);
 
@@ -40,14 +38,12 @@ describe('Categories pagination (e2e)', () => {
 
 			expect(updatedResponse.statusCode).toBe(StatusCodes.OK);
 		}
-
 	});
 
 	afterAll(async () => {
 		for (const id of randomUUIDs) {
 			if (id) {
-				const response = await unauthorizedRequest
-					.delete(categoriesRoutes.delete(id));
+				const response = await unauthorizedRequest.delete(categoriesRoutes.delete(id));
 
 				expect(response.statusCode).toBe(StatusCodes.NO_CONTENT);
 			}
@@ -56,8 +52,7 @@ describe('Categories pagination (e2e)', () => {
 
 	describe('GET', () => {
 		it('should correctly get categories array without pagination', async () => {
-			const response = await unauthorizedRequest
-				.get(categoriesRoutes.getAll)
+			const response = await unauthorizedRequest.get(categoriesRoutes.getAll);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			expect(response.body).toBeInstanceOf(Array);
@@ -65,8 +60,7 @@ describe('Categories pagination (e2e)', () => {
 		});
 
 		it('should correctly get categories object without pagination', async () => {
-			const response = await unauthorizedRequest
-				.get(`${categoriesRoutes.getAll}?page=1`)
+			const response = await unauthorizedRequest.get(`${categoriesRoutes.getAll}?page=1`);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			expect(response.body).toHaveProperty('total');
@@ -76,9 +70,7 @@ describe('Categories pagination (e2e)', () => {
 		});
 
 		it('should not get categories with pagination when only limit is set', async () => {
-			const response = await unauthorizedRequest
-				.get(`${categoriesRoutes.getAll}?limit=10`)
-
+			const response = await unauthorizedRequest.get(`${categoriesRoutes.getAll}?limit=10`);
 
 			expect(response.status).toBe(StatusCodes.OK);
 
@@ -90,8 +82,9 @@ describe('Categories pagination (e2e)', () => {
 		});
 
 		it('should order categories by name when order is desc', async () => {
-			const response = await unauthorizedRequest
-				.get(`${categoriesRoutes.getAll}?page=1&sortBy=name&order=desc`)
+			const response = await unauthorizedRequest.get(
+				`${categoriesRoutes.getAll}?page=1&sortBy=name&order=desc`,
+			);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			const { data } = response.body;
@@ -103,8 +96,9 @@ describe('Categories pagination (e2e)', () => {
 		});
 
 		it('should order categories by name when order is asc', async () => {
-			const response = await unauthorizedRequest
-				.get(`${categoriesRoutes.getAll}?page=1&sortBy=name&order=asc`)
+			const response = await unauthorizedRequest.get(
+				`${categoriesRoutes.getAll}?page=1&sortBy=name&order=asc`,
+			);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			const { data } = response.body;
