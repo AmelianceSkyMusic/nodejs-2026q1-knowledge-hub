@@ -14,10 +14,21 @@ async function bootstrap() {
 		.setTitle('Knowledge Hub')
 		.setDescription('Knowledge hub service for managing articles, categories, and comments')
 		.setVersion('1.0')
+		.addTag('Auth')
 		.addTag('User')
 		.addTag('Article')
 		.addTag('Category')
 		.addTag('Comment')
+		.addBearerAuth(
+			{
+				type: 'http',
+				scheme: 'bearer',
+				bearerFormat: 'JWT',
+				description: 'Enter JWT Access Token',
+			},
+			'bearer',
+		)
+		.addSecurityRequirements('bearer')
 		.build();
 
 	const documentFactory = () =>
@@ -30,6 +41,9 @@ async function bootstrap() {
 	SwaggerModule.setup('doc/swagger', app, documentFactory, {
 		jsonDocumentUrl: 'doc/json',
 		yamlDocumentUrl: 'doc/yaml',
+		swaggerOptions: {
+			persistAuthorization: true,
+		},
 	});
 
 	app.use(

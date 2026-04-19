@@ -7,8 +7,6 @@ import { ERROR } from '../../common/constants/error';
 import { ARTICLE_DEFAULTS } from '../constants/article-defaults';
 import { ARTICLE_STATUS } from '../constants/article-status';
 
-import type { ArticleStatus } from '../types/article-status';
-
 /** Request schema without defaults for frontend */
 export const CreateArticleRequestSchema = z.object({
 	title: z
@@ -19,10 +17,7 @@ export const CreateArticleRequestSchema = z.object({
 		.string(err(ERROR.ARTICLE.CONTENT_IS_NOT_STRING))
 		.trim()
 		.min(1, ERROR.ARTICLE.CONTENT_IS_EMPTY),
-	status: z
-		.preprocess((val: ArticleStatus) => val?.toLowerCase(), z.enum(ARTICLE_STATUS))
-		.transform((val) => val.toUpperCase() as Uppercase<ArticleStatus>)
-		.optional(),
+	status: z.enum(ARTICLE_STATUS).optional(),
 	authorId: zUuid().nullable().optional(),
 	categoryId: zUuid().nullable().optional(),
 	tags: z.array(z.string()).optional(),
@@ -30,9 +25,7 @@ export const CreateArticleRequestSchema = z.object({
 
 /** Validated schema with defaults for backend */
 export const CreateArticleSchema = CreateArticleRequestSchema.extend({
-	status: CreateArticleRequestSchema.shape.status.default(
-		ARTICLE_DEFAULTS.ARTICLE_STATUS.toUpperCase() as Uppercase<ArticleStatus>,
-	),
+	status: CreateArticleRequestSchema.shape.status.default(ARTICLE_DEFAULTS.ARTICLE_STATUS),
 	authorId: CreateArticleRequestSchema.shape.authorId.default(ARTICLE_DEFAULTS.AUTHOR_ID),
 	categoryId: CreateArticleRequestSchema.shape.categoryId.default(ARTICLE_DEFAULTS.CATEGORY_ID),
 	tags: CreateArticleRequestSchema.shape.tags.default([...ARTICLE_DEFAULTS.TAGS]),

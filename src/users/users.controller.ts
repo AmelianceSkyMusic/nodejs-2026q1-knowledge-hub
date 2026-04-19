@@ -24,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 import { IdParamDto } from 'shared/common/dto/id-param.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetUsersWithPaginationQueryDto } from './dto/get-user-with-pagination-query.dto';
@@ -32,6 +33,7 @@ import { UserDto } from './dto/user.dto';
 import { UsersWithPaginationDto } from './dto/users-with-pagination.dto';
 import { UsersService } from './users.service';
 
+import { USER_ROLES } from 'shared/users/constants/user-role';
 import { SWAGGER } from 'src/common/constants/swagger';
 
 @ApiTags('User')
@@ -41,6 +43,7 @@ export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
 	@Get()
+	@Roles(USER_ROLES.EDITOR, USER_ROLES.VIEWER)
 	@ApiOperation({
 		summary: 'Get all users',
 		description: 'Gets all users.',
@@ -65,6 +68,7 @@ export class UsersController {
 	}
 
 	@Get(':id')
+	@Roles(USER_ROLES.EDITOR, USER_ROLES.VIEWER)
 	@ApiOperation({ summary: 'Get single user by id', description: 'Gets single user by id' })
 	@ApiOkResponse({ description: 'Successful operation', type: UserDto })
 	@ApiBadRequestResponse({ description: 'Bad request. UserId is invalid (not uuid)' })

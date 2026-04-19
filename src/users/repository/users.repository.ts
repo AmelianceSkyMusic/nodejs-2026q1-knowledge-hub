@@ -1,65 +1,79 @@
 import { Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import { Id } from 'shared/common/schemas/id.schema';
 import { CreateUser } from 'shared/users/schemas/create-user.schema';
 import { GetUsersWithPaginationQuery } from 'shared/users/schemas/get-user-with-pagination-query.schema';
 import { UpdateUser } from 'shared/users/schemas/update-user.schema';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { InjectDrizzle } from 'src/drizzle/decorators/drizzle.decorator';
+import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
+import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
-import { mapUser } from '../mappers/users.mapper';
+import * as schema from '../../drizzle/db/schema';
 
 @Injectable()
 export class UsersRepository {
-	constructor(private prisma: PrismaService) {}
+	constructor(@InjectDrizzle() private readonly db: DrizzleDb) {}
 
 	async findAll(getUsersWithPaginationQuery: GetUsersWithPaginationQuery) {
 		const { page, limit, sortBy, order } = getUsersWithPaginationQuery;
 
-		if (!page) {
-			const result = await this.prisma.user.findMany({ orderBy: { [sortBy]: order } });
-			return result.map(mapUser);
-		}
+		const orderBy = { [sortBy]: order };
 
-		return await this.prisma.$transaction(async (tx) => {
-			const total = await tx.user.count();
+		if (!page) return await this.db.query.users.findMany({ orderBy });
+
+		return await this.db.transaction(async (tx) => {
+			const total = await tx.$count(schema.users);
 			if (total === 0) return { total, page, limit, data: [] };
 
-			const pages = Math.ceil(total / limit) || 1;
-			const currentPage = Math.min(Math.max(1, page), pages);
-			const offset = (currentPage - 1) * limit;
+			const { currentPage, offset } = calculatePagination(total, page, limit);
 
-			const result = await tx.user.findMany({
-				skip: offset,
-				take: limit,
-				orderBy: { [sortBy]: order },
+			const result = await tx.query.users.findMany({
+				limit,
+				offset,
+				orderBy,
 			});
 
-			const data = result.map(mapUser);
-
-			return { total, page: currentPage, limit, data };
+			return { total, page: currentPage, limit, data: result };
 		});
 	}
 
 	async findOne(id: Id) {
-		const result = await this.prisma.user.findUnique({ where: { id } });
-		if (!result) return null;
-		return mapUser(result);
+		return await this.db.query.users.findFirst({
+			where: { id },
+		});
+	}
+
+	async findOneByLoginWithPassword(login: string) {
+		return await this.db.query.users.findFirst({
+			where: { login },
+		});
 	}
 
 	async findWithPassword(id: Id) {
-		return await this.prisma.user.findUnique({ where: { id } });
+		return await this.db.query.users.findFirst({
+			where: { id },
+		});
 	}
 
 	async create(createUser: CreateUser) {
-		const result = await this.prisma.user.create({ data: createUser });
-		return mapUser(result);
+		const [inserted] = await this.db.insert(schema.users).values(createUser).returning();
+		return inserted;
 	}
 
 	async update(id: Id, updateUser: UpdateUser) {
-		const result = await this.prisma.user.update({ data: updateUser, where: { id } });
-		return mapUser(result);
+		const [updated] = await this.db
+			.update(schema.users)
+			.set(updateUser)
+			.where(eq(schema.users.id, id))
+			.returning();
+		return updated;
 	}
 
 	async remove(id: Id) {
-		return await this.prisma.user.delete({ where: { id } });
+		const [result] = await this.db
+			.delete(schema.users)
+			.where(eq(schema.users.id, id))
+			.returning();
+		return result;
 	}
 }

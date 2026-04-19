@@ -53,6 +53,3 @@ lerna-debug.log*
 
 __spec__
 .env
-
-/generated/prisma
-src/generated

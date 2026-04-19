@@ -1,13 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { CreateCategoryRequestSchema } from 'shared/categories/schemas/create-category.schema';
+import {
+	CreateCategory,
+	CreateCategorySchema,
+} from 'shared/categories/schemas/create-category.schema';
 
 import { CATEGORY_SWAGGER } from './categories.swagger';
 
-export class CreateCategoryDto extends createZodDto(CreateCategoryRequestSchema) {
+export class CreateCategoryDto extends createZodDto(CreateCategorySchema) {
 	@ApiProperty(CATEGORY_SWAGGER.NAME)
-	name: any;
+	name: CreateCategory['name'];
 
 	@ApiProperty(CATEGORY_SWAGGER.DESCRIPTION)
-	description: any;
+	description: CreateCategory['description'];
 }

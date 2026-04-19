@@ -1,61 +1,67 @@
 import { Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import { CreateCategory } from 'shared/categories/schemas/create-category.schema';
 import { GetCategoriesWithPaginationQuery } from 'shared/categories/schemas/get-categories-with-pagination-query.schema';
 import { UpdateCategory } from 'shared/categories/schemas/update-category.schema';
 import { Id } from 'shared/common/schemas/id.schema';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { InjectDrizzle } from 'src/drizzle/decorators/drizzle.decorator';
+import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
+import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
-import { mapCategory } from '../mapper/categories.mapper';
+import * as schema from '../../drizzle/db/schema';
 
 @Injectable()
 export class CategoriesRepository {
-	constructor(private prisma: PrismaService) {}
+	constructor(@InjectDrizzle() private readonly db: DrizzleDb) {}
 
 	async findAll(getCategoriesWithPaginationQuery: GetCategoriesWithPaginationQuery) {
 		const { page, limit, sortBy, order } = getCategoriesWithPaginationQuery;
 
-		if (!page) {
-			const result = await this.prisma.category.findMany({ orderBy: { [sortBy]: order } });
-			return result.map(mapCategory);
-		}
+		const orderBy = { [sortBy]: order };
 
-		return await this.prisma.$transaction(async (tx) => {
-			const total = await tx.category.count();
+		if (!page) return await this.db.query.categories.findMany({ orderBy });
+
+		return await this.db.transaction(async (tx) => {
+			const total = await tx.$count(schema.categories);
 			if (total === 0) return { total, page, limit, data: [] };
 
-			const pages = Math.ceil(total / limit) || 1;
-			const currentPage = Math.min(Math.max(1, page), pages);
-			const offset = (currentPage - 1) * limit;
+			const { currentPage, offset } = calculatePagination(total, page, limit);
 
-			const result = await tx.category.findMany({
-				skip: offset,
-				take: limit,
-				orderBy: { [sortBy]: order },
+			const result = await tx.query.categories.findMany({
+				offset,
+				limit,
+				orderBy,
 			});
 
-			const data = result.map(mapCategory);
-
-			return { total, page: currentPage, limit, data };
+			return { total, page: currentPage, limit, data: result };
 		});
 	}
 
 	async findOne(id: Id) {
-		const result = await this.prisma.category.findUnique({ where: { id } });
-		if (!result) return null;
-		return mapCategory(result);
+		return await this.db.query.categories.findFirst({
+			where: { id },
+		});
 	}
 
 	async create(data: CreateCategory) {
-		const result = await this.prisma.category.create({ data });
-		return mapCategory(result);
+		const [result] = await this.db.insert(schema.categories).values(data).returning();
+		return result;
 	}
 
 	async update(id: Id, updateCategory: UpdateCategory) {
-		const result = await this.prisma.category.update({ data: updateCategory, where: { id } });
-		return mapCategory(result);
+		const [result] = await this.db
+			.update(schema.categories)
+			.set(updateCategory)
+			.where(eq(schema.categories.id, id))
+			.returning();
+		return result;
 	}
 
 	async remove(id: Id) {
-		return await this.prisma.category.delete({ where: { id } });
+		const [result] = await this.db
+			.delete(schema.categories)
+			.where(eq(schema.categories.id, id))
+			.returning();
+		return result;
 	}
 }

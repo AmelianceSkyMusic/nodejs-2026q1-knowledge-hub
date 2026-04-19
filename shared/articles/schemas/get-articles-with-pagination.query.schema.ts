@@ -7,14 +7,9 @@ import { ARTICLE_DEFAULTS } from '../constants/article-defaults';
 import { ARTICLE_SORT_BY } from '../constants/article-sort-by';
 import { ARTICLE_STATUS } from '../constants/article-status';
 
-import type { ArticleStatus } from '../types/article-status';
-
 /** Request schema without defaults for frontend */
 export const GetArticlesWithPaginationQueryRequestSchema = z.object({
-	status: z
-		.preprocess((val: ArticleStatus) => val?.toLowerCase(), z.enum(ARTICLE_STATUS))
-		.transform((val) => val.toUpperCase() as Uppercase<ArticleStatus>)
-		.optional(),
+	status: z.enum(ARTICLE_STATUS).optional(),
 	categoryId: zUuid().optional(),
 	tag: z
 		.union([z.string(), z.array(z.string())])

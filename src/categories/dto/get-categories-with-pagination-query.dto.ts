@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { GetCategoriesWithPaginationQuerySchema } from 'shared/categories/schemas/get-categories-with-pagination-query.schema';
+import {
+	GetCategoriesWithPaginationQuery,
+	GetCategoriesWithPaginationQuerySchema,
+} from 'shared/categories/schemas/get-categories-with-pagination-query.schema';
 
 import { CATEGORY_SWAGGER } from './categories.swagger';
 
@@ -8,14 +11,14 @@ export class GetCategoriesWithPaginationQueryDto extends createZodDto(
 	GetCategoriesWithPaginationQuerySchema,
 ) {
 	@ApiProperty(CATEGORY_SWAGGER.QUERY.PAGE)
-	page: any;
+	page: GetCategoriesWithPaginationQuery['page'];
 
 	@ApiProperty(CATEGORY_SWAGGER.QUERY.LIMIT)
-	limit: any;
+	limit: GetCategoriesWithPaginationQuery['limit'];
 
 	@ApiProperty(CATEGORY_SWAGGER.QUERY.SORT_BY)
-	sortBy: any;
+	sortBy: GetCategoriesWithPaginationQuery['sortBy'];
 
 	@ApiProperty(CATEGORY_SWAGGER.QUERY.ORDER)
-	order: any;
+	order: GetCategoriesWithPaginationQuery['order'];
 }

@@ -24,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 import { IdParamDto } from 'shared/common/dto/id-param.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 import { CategoriesService } from './categories.service';
 import { CategoriesWithPaginationDto } from './dto/categories-with-pagination.dto';
@@ -32,6 +33,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { GetCategoriesWithPaginationQueryDto } from './dto/get-categories-with-pagination-query.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
+import { USER_ROLES } from 'shared/users/constants/user-role';
 import { SWAGGER } from 'src/common/constants/swagger';
 
 @ApiTags('Category')
@@ -41,6 +43,7 @@ export class CategoriesController {
 	constructor(private readonly categoriesService: CategoriesService) {}
 
 	@Get()
+	@Roles(USER_ROLES.EDITOR, USER_ROLES.VIEWER)
 	@ApiOperation({ summary: 'Get all categories', description: 'Gets all categories' })
 	@ApiOkResponse({
 		description: 'Successful operation',
@@ -62,6 +65,7 @@ export class CategoriesController {
 	}
 
 	@Get(':id')
+	@Roles(USER_ROLES.EDITOR, USER_ROLES.VIEWER)
 	@ApiOperation({
 		summary: 'Get single category by id',
 		description: 'Gets single category by id',

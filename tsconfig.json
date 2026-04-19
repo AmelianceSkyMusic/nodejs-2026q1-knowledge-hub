@@ -6,16 +6,30 @@
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"allowSyntheticDefaultImports": true,
-		"target": "es2017",
+		"target": "es2021",
 		"sourceMap": true,
 		"outDir": "./dist",
 		"baseUrl": "./",
 		"incremental": true,
 		"skipLibCheck": true,
-		"strictNullChecks": true,
+		"strictNullChecks": false,
 		"noImplicitAny": false,
 		"strictBindCallApply": false,
 		"forceConsistentCasingInFileNames": false,
 		"noFallthroughCasesInSwitch": false
-	}
+	},
+	"exclude": [
+		"node_modules",
+		"dist",
+		"*._backup*",
+		"*._bash*",
+		"*._legacy*",
+		"*._temp*",
+		"*._labs*",
+		"*._dev*",
+		".file-status",
+		".eslintcache",
+		".history",
+		".lh"
+	]
 }

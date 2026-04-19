@@ -1,14 +1,17 @@
 import {
+	BadRequestException,
 	ConflictException,
 	ForbiddenException,
 	Injectable,
+	InternalServerErrorException,
 	NotFoundException,
 } from '@nestjs/common';
+import { compare, hash } from 'bcrypt';
 import { Id } from 'shared/common/schemas/id.schema';
 import { CreateUser } from 'shared/users/schemas/create-user.schema';
 import { GetUsersWithPaginationQuery } from 'shared/users/schemas/get-user-with-pagination-query.schema';
 import { UpdatePassword } from 'shared/users/schemas/update-password.schema';
-import { Prisma } from 'src/generated/prisma/client';
+import { pgError } from 'src/common/utils/pg-error';
 
 import { UsersRepository } from './repository/users.repository';
 
@@ -29,12 +32,23 @@ export class UsersService {
 		return user;
 	}
 
+	async findOneByLoginWithPassword(login: string) {
+		return await this.usersRepository.findOneByLoginWithPassword(login);
+	}
+
 	async create(createUser: CreateUser) {
+		const { password, ...restCreateUser } = createUser;
+		const hashedPassword = await hash(password, 10);
 		try {
-			return await this.usersRepository.create(createUser);
+			const result = await this.usersRepository.create({
+				...restCreateUser,
+				password: hashedPassword,
+			});
+			if (!result) throw new InternalServerErrorException(ERROR.USER.CREATE_FAILED);
+			return result;
 		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError) {
-				if (error.code === 'P2002') throw new ConflictException(ERROR.USER.ALREADY_EXISTS);
+			if (pgError(error).isUniqueViolation) {
+				throw new ConflictException(ERROR.USER.ALREADY_EXISTS);
 			}
 			throw error;
 		}
@@ -44,26 +58,37 @@ export class UsersService {
 		const user = await this.usersRepository.findWithPassword(userId);
 		if (!user) throw new NotFoundException(ERROR.USER.NOT_FOUND);
 
-		if (user.password !== updatePassword.oldPassword) {
+		if (!(await compare(updatePassword.oldPassword, user.password))) {
 			throw new ForbiddenException(ERROR.PASSWORD.INVALID);
 		}
 
-		try {
-			return await this.usersRepository.update(userId, { password: updatePassword.newPassword });
-		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-				throw new NotFoundException(ERROR.USER.NOT_FOUND);
-			}
-			throw error;
-		}
+		const hashedPassword = await hash(updatePassword.newPassword, 10);
+		const result = await this.usersRepository.update(userId, {
+			password: hashedPassword,
+		});
+		if (!result) throw new NotFoundException(ERROR.USER.NOT_FOUND);
+		return result;
 	}
 
 	async remove(userId: Id) {
+		const result = await this.usersRepository.remove(userId);
+		if (!result) throw new NotFoundException(ERROR.USER.NOT_FOUND);
+		return result;
+	}
+
+	async createWithSignup(createUser: CreateUser) {
+		const { password, ...restCreateUser } = createUser;
+		const hashedPassword = await hash(password, 10);
 		try {
-			return await this.usersRepository.remove(userId);
+			const result = await this.usersRepository.create({
+				...restCreateUser,
+				password: hashedPassword,
+			});
+			if (!result) throw new InternalServerErrorException(ERROR.USER.CREATE_FAILED);
+			return result;
 		} catch (error) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-				throw new NotFoundException(ERROR.USER.NOT_FOUND);
+			if (pgError(error).isUniqueViolation) {
+				throw new BadRequestException(ERROR.USER.LOGIN_ALREADY_TAKEN);
 			}
 			throw error;
 		}

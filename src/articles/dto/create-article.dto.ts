@@ -1,25 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { CreateArticleSchema } from 'shared/articles/schemas/create-article.schema';
+import { CreateArticle, CreateArticleSchema } from 'shared/articles/schemas/create-article.schema';
 
 import { ARTICLE_SWAGGER } from './article.swagger';
 
 export class CreateArticleDto extends createZodDto(CreateArticleSchema) {
 	@ApiProperty(ARTICLE_SWAGGER.TITLE)
-	title: any;
+	title: CreateArticle['title'];
 
 	@ApiProperty(ARTICLE_SWAGGER.CONTENT)
-	content: any;
+	content: CreateArticle['content'];
 
 	@ApiProperty(ARTICLE_SWAGGER.STATUS)
-	status: any;
+	status: CreateArticle['status'];
 
 	@ApiProperty(ARTICLE_SWAGGER.AUTHOR_ID)
-	authorId: any;
+	authorId: CreateArticle['authorId'];
 
 	@ApiProperty(ARTICLE_SWAGGER.CATEGORY_ID)
-	categoryId: any;
+	categoryId: CreateArticle['categoryId'];
 
 	@ApiProperty(ARTICLE_SWAGGER.TAGS)
-	tags: any;
+	tags: CreateArticle['tags'];
 }
