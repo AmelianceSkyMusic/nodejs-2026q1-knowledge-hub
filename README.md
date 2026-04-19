@@ -131,9 +131,9 @@ For more information, visit: https://code.visualstudio.com/docs/editor/debugging
 
 # Run db with container
 
-1. `npm run docker:down` (`docker-compose down -v`) — stop, remove container with its volume
+1. `npm run docker:down` (`docker compose down -v`) — stop, remove container with its volume
 2. `npm run db:generate -- --name init` (`npx drizzle-kit generate --name init`) — generate init migration file (if not init migration exists in /drizzle), or remove /drizzle folder and run this command to start from scratch
-3. `npm run docker:db` (`docker-compose up db`) — start db container
+3. `npm run docker:db` (`docker compose up db`) — start db container
 4. `npm run db:migrate` (`npx drizzle-kit migrate`) — run migration file
 5. `npm run db:seed` (`npx drizzle-kit seed`) — run seed file (optional)
 6. `npm run db:studio` (`npx drizzle-kit studio`) — open db studio
