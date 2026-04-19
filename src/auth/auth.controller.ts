@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
 	ApiCreatedResponse,
@@ -7,8 +7,10 @@ import {
 	ApiOperation,
 	ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { ZodResponse } from 'nestjs-zod';
 import { Public } from 'src/common/decorators/public.decorator';
+import { OptionalThrottlerGuard } from 'src/common/guards/optional-throttler.guard';
 import { UserDto } from 'src/users/dto/user.dto';
 
 import { AuthService } from './auth.service';
@@ -19,11 +21,17 @@ import { TokensDto } from './dto/tokens.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
+@UseGuards(OptionalThrottlerGuard)
 export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
 	@Post('signup')
 	@Public()
+	@Throttle({
+		short: { limit: 1, ttl: 1000 },
+		medium: { limit: 5, ttl: 10000 },
+		long: { limit: 10, ttl: 60000 },
+	})
 	@ApiOperation({
 		summary: 'Signup',
 		description: 'Successful signup',
@@ -39,6 +47,11 @@ export class AuthController {
 
 	@Post('login')
 	@Public()
+	@Throttle({
+		short: { limit: 1, ttl: 1000 },
+		medium: { limit: 5, ttl: 10000 },
+		long: { limit: 10, ttl: 60000 },
+	})
 	@ApiOperation({
 		summary: 'Login',
 		description: 'Login and receive JWT tokens',

@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { ZodSerializerInterceptor } from 'nestjs-zod';
 
 import { ArticlesModule } from './articles/articles.module';
@@ -21,6 +22,23 @@ import { UsersModule } from './users/users.module';
 @Module({
 	imports: [
 		ConfigModule.forRoot({ load: [configuration], isGlobal: true }),
+		ThrottlerModule.forRoot([
+			{
+				name: 'short',
+				ttl: 1000,
+				limit: 3,
+			},
+			{
+				name: 'medium',
+				ttl: 10000,
+				limit: 20,
+			},
+			{
+				name: 'long',
+				ttl: 60000,
+				limit: 100,
+			},
+		]),
 		ArticlesModule,
 		CategoriesModule,
 		UsersModule,
