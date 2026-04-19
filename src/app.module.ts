@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor } from 'nestjs-zod';
 
 import { ArticlesModule } from './articles/articles.module';
@@ -9,6 +9,8 @@ import { CategoriesModule } from './categories/categories.module';
 import { CommentsModule } from './comments/comments.module';
 import configuration from './common/config/configuration';
 import { ZodExceptionFilter } from './common/exception-filters/zod-exception-filter';
+import { AuthGuard } from './common/guards/auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 import { LoggerMiddleware } from './common/middleware/logger-middleware.middleware';
 import { CustomZodValidationPipe } from './common/pipes/custom-zod-validation.pipe';
 import { DrizzleModule } from './drizzle/drizzle.module';
@@ -32,6 +34,14 @@ import { UsersModule } from './users/users.module';
 		{
 			provide: APP_PIPE,
 			useClass: CustomZodValidationPipe,
+		},
+		{
+			provide: APP_GUARD,
+			useClass: AuthGuard,
+		},
+		{
+			provide: APP_GUARD,
+			useClass: RolesGuard,
 		},
 		{
 			provide: APP_INTERCEPTOR,

@@ -47,11 +47,15 @@ export const ERROR = {
 	},
 	TOKEN: {
 		INVALID: 'Invalid token',
+		EMPTY: 'Refresh token is empty',
 	},
 	ENV: {
 		JWT_SECRET_NOT_FOUND: 'JWT secret not found',
 		JWT_REFRESH_SECRET_NOT_FOUND: 'JWT refresh secret not found',
 		JWT_ACCESS_TTL_NOT_FOUND: 'JWT access TTL not found',
 		JWT_REFRESH_TTL_NOT_FOUND: 'JWT refresh TTL not found',
+	},
+	ACCESS: {
+		ROLE: 'Access denied. Insufficient role',
 	},
 } as const;

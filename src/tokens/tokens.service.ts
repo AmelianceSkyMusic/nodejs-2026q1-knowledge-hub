@@ -1,10 +1,9 @@
-import { ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sign, SignOptions, verify } from 'jsonwebtoken';
+import { JwtUser } from 'shared/auth/schemas/jwt-user.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 import { UserRole } from 'shared/users/types/user-role';
-
-import { JwtPayload } from './types/jwt-payload';
 
 import { ERROR } from 'shared/common/constants/error';
 
@@ -73,12 +72,12 @@ export class TokensService {
 				'login' in payload &&
 				'role' in payload
 			) {
-				return payload as JwtPayload;
+				return payload as JwtUser;
 			}
 		} catch {
-			throw new ForbiddenException(ERROR.TOKEN.INVALID);
+			return null;
 		}
 
-		throw new ForbiddenException(ERROR.TOKEN.INVALID);
+		return null;
 	}
 }

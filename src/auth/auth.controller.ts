@@ -8,6 +8,7 @@ import {
 	ApiTags,
 } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
+import { Public } from 'src/common/decorators/public.decorator';
 import { UserDto } from 'src/users/dto/user.dto';
 
 import { AuthService } from './auth.service';
@@ -22,9 +23,11 @@ export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
 	@Post('signup')
+	@Public()
 	@ApiOperation({
 		summary: 'Signup',
 		description: 'Successful signup',
+		security: [],
 	})
 	@ZodResponse({ type: UserDto })
 	@ApiCreatedResponse({ description: 'User is created' })
@@ -35,9 +38,11 @@ export class AuthController {
 	}
 
 	@Post('login')
+	@Public()
 	@ApiOperation({
 		summary: 'Login',
 		description: 'Login and receive JWT tokens',
+		security: [],
 	})
 	@ApiOkResponse({ description: 'Successful login', type: TokensDto })
 	@ApiBadRequestResponse({ description: 'Bad request!' })
@@ -49,9 +54,11 @@ export class AuthController {
 	}
 
 	@Post('refresh')
+	@Public()
 	@ApiOperation({
 		summary: 'Refresh token',
 		description: 'Get new access and refresh tokens using a valid refresh token',
+		security: [],
 	})
 	@ApiOkResponse({ description: 'New token pair', type: TokensDto })
 	@ApiBadRequestResponse({ description: 'No refresh token provided' })

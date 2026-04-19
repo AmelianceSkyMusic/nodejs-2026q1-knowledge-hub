@@ -32,8 +32,8 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
 
 	constructor(configService: ConfigService) {
 		const databaseUrl = configService.get<string>('DATABASE_URL');
-		const nodeEnv = configService.get<string>('NODE_ENV');
-		const isDevelopment = nodeEnv === 'development';
+		const dbLogs = configService.get<string>('DB_LOGS');
+		const isDbLogsEnabled = dbLogs === 'enable';
 
 		this.pool = new Pool({
 			connectionString: databaseUrl,
@@ -46,7 +46,7 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
 			schema,
 			relations,
 			casing: 'snake_case', //* convert all table and column names to snake_case, so we don't to describe it in schema
-			logger: isDevelopment ? new DrizzleLogger() : false,
+			logger: isDbLogsEnabled ? new DrizzleLogger() : false,
 		});
 	}
 

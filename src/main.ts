@@ -22,11 +22,13 @@ async function bootstrap() {
 		.addBearerAuth(
 			{
 				type: 'http',
-				description: 'Enter user ID (uuid)',
-				in: 'header',
+				scheme: 'bearer',
+				bearerFormat: 'JWT',
+				description: 'Enter JWT Access Token',
 			},
-			'access-token',
+			'bearer',
 		)
+		.addSecurityRequirements('bearer')
 		.build();
 
 	const documentFactory = () =>

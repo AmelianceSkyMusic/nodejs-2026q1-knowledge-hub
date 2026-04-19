@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { compare } from 'bcrypt';
 import { TokensService } from 'src/tokens/tokens.service';
 import { UsersService } from 'src/users/users.service';
@@ -35,6 +35,8 @@ export class AuthService {
 	}
 
 	async refresh(refreshDto: RefreshDto) {
+		if (!refreshDto.refreshToken) throw new UnauthorizedException(ERROR.TOKEN.EMPTY);
+
 		const payload = this.tokensService.verifyRefreshToken(refreshDto.refreshToken);
 		if (!payload) throw new ForbiddenException(ERROR.TOKEN.INVALID);
 

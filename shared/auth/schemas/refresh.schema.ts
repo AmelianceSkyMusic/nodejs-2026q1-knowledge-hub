@@ -2,7 +2,7 @@ import z from 'zod';
 
 /** Request schema without defaults for frontend */
 export const RefreshRequestSchema = z.object({
-	refreshToken: z.string(),
+	refreshToken: z.string().optional(),
 });
 
 /** Validated schema with defaults for backend */
