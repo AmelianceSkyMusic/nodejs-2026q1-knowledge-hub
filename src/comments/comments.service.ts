@@ -31,7 +31,7 @@ export class CommentsService {
 	}
 
 	async create(createComment: CreateComment, user: JwtUser) {
-		const authorId = user.userId;
+		const authorId = createComment.authorId ?? user.userId;
 		try {
 			const result = await this.commentsRepository.create({ ...createComment, authorId });
 			if (!result) throw new InternalServerErrorException(ERROR.COMMENT.CREATE_FAILED);
