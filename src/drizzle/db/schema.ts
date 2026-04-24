@@ -71,3 +71,10 @@ export const articleToTag = pgTable(
 	},
 	(table) => [primaryKey({ columns: [table.articleId, table.tagId] })],
 );
+
+export type UserEntity = typeof users.$inferSelect;
+export type ArticleEntity = typeof articles.$inferSelect;
+export type CommentEntity = typeof comments.$inferSelect;
+export type CategoryEntity = typeof categories.$inferSelect;
+export type TagEntity = typeof tags.$inferSelect;
+export type TokenEntity = typeof tokens.$inferSelect;
