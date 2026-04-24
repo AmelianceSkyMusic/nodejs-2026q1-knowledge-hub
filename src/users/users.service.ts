@@ -8,11 +8,11 @@ import {
 } from '@nestjs/common';
 import { compare, hash } from 'bcrypt';
 import { Id } from 'shared/common/schemas/id.schema';
-import { CreateUser } from 'shared/users/schemas/create-user.schema';
-import { GetUsersWithPaginationQuery } from 'shared/users/schemas/get-user-with-pagination-query.schema';
-import { UpdatePassword } from 'shared/users/schemas/update-password.schema';
 import { pgError } from 'src/common/utils/pg-error';
 
+import { CreateUserDto } from './dto/create-user.dto';
+import { GetUsersWithPaginationQueryDto } from './dto/get-user-with-pagination-query.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UsersRepository } from './repository/users.repository';
 
 import { ERROR } from 'shared/common/constants/error';
@@ -21,8 +21,8 @@ import { ERROR } from 'shared/common/constants/error';
 export class UsersService {
 	constructor(private readonly usersRepository: UsersRepository) {}
 
-	async findAll(getUsersWithPaginationQuery: GetUsersWithPaginationQuery) {
-		return await this.usersRepository.findAll(getUsersWithPaginationQuery);
+	async findAll(getUsersWithPaginationQueryDto: GetUsersWithPaginationQueryDto) {
+		return await this.usersRepository.findAll(getUsersWithPaginationQueryDto);
 	}
 
 	async findOne(userId: Id) {
@@ -36,8 +36,8 @@ export class UsersService {
 		return await this.usersRepository.findOneByLoginWithPassword(login);
 	}
 
-	async create(createUser: CreateUser) {
-		const { password, ...restCreateUser } = createUser;
+	async create(createUserDto: CreateUserDto) {
+		const { password, ...restCreateUser } = createUserDto;
 		const hashedPassword = await hash(password, 10);
 		try {
 			const result = await this.usersRepository.create({
@@ -54,15 +54,15 @@ export class UsersService {
 		}
 	}
 
-	async updatePassword(userId: Id, updatePassword: UpdatePassword) {
+	async updatePassword(userId: Id, updatePasswordDto: UpdatePasswordDto) {
 		const user = await this.usersRepository.findWithPassword(userId);
 		if (!user) throw new NotFoundException(ERROR.USER.NOT_FOUND);
 
-		if (!(await compare(updatePassword.oldPassword, user.password))) {
+		if (!(await compare(updatePasswordDto.oldPassword, user.password))) {
 			throw new ForbiddenException(ERROR.PASSWORD.INVALID);
 		}
 
-		const hashedPassword = await hash(updatePassword.newPassword, 10);
+		const hashedPassword = await hash(updatePasswordDto.newPassword, 10);
 		const result = await this.usersRepository.update(userId, {
 			password: hashedPassword,
 		});
@@ -76,8 +76,8 @@ export class UsersService {
 		return result;
 	}
 
-	async createWithSignup(createUser: CreateUser) {
-		const { password, ...restCreateUser } = createUser;
+	async createWithSignup(createUserDto: CreateUserDto) {
+		const { password, ...restCreateUser } = createUserDto;
 		const hashedPassword = await hash(password, 10);
 		try {
 			const result = await this.usersRepository.create({

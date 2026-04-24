@@ -1,9 +1,9 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { CreateCategory } from 'shared/categories/schemas/create-category.schema';
-import { GetCategoriesWithPaginationQuery } from 'shared/categories/schemas/get-categories-with-pagination-query.schema';
-import { UpdateCategory } from 'shared/categories/schemas/update-category.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { GetCategoriesWithPaginationQueryDto } from './dto/get-categories-with-pagination-query.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoriesRepository } from './repositories/categories.repository';
 
 import { ERROR } from 'shared/common/constants/error';
@@ -12,8 +12,8 @@ import { ERROR } from 'shared/common/constants/error';
 export class CategoriesService {
 	constructor(private readonly categoriesRepository: CategoriesRepository) {}
 
-	async findAll(getCategoriesWithPaginationQuery: GetCategoriesWithPaginationQuery) {
-		return await this.categoriesRepository.findAll(getCategoriesWithPaginationQuery);
+	async findAll(getCategoriesWithPaginationQueryDto: GetCategoriesWithPaginationQueryDto) {
+		return await this.categoriesRepository.findAll(getCategoriesWithPaginationQueryDto);
 	}
 
 	async findOne(id: Id) {
@@ -22,14 +22,14 @@ export class CategoriesService {
 		return result;
 	}
 
-	async create(createCategory: CreateCategory) {
-		const result = await this.categoriesRepository.create(createCategory);
+	async create(createCategoryDto: CreateCategoryDto) {
+		const result = await this.categoriesRepository.create(createCategoryDto);
 		if (!result) throw new InternalServerErrorException(ERROR.CATEGORY.CREATE_FAILED);
 		return result;
 	}
 
-	async update(id: Id, updateCategory: UpdateCategory) {
-		const result = await this.categoriesRepository.update(id, updateCategory);
+	async update(id: Id, createCategoryDto: UpdateCategoryDto) {
+		const result = await this.categoriesRepository.update(id, createCategoryDto);
 		if (!result) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
 		return result;
 	}

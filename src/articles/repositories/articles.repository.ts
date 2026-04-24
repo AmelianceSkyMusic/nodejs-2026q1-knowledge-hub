@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, inArray, notExists, relationsFilterToSQL, sql } from 'drizzle-orm';
-import { CreateArticle } from 'shared/articles/schemas/create-article.schema';
-import { GetArticlesWithPaginationQuery } from 'shared/articles/schemas/get-articles-with-pagination.query.schema';
-import { UpdateArticle } from 'shared/articles/schemas/update-article.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 import { InjectDrizzle } from 'src/drizzle/decorators/drizzle.decorator';
 import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
 import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
 import * as schema from '../../drizzle/db/schema';
+import { CreateArticleDto } from '../dto/create-article.dto';
+import { GetArticlesWithPaginationQueryDto } from '../dto/get-articles-with-pagination.query.dto';
+import { UpdateArticleDto } from '../dto/update-article.dto';
 
 @Injectable()
 export class ArticlesRepository {
@@ -43,7 +43,7 @@ export class ArticlesRepository {
 		await tx.insert(schema.articleToTag).values(articleToTagValues).onConflictDoNothing();
 	}
 
-	async findAll(getArticlesWithPaginationQuery: GetArticlesWithPaginationQuery) {
+	async findAll(getArticlesWithPaginationQueryDto: GetArticlesWithPaginationQueryDto) {
 		const {
 			status,
 			categoryId,
@@ -52,7 +52,7 @@ export class ArticlesRepository {
 			limit,
 			sortBy,
 			order,
-		} = getArticlesWithPaginationQuery;
+		} = getArticlesWithPaginationQueryDto;
 
 		const baseQuery = {
 			where: {
@@ -87,11 +87,14 @@ export class ArticlesRepository {
 		return this.findOneWithTx(this.db, id);
 	}
 
-	async create(createArticle: CreateArticle) {
-		const { tags, ...restCreateArticle } = createArticle;
+	async create(createArticleDto: CreateArticleDto) {
+		const { tags, ...restCreateArticleDto } = createArticleDto;
 
 		return await this.db.transaction(async (tx) => {
-			const [article] = await tx.insert(schema.articles).values(restCreateArticle).returning();
+			const [article] = await tx
+				.insert(schema.articles)
+				.values(restCreateArticleDto)
+				.returning();
 			if (!article) return null;
 
 			if (tags?.length) await this.upsertTags(tx, article.id, tags);
@@ -100,13 +103,13 @@ export class ArticlesRepository {
 		});
 	}
 
-	async update(id: Id, updateArticle: UpdateArticle) {
-		const { tags, ...restUpdateArticle } = updateArticle;
+	async update(id: Id, updateArticleDto: UpdateArticleDto) {
+		const { tags, ...restUpdateArticleDto } = updateArticleDto;
 
 		return await this.db.transaction(async (tx) => {
 			const [article] = await tx
 				.update(schema.articles)
-				.set(restUpdateArticle)
+				.set(restUpdateArticleDto)
 				.where(eq(schema.articles.id, id))
 				.returning();
 

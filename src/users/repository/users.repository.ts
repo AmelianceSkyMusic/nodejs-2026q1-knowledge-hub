@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { Id } from 'shared/common/schemas/id.schema';
-import { CreateUser } from 'shared/users/schemas/create-user.schema';
-import { GetUsersWithPaginationQuery } from 'shared/users/schemas/get-user-with-pagination-query.schema';
 import { UpdateUser } from 'shared/users/schemas/update-user.schema';
 import { InjectDrizzle } from 'src/drizzle/decorators/drizzle.decorator';
 import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
 import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
 import * as schema from '../../drizzle/db/schema';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { GetUsersWithPaginationQueryDto } from '../dto/get-user-with-pagination-query.dto';
 
 @Injectable()
 export class UsersRepository {
 	constructor(@InjectDrizzle() private readonly db: DrizzleDb) {}
 
-	async findAll(getUsersWithPaginationQuery: GetUsersWithPaginationQuery) {
-		const { page, limit, sortBy, order } = getUsersWithPaginationQuery;
+	async findAll(getUsersWithPaginationQueryDto: GetUsersWithPaginationQueryDto) {
+		const { page, limit, sortBy, order } = getUsersWithPaginationQueryDto;
 
 		const orderBy = { [sortBy]: order };
 
@@ -55,8 +55,8 @@ export class UsersRepository {
 		});
 	}
 
-	async create(createUser: CreateUser) {
-		const [inserted] = await this.db.insert(schema.users).values(createUser).returning();
+	async create(createUserDto: CreateUserDto) {
+		const [inserted] = await this.db.insert(schema.users).values(createUserDto).returning();
 		return inserted;
 	}
 
