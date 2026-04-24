@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { categoriesRoutes } from '../endpoints';
 import { request } from '../lib';
+import { getTokenAndUserId, removeTokenUser, shouldAuthorizationBeTested } from '../utils';
 
 const createCategoryDto = {
 	name: 'TEST_CATEGORY',
@@ -16,15 +17,26 @@ const updatedCategoryDto = {
 
 describe('Categories pagination (e2e)', () => {
 	const unauthorizedRequest = request;
+	const commonHeaders = { Accept: 'application/json' };
 	const randomUUIDs: string[] = [];
+	let mockUserId: string | undefined;
 
 	beforeAll(async () => {
+		if (shouldAuthorizationBeTested) {
+			const result = await getTokenAndUserId(unauthorizedRequest);
+			commonHeaders['Authorization'] = result.token;
+			mockUserId = result.mockUserId;
+		}
+
 		for (const char of chars) {
 			const categoryDto = {
 				...createCategoryDto,
 				name: `${char} ${createCategoryDto.name}`,
 			};
-			const response = await unauthorizedRequest.post(categoriesRoutes.create).send(categoryDto);
+			const response = await unauthorizedRequest
+				.post(categoriesRoutes.create)
+				.set(commonHeaders)
+				.send(categoryDto);
 
 			randomUUIDs.push(response.body.id);
 
@@ -34,6 +46,7 @@ describe('Categories pagination (e2e)', () => {
 		if (randomUUIDs.length > 0) {
 			const updatedResponse = await unauthorizedRequest
 				.put(categoriesRoutes.update(randomUUIDs[0]))
+				.set(commonHeaders)
 				.send(updatedCategoryDto);
 
 			expect(updatedResponse.statusCode).toBe(StatusCodes.OK);
@@ -43,16 +56,22 @@ describe('Categories pagination (e2e)', () => {
 	afterAll(async () => {
 		for (const id of randomUUIDs) {
 			if (id) {
-				const response = await unauthorizedRequest.delete(categoriesRoutes.delete(id));
+				const response = await unauthorizedRequest
+					.delete(categoriesRoutes.delete(id))
+					.set(commonHeaders);
 
 				expect(response.statusCode).toBe(StatusCodes.NO_CONTENT);
 			}
+		}
+
+		if (mockUserId) {
+			await removeTokenUser(unauthorizedRequest, mockUserId, commonHeaders);
 		}
 	});
 
 	describe('GET', () => {
 		it('should correctly get categories array without pagination', async () => {
-			const response = await unauthorizedRequest.get(categoriesRoutes.getAll);
+			const response = await unauthorizedRequest.get(categoriesRoutes.getAll).set(commonHeaders);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			expect(response.body).toBeInstanceOf(Array);
@@ -60,7 +79,9 @@ describe('Categories pagination (e2e)', () => {
 		});
 
 		it('should correctly get categories object without pagination', async () => {
-			const response = await unauthorizedRequest.get(`${categoriesRoutes.getAll}?page=1`);
+			const response = await unauthorizedRequest
+				.get(`${categoriesRoutes.getAll}?page=1`)
+				.set(commonHeaders);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			expect(response.body).toHaveProperty('total');
@@ -70,7 +91,9 @@ describe('Categories pagination (e2e)', () => {
 		});
 
 		it('should not get categories with pagination when only limit is set', async () => {
-			const response = await unauthorizedRequest.get(`${categoriesRoutes.getAll}?limit=10`);
+			const response = await unauthorizedRequest
+				.get(`${categoriesRoutes.getAll}?limit=10`)
+				.set(commonHeaders);
 
 			expect(response.status).toBe(StatusCodes.OK);
 
@@ -82,9 +105,9 @@ describe('Categories pagination (e2e)', () => {
 		});
 
 		it('should order categories by name when order is desc', async () => {
-			const response = await unauthorizedRequest.get(
-				`${categoriesRoutes.getAll}?page=1&sortBy=name&order=desc`,
-			);
+			const response = await unauthorizedRequest
+				.get(`${categoriesRoutes.getAll}?page=1&sortBy=name&order=desc`)
+				.set(commonHeaders);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			const { data } = response.body;
@@ -96,9 +119,9 @@ describe('Categories pagination (e2e)', () => {
 		});
 
 		it('should order categories by name when order is asc', async () => {
-			const response = await unauthorizedRequest.get(
-				`${categoriesRoutes.getAll}?page=1&sortBy=name&order=asc`,
-			);
+			const response = await unauthorizedRequest
+				.get(`${categoriesRoutes.getAll}?page=1&sortBy=name&order=asc`)
+				.set(commonHeaders);
 
 			expect(response.status).toBe(StatusCodes.OK);
 			const { data } = response.body;
