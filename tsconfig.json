@@ -16,17 +16,19 @@
 		"noImplicitAny": false,
 		"strictBindCallApply": false,
 		"forceConsistentCasingInFileNames": false,
-		"noFallthroughCasesInSwitch": false
+		"noFallthroughCasesInSwitch": false,
+		"types": ["vitest/globals"]
 	},
 	"exclude": [
 		"node_modules",
 		"dist",
 		"*._backup*",
 		"*._bash*",
-		"*._legacy*",
-		"*._temp*",
-		"*._labs*",
 		"*._dev*",
+		"*._labs*",
+		"*._legacy*",
+		"*._scripts*",
+		"*._temp*",
 		".file-status",
 		".eslintcache",
 		".history",
