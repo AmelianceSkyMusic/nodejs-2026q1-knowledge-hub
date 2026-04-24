@@ -23,8 +23,8 @@ import {
 	getSchemaPath,
 } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
-import { IdParamDto } from 'shared/common/dto/id-param.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { IdParamDto } from 'src/common/dto/id-param.dto';
 
 import { CategoriesService } from './categories.service';
 import { CategoriesWithPaginationDto } from './dto/categories-with-pagination.dto';

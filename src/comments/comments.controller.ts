@@ -23,10 +23,10 @@ import {
 	getSchemaPath,
 } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
-import { IdParamDto } from 'shared/common/dto/id-param.dto';
 import { JwtUserDto } from 'src/auth/dto/jwt-user.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { IdParamDto } from 'src/common/dto/id-param.dto';
 
 import { CommentsService } from './comments.service';
 import { CommentDto } from './dto/comment.dto';
