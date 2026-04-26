@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	ForbiddenException,
 	InternalServerErrorException,
 	NotFoundException,
@@ -36,6 +37,7 @@ describe('ArticlesService', () => {
 		id: MOCKED_ARTICLE_ID,
 		title: MOCKED_TITLE,
 		authorId: MOCKED_USER_ID,
+		status: MOCKED_ARTICLE_STATUS,
 	};
 	const articles = [article];
 
@@ -95,29 +97,33 @@ describe('ArticlesService', () => {
 		expect(service).toBeDefined();
 	});
 
-	it('should call .findAll() with arguments and return a result', async () => {
-		const query = {} as GetArticlesWithPaginationQueryDto;
-		mockArticlesRepository.findAll.mockResolvedValue(articles);
+	describe('findAll', () => {
+		it('should call .findAll() with arguments and return a result', async () => {
+			const query = {} as GetArticlesWithPaginationQueryDto;
+			mockArticlesRepository.findAll.mockResolvedValue(articles);
 
-		const result = await service.findAll(query);
+			const result = await service.findAll(query);
 
-		expect(result).toEqual(articles);
-		expect(mockArticlesRepository.findAll).toHaveBeenCalledWith(query);
+			expect(result).toEqual(articles);
+			expect(mockArticlesRepository.findAll).toHaveBeenCalledWith(query);
+		});
 	});
 
-	it('should call .findOne() with arguments and return a result', async () => {
-		mockArticlesRepository.findOne.mockResolvedValue(article);
+	describe('findOne', () => {
+		it('should call .findOne() with arguments and return a result', async () => {
+			mockArticlesRepository.findOne.mockResolvedValue(article);
 
-		const result = await service.findOne(article.id);
+			const result = await service.findOne(article.id);
 
-		expect(result).toEqual(article);
-		expect(mockArticlesRepository.findOne).toHaveBeenCalledWith(article.id);
-	});
+			expect(result).toEqual(article);
+			expect(mockArticlesRepository.findOne).toHaveBeenCalledWith(article.id);
+		});
 
-	it('should call .findOne() and throw NotFoundException if not found', async () => {
-		mockArticlesRepository.findOne.mockResolvedValue(null);
+		it('should call .findOne() and throw NotFoundException if not found', async () => {
+			mockArticlesRepository.findOne.mockResolvedValue(null);
 
-		await expect(service.findOne(article.id)).rejects.toThrow(NotFoundException);
+			await expect(service.findOne(article.id)).rejects.toThrow(NotFoundException);
+		});
 	});
 
 	describe('create', () => {
@@ -182,24 +188,69 @@ describe('ArticlesService', () => {
 			mockArticlesRepository.findOne.mockResolvedValue(article);
 			mockArticlesRepository.update.mockResolvedValue(null);
 
-			await expect(service.update(article.id, updateArticleDto, jwtUser)).rejects.toThrow(
+			const dtoWithoutStatusChange = { ...updateArticleDto, status: article.status };
+
+			await expect(service.update(article.id, dtoWithoutStatusChange, jwtUser)).rejects.toThrow(
 				NotFoundException,
 			);
 		});
+
+		it('should allow valid status transition (DRAFT -> PUBLISHED)', async () => {
+			const draftArticle = { ...article, status: ARTICLE_STATUS.DRAFT };
+			mockArticlesRepository.findOne.mockResolvedValue(draftArticle);
+			mockArticlesRepository.update.mockResolvedValue(article);
+
+			const updateDto = { status: ARTICLE_STATUS.PUBLISHED } as UpdateArticleDto;
+			await service.update(article.id, updateDto, adminUser);
+
+			expect(mockArticlesRepository.update).toHaveBeenCalledWith(article.id, updateDto);
+		});
+
+		it('should throw BadRequestException for invalid status transition (ARCHIVED -> DRAFT)', async () => {
+			const archivedArticle = { ...article, status: ARTICLE_STATUS.ARCHIVED };
+			mockArticlesRepository.findOne.mockResolvedValue(archivedArticle);
+
+			const updateDto = { status: ARTICLE_STATUS.DRAFT } as UpdateArticleDto;
+
+			await expect(service.update(article.id, updateDto, adminUser)).rejects.toThrow(
+				BadRequestException,
+			);
+			expect(mockArticlesRepository.update).not.toHaveBeenCalled();
+		});
 	});
 
-	it('should call .remove() with arguments and return a result', async () => {
-		mockArticlesRepository.remove.mockResolvedValue(article);
+	describe('remove', () => {
+		it('should call .remove() if user is owner', async () => {
+			mockArticlesRepository.findOne.mockResolvedValue(article);
+			mockArticlesRepository.remove.mockResolvedValue(article);
 
-		const result = await service.remove(article.id);
+			const result = await service.remove(article.id, jwtUser);
 
-		expect(result).toEqual(article);
-		expect(mockArticlesRepository.remove).toHaveBeenCalledWith(article.id);
-	});
+			expect(result).toEqual(article);
+			expect(mockArticlesRepository.remove).toHaveBeenCalledWith(article.id);
+		});
 
-	it('should call .remove() and throw NotFoundException() if not found', async () => {
-		mockArticlesRepository.remove.mockResolvedValue(null);
+		it('should throw ForbiddenException if user is not owner and not admin', async () => {
+			mockArticlesRepository.findOne.mockResolvedValue({ ...article, authorId: 'other-id' });
 
-		await expect(service.remove(article.id)).rejects.toThrow(NotFoundException);
+			await expect(service.remove(article.id, jwtUser)).rejects.toThrow(ForbiddenException);
+			expect(mockArticlesRepository.remove).not.toHaveBeenCalled();
+		});
+
+		it('should call .remove() if user is admin but not owner', async () => {
+			mockArticlesRepository.findOne.mockResolvedValue({ ...article, authorId: 'other-id' });
+			mockArticlesRepository.remove.mockResolvedValue(article);
+
+			await service.remove(article.id, adminUser);
+
+			expect(mockArticlesRepository.remove).toHaveBeenCalledWith(article.id);
+		});
+
+		it('should call .remove() and throw NotFoundException() if not found', async () => {
+			mockArticlesRepository.findOne.mockResolvedValue(article);
+			mockArticlesRepository.remove.mockResolvedValue(null);
+
+			await expect(service.remove(article.id, jwtUser)).rejects.toThrow(NotFoundException);
+		});
 	});
 });
