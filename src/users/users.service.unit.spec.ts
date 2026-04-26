@@ -1,11 +1,8 @@
-import {
-	BadRequestException,
-	ConflictException,
-	ForbiddenException,
-	InternalServerErrorException,
-	NotFoundException,
-} from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { NotFoundError } from 'src/common/errors/not-found.error';
+import { ValidationError } from 'src/common/errors/validation.error';
 import { PG_ERROR } from 'src/common/utils/pg-error';
 
 import { UsersRepository } from './repository/users.repository';
@@ -139,10 +136,10 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.findOneByLoginWithPassword).not.toHaveBeenCalled();
 		});
 
-		it('should call .findOne() with arguments and throw NotFoundException()', async () => {
+		it('should call .findOne() with arguments and throw NotFoundError()', async () => {
 			mockUsersRepository.findOne.mockResolvedValue(null);
 
-			await expect(service.findOne(user.id)).rejects.toThrow(NotFoundException);
+			await expect(service.findOne(user.id)).rejects.toThrow(NotFoundError);
 
 			expect(mockUsersRepository.findOne).toHaveBeenCalled();
 			expect(mockUsersRepository.findOne).toHaveBeenCalledTimes(1);
@@ -198,10 +195,10 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.findOneByLoginWithPassword).not.toHaveBeenCalled();
 		});
 
-		it('should call .create() with arguments and throw ConflictException() if user already exists', async () => {
+		it('should call .create() with arguments and throw ValidationError() if user already exists', async () => {
 			mockUsersRepository.create.mockRejectedValue({ code: PG_ERROR.UNIQUE_VIOLATION });
 
-			await expect(service.create(createUserDto)).rejects.toThrow(ConflictException);
+			await expect(service.create(createUserDto)).rejects.toThrow(ValidationError);
 
 			expect(mockUsersRepository.create).toHaveBeenCalled();
 			expect(mockUsersRepository.create).toHaveBeenCalledTimes(1);
@@ -232,11 +229,11 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.findOneByLoginWithPassword).not.toHaveBeenCalled();
 		});
 
-		it('should call .updatePassword() with non existent user and throw NotFoundException()', async () => {
+		it('should call .updatePassword() with non existent user and throw NotFoundError()', async () => {
 			mockUsersRepository.findWithPassword.mockResolvedValue(null);
 
 			await expect(service.updatePassword(user.id, updatePassword)).rejects.toThrow(
-				NotFoundException,
+				NotFoundError,
 			);
 
 			expect(mockUsersRepository.findWithPassword).toHaveBeenCalled();
@@ -247,12 +244,12 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.findOneByLoginWithPassword).not.toHaveBeenCalled();
 		});
 
-		it('should call .updatePassword() with wrong old password and throw ForbiddenException()', async () => {
+		it('should call .updatePassword() with wrong old password and throw ForbiddenError()', async () => {
 			mockUsersRepository.findWithPassword.mockResolvedValue(user);
 			compareMock.mockResolvedValue(false);
 
 			await expect(service.updatePassword(user.id, updatePassword)).rejects.toThrow(
-				ForbiddenException,
+				ForbiddenError,
 			);
 
 			expect(mockUsersRepository.findWithPassword).toHaveBeenCalled();
@@ -262,12 +259,12 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.update).not.toHaveBeenCalled();
 		});
 
-		it('should call .updatePassword() with update returns null and throw NotFoundException()', async () => {
+		it('should call .updatePassword() with update returns null and throw NotFoundError()', async () => {
 			mockUsersRepository.findWithPassword.mockResolvedValue(user);
 			mockUsersRepository.update.mockResolvedValue(null);
 
 			await expect(service.updatePassword(user.id, updatePassword)).rejects.toThrow(
-				NotFoundException,
+				NotFoundError,
 			);
 
 			expect(mockUsersRepository.findWithPassword).toHaveBeenCalled();
@@ -298,10 +295,10 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.findOneByLoginWithPassword).not.toHaveBeenCalled();
 		});
 
-		it('should call .remove() and throw NotFoundException() if user not found', async () => {
+		it('should call .remove() and throw NotFoundError() if user not found', async () => {
 			mockUsersRepository.remove.mockResolvedValue(null);
 
-			await expect(service.remove(user.id)).rejects.toThrow(NotFoundException);
+			await expect(service.remove(user.id)).rejects.toThrow(NotFoundError);
 
 			expect(mockUsersRepository.remove).toHaveBeenCalled();
 			expect(mockUsersRepository.remove).toHaveBeenCalledTimes(1);
@@ -343,10 +340,10 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.findOneByLoginWithPassword).not.toHaveBeenCalled();
 		});
 
-		it('should call .createWithSignup() with arguments and throw BadRequestException() if user already exists', async () => {
+		it('should call .createWithSignup() with arguments and throw ValidationError() if user already exists', async () => {
 			mockUsersRepository.create.mockRejectedValue({ code: PG_ERROR.UNIQUE_VIOLATION });
 
-			await expect(service.createWithSignup(createUserDto)).rejects.toThrow(BadRequestException);
+			await expect(service.createWithSignup(createUserDto)).rejects.toThrow(ValidationError);
 
 			expect(mockUsersRepository.create).toHaveBeenCalled();
 			expect(mockUsersRepository.create).toHaveBeenCalledTimes(1);

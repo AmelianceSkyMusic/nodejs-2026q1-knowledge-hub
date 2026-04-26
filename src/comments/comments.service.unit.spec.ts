@@ -1,10 +1,7 @@
-import {
-	ForbiddenException,
-	InternalServerErrorException,
-	NotFoundException,
-	UnprocessableEntityException,
-} from '@nestjs/common';
+import { InternalServerErrorException, UnprocessableEntityException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { NotFoundError } from 'src/common/errors/not-found.error';
 import { PG_ERROR } from 'src/common/utils/pg-error';
 
 import { CommentsService } from './comments.service';
@@ -106,10 +103,10 @@ describe('CommentsService', () => {
 			expect(mockCommentsRepository.findOne).toHaveBeenCalledWith(comment.id);
 		});
 
-		it('should call .findById() and throw NotFoundException() if not found', async () => {
+		it('should call .findById() and throw NotFoundError() if not found', async () => {
 			mockCommentsRepository.findOne.mockResolvedValue(null);
 
-			await expect(service.findById(comment.id)).rejects.toThrow(NotFoundException);
+			await expect(service.findById(comment.id)).rejects.toThrow(NotFoundError);
 		});
 	});
 
@@ -167,17 +164,17 @@ describe('CommentsService', () => {
 			expect(mockCommentsRepository.remove).toHaveBeenCalledWith(comment.id);
 		});
 
-		it('should throw ForbiddenException() if user is not owner and not admin', async () => {
+		it('should throw ForbiddenError() if user is not owner and not admin', async () => {
 			mockCommentsRepository.findOne.mockResolvedValue({ ...comment, authorId: 'other' });
 
-			await expect(service.remove(comment.id, jwtUser)).rejects.toThrow(ForbiddenException);
+			await expect(service.remove(comment.id, jwtUser)).rejects.toThrow(ForbiddenError);
 			expect(mockCommentsRepository.remove).not.toHaveBeenCalled();
 		});
 
-		it('should throw NotFoundException() if remove returns null', async () => {
+		it('should throw NotFoundError() if remove returns null', async () => {
 			mockCommentsRepository.remove.mockResolvedValue(null);
 
-			await expect(service.remove(comment.id, adminUser)).rejects.toThrow(NotFoundException);
+			await expect(service.remove(comment.id, adminUser)).rejects.toThrow(NotFoundError);
 		});
 	});
 });

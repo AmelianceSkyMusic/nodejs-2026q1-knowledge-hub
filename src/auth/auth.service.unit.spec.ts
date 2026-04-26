@@ -1,5 +1,6 @@
-import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { UnauthorizedError } from 'src/common/errors/unauthorized.error';
 import { TokensService } from 'src/tokens/tokens.service';
 import { UsersService } from 'src/users/users.service';
 
@@ -130,20 +131,17 @@ describe('AuthService', () => {
 			});
 		});
 
-		it('should throw ForbiddenException() if user not found', async () => {
+		it('should throw ForbiddenError() if user not found', async () => {
 			mockUsersService.findOneByLoginWithPassword.mockResolvedValue(null);
 
-			await expect(service.login(loginDto)).rejects.toThrow(ForbiddenException);
-			await expect(service.login(loginDto)).rejects.toThrow(
-				ERROR.AUTH.INVALID_LOGIN_OR_PASSWORD,
-			);
+			await expect(service.login(loginDto)).rejects.toThrow(ForbiddenError);
 		});
 
-		it('should throw ForbiddenException() if password mismatch', async () => {
+		it('should throw ForbiddenError() if password mismatch', async () => {
 			mockUsersService.findOneByLoginWithPassword.mockResolvedValue(user);
 			compareMock.mockResolvedValue(false);
 
-			await expect(service.login(loginDto)).rejects.toThrow(ForbiddenException);
+			await expect(service.login(loginDto)).rejects.toThrow(ForbiddenError);
 		});
 	});
 
@@ -166,30 +164,30 @@ describe('AuthService', () => {
 			expect(mockUsersService.findOne).toHaveBeenCalledWith(user.id);
 		});
 
-		it('should throw UnauthorizedException() if refreshToken is empty', async () => {
-			await expect(service.refresh({ refreshToken: '' })).rejects.toThrow(UnauthorizedException);
+		it('should throw UnauthorizedError() if refreshToken is empty', async () => {
+			await expect(service.refresh({ refreshToken: '' })).rejects.toThrow(UnauthorizedError);
 		});
 
-		it('should throw ForbiddenException() if token verification fails', async () => {
+		it('should throw ForbiddenError() if token verification fails', async () => {
 			mockTokensService.verifyRefreshToken.mockReturnValue(null);
 
-			await expect(service.refresh(refreshDto)).rejects.toThrow(ForbiddenException);
+			await expect(service.refresh(refreshDto)).rejects.toThrow(ForbiddenError);
 			await expect(service.refresh(refreshDto)).rejects.toThrow(ERROR.TOKEN.INVALID);
 		});
 
-		it('should throw ForbiddenException() if token is not valid in DB', async () => {
+		it('should throw ForbiddenError() if token is not valid in DB', async () => {
 			mockTokensService.verifyRefreshToken.mockReturnValue({ userId: user.id });
 			mockTokensService.validateRefreshToken.mockResolvedValue(false);
 
-			await expect(service.refresh(refreshDto)).rejects.toThrow(ForbiddenException);
+			await expect(service.refresh(refreshDto)).rejects.toThrow(ForbiddenError);
 		});
 
-		it('should throw ForbiddenException() if user not found', async () => {
+		it('should throw ForbiddenError() if user not found', async () => {
 			mockTokensService.verifyRefreshToken.mockReturnValue({ userId: user.id });
 			mockTokensService.validateRefreshToken.mockResolvedValue(true);
 			mockUsersService.findOne.mockResolvedValue(null);
 
-			await expect(service.refresh(refreshDto)).rejects.toThrow(ForbiddenException);
+			await expect(service.refresh(refreshDto)).rejects.toThrow(ForbiddenError);
 		});
 	});
 
@@ -206,14 +204,14 @@ describe('AuthService', () => {
 			);
 		});
 
-		it('should throw UnauthorizedException() if refreshToken is empty', async () => {
-			await expect(service.logout({ refreshToken: '' })).rejects.toThrow(UnauthorizedException);
+		it('should throw UnauthorizedError() if refreshToken is empty', async () => {
+			await expect(service.logout({ refreshToken: '' })).rejects.toThrow(UnauthorizedError);
 		});
 
-		it('should throw ForbiddenException() if token verification fails', async () => {
+		it('should throw ForbiddenError() if token verification fails', async () => {
 			mockTokensService.verifyRefreshToken.mockReturnValue(null);
 
-			await expect(service.logout(refreshDto)).rejects.toThrow(ForbiddenException);
+			await expect(service.logout(refreshDto)).rejects.toThrow(ForbiddenError);
 		});
 	});
 });

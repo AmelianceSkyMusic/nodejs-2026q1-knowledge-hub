@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { createZodDto, ZodSchemaDeclarationException, ZodValidationException } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -6,8 +5,11 @@ import { CustomZodValidationPipe } from './custom-zod-validation.pipe';
 
 import type { ArgumentMetadata } from '@nestjs/common';
 
+import type { AppLogger } from '../app-logger/app-logger.service';
+
 describe('CustomZodValidationPipe', () => {
 	let pipe: CustomZodValidationPipe;
+	let mockLogger: AppLogger;
 
 	const user = {
 		name: 'testUser',
@@ -44,7 +46,11 @@ describe('CustomZodValidationPipe', () => {
 	};
 
 	beforeEach(() => {
-		pipe = new CustomZodValidationPipe();
+		mockLogger = {
+			error: vi.fn(),
+		} as unknown as AppLogger;
+
+		pipe = new CustomZodValidationPipe(mockLogger);
 	});
 
 	it('should be defined', () => {
@@ -67,13 +73,12 @@ describe('CustomZodValidationPipe', () => {
 	it('should log custom message on ZodSchemaDeclarationException', () => {
 		const badDto = null;
 		const badMetadata: ArgumentMetadata = { ...metadataUser, metatype: badDto };
-		const loggerSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
 		expect(() => pipe.transform({}, badMetadata)).toThrow(ZodSchemaDeclarationException);
-		expect(loggerSpy).toHaveBeenCalledWith(
+		expect(mockLogger.error).toHaveBeenCalledWith(
 			expect.stringContaining('Zod Schema Declaration Error'),
+			expect.any(String),
+			'CustomZodValidationPipe',
 		);
-
-		loggerSpy.mockRestore();
 	});
 });
