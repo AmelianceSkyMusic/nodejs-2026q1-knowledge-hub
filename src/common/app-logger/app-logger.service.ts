@@ -87,18 +87,20 @@ export class AppLogger extends ConsoleLogger {
 			if (fs.existsSync(filePath)) {
 				const fileStat = fs.statSync(filePath);
 				if (fileStat.size > this.configService.get('logMaxFileSize')) {
-					const date = new Date().toISOString().replace(/[:.]/g, '-');
-					fs.renameSync(filePath, filePath.replace('.log', `-${date}.log`));
+					const date = new Date().toISOString().split('.')[0].replace(/:/g, '-');
+					const ext = path.extname(filePath);
+					const base = path.basename(filePath, ext);
+					const dir = path.dirname(filePath);
+					const newPath = path.join(dir, `${base}-${date}${ext}`);
+					fs.renameSync(filePath, newPath);
 				}
 			}
-
-			const sanitizedMessage = this.sanitize(message);
 
 			const logEntry = {
 				timestamp: new Date().toISOString(),
 				level,
 				context,
-				message: sanitizedMessage,
+				message,
 				stack,
 			};
 
