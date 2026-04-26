@@ -63,6 +63,7 @@ async function bootstrap() {
 
 	app.useLogger(app.get(AppLogger));
 	app.useGlobalFilters(new AllExceptionsFilter(app.get(AppLogger)));
+	app.enableShutdownHooks();
 
 	const port = configService.get<number>('port');
 
@@ -76,5 +77,10 @@ async function bootstrap() {
 		`\n  > Application is running on: http://localhost:${port}/${apiPrefix}`,
 		'Bootstrap',
 	);
+
+	process.on('uncaughtException', (err) => {
+		appLogger.fatal(`Uncaught Exception: ${err.message}`, err.stack, 'Process');
+		app.close().then(() => process.exit(1));
+	});
 }
 bootstrap();
