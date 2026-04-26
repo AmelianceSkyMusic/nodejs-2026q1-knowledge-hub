@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -6,9 +5,12 @@ import { apiReference } from '@scalar/nestjs-api-reference';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 import { AppModule } from './app.module';
+import { AppLogger } from './common/app-logger/app-logger.service';
 
 async function bootstrap() {
-	const app = await NestFactory.create(AppModule);
+	const app = await NestFactory.create(AppModule, {
+		bufferLogs: true,
+	});
 
 	const config = new DocumentBuilder()
 		.setTitle('Knowledge Hub')
@@ -58,14 +60,19 @@ async function bootstrap() {
 	const apiPrefix = configService.get<string>('apiPrefix');
 	if (apiPrefix) app.setGlobalPrefix(apiPrefix);
 
+	app.useLogger(app.get(AppLogger));
+
 	const port = configService.get<number>('port');
 
 	if (!port) throw new Error('PORT environment variable is missing');
 
 	await app.listen(port);
 
-	const logger = new Logger('Bootstrap');
+	const appLogger = app.get(AppLogger);
 
-	logger.debug(`\n  > Application is running on: http://localhost:${port}/${apiPrefix}`);
+	appLogger.debug(
+		`\n  > Application is running on: http://localhost:${port}/${apiPrefix}`,
+		'Bootstrap',
+	);
 }
 bootstrap();

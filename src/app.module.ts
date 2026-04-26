@@ -8,11 +8,12 @@ import { ArticlesModule } from './articles/articles.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
 import { CommentsModule } from './comments/comments.module';
+import { AppLoggerModule } from './common/app-logger/app-logger.module';
 import configuration from './common/config/configuration';
 import { ZodExceptionFilter } from './common/exception-filters/zod-exception.filter';
 import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
-import { LoggerMiddleware } from './common/middleware/logger-middleware.middleware';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { CustomZodValidationPipe } from './common/pipes/custom-zod-validation.pipe';
 import { DrizzleModule } from './drizzle/drizzle.module';
 import { HealthModule } from './health/health.module';
@@ -47,6 +48,7 @@ import { UsersModule } from './users/users.module';
 		DrizzleModule,
 		AuthModule,
 		TokensModule,
+		AppLoggerModule,
 	],
 	providers: [
 		{
