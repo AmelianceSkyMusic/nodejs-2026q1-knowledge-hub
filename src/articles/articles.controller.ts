@@ -142,7 +142,7 @@ export class ArticlesController {
 		format: SWAGGER.FORMAT.ID,
 	})
 	@HttpCode(HttpStatus.NO_CONTENT)
-	async remove(@Param() { id }: IdParamDto) {
-		return await this.articlesService.remove(id);
+	async remove(@Param() { id }: IdParamDto, @CurrentUser() user: JwtUserDto) {
+		return await this.articlesService.remove(id, user);
 	}
 }

@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	ForbiddenException,
 	Injectable,
 	InternalServerErrorException,
@@ -13,6 +14,7 @@ import { GetArticlesWithPaginationQueryDto } from './dto/get-articles-with-pagin
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticlesRepository } from './repositories/articles.repository';
 
+import { ARTICLE_STATUS_TRANSITIONS } from 'shared/articles/constants/article-status-transitions';
 import { ERROR } from 'shared/common/constants/error';
 import { USER_ROLES } from 'shared/users/constants/user-role';
 
@@ -52,12 +54,27 @@ export class ArticlesService {
 			throw new ForbiddenException(ERROR.ACCESS.ROLE);
 		}
 
+		if (updateArticleDto.status && updateArticleDto.status !== article.status) {
+			const allowed = ARTICLE_STATUS_TRANSITIONS[article.status] || [];
+			if (!allowed.includes(updateArticleDto.status)) {
+				throw new BadRequestException(
+					`Invalid status transition from ${article.status} to ${updateArticleDto.status}`,
+				);
+			}
+		}
+
 		const result = await this.articlesRepository.update(id, updateArticleDto);
 		if (!result) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
 		return result;
 	}
 
-	async remove(id: Id) {
+	async remove(id: Id, user: JwtUser) {
+		const article = await this.findOne(id);
+
+		if (user.role !== USER_ROLES.ADMIN && article.authorId !== user.userId) {
+			throw new ForbiddenException(ERROR.ACCESS.ROLE);
+		}
+
 		const result = await this.articlesRepository.remove(id);
 		if (!result) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
 		return result;
