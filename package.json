@@ -30,6 +30,7 @@
 		"test:unit": "vitest run",
 		"test:unit:watch": "vitest run --watch",
 		"test:coverage": "vitest run --coverage",
+		"test:coverage:watch": "vitest run --coverage --watch",
 		"test": "npm run test:unit && npm run test:jest",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
