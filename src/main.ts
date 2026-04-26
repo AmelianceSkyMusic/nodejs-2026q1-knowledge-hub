@@ -82,5 +82,10 @@ async function bootstrap() {
 		appLogger.fatal(`Uncaught Exception: ${err.message}`, err.stack, 'Process');
 		app.close().then(() => process.exit(1));
 	});
+
+	process.on('unhandledRejection', (reason, promise) => {
+		appLogger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`, '', 'Process');
+		app.close().then(() => process.exit(1));
+	});
 }
 bootstrap();
