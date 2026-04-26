@@ -1,20 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { CreateComment } from 'shared/comments/schemas/create-comment.schema';
-import { GetCommentsWithPaginationQuery } from 'shared/comments/schemas/get-comment-with-pagination-query.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 import { InjectDrizzle } from 'src/drizzle/decorators/drizzle.decorator';
 import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
 import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
 import * as schema from '../../drizzle/db/schema';
+import { CreateCommentDto } from '../dto/create-comment.dto';
+import { GetCommentsWithPaginationQueryDto } from '../dto/get-comment-with-pagination-query.dto';
 
 @Injectable()
 export class CommentsRepository {
 	constructor(@InjectDrizzle() private readonly db: DrizzleDb) {}
 
-	async findAll(getCommentsWithPaginationQuery: GetCommentsWithPaginationQuery) {
-		const { articleId, page, limit, sortBy, order } = getCommentsWithPaginationQuery;
+	async findAll(getCommentsWithPaginationQueryDto: GetCommentsWithPaginationQueryDto) {
+		const { articleId, page, limit, sortBy, order } = getCommentsWithPaginationQueryDto;
 
 		const baseQuery = { where: { articleId }, orderBy: { [sortBy]: order } };
 
@@ -43,8 +43,8 @@ export class CommentsRepository {
 		});
 	}
 
-	async create(createComment: CreateComment) {
-		const [inserted] = await this.db.insert(schema.comments).values(createComment).returning();
+	async create(createCommentDto: CreateCommentDto) {
+		const [inserted] = await this.db.insert(schema.comments).values(createCommentDto).returning();
 		return inserted;
 	}
 

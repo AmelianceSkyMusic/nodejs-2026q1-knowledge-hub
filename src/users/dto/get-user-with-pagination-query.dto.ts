@@ -11,7 +11,7 @@ export class GetUsersWithPaginationQueryDto extends createZodDto(
 	GetUsersWithPaginationQuerySchema,
 ) {
 	@ApiProperty(USER_SWAGGER.QUERY.PAGE)
-	page: GetUsersWithPaginationQuery['page'];
+	page?: GetUsersWithPaginationQuery['page'];
 
 	@ApiProperty(USER_SWAGGER.QUERY.LIMIT)
 	limit: GetUsersWithPaginationQuery['limit'];

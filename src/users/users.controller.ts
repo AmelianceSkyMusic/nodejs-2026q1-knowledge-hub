@@ -23,8 +23,8 @@ import {
 	getSchemaPath,
 } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
-import { IdParamDto } from 'shared/common/dto/id-param.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { IdParamDto } from 'src/common/dto/id-param.dto';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetUsersWithPaginationQueryDto } from './dto/get-user-with-pagination-query.dto';
