@@ -6,6 +6,7 @@ import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 import { AppModule } from './app.module';
 import { AppLogger } from './common/app-logger/app-logger.service';
+import { AllExceptionsFilter } from './common/exception-filters/all-exceptions.filter';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule, {
@@ -61,6 +62,7 @@ async function bootstrap() {
 	if (apiPrefix) app.setGlobalPrefix(apiPrefix);
 
 	app.useLogger(app.get(AppLogger));
+	app.useGlobalFilters(new AllExceptionsFilter(app.get(AppLogger)));
 
 	const port = configService.get<number>('port');
 
