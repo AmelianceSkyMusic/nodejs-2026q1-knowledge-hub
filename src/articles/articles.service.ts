@@ -1,12 +1,9 @@
-import {
-	BadRequestException,
-	ForbiddenException,
-	Injectable,
-	InternalServerErrorException,
-	NotFoundException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { JwtUser } from 'shared/auth/schemas/jwt-user.schema';
 import { Id } from 'shared/common/schemas/id.schema';
+import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { NotFoundError } from 'src/common/errors/not-found.error';
+import { ValidationError } from 'src/common/errors/validation.error';
 import { pgError } from 'src/common/utils/pg-error';
 
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -28,7 +25,7 @@ export class ArticlesService {
 
 	async findOne(id: Id) {
 		const result = await this.articlesRepository.findOne(id);
-		if (!result) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
+		if (!result) throw new NotFoundError(ERROR.ARTICLE.NOT_FOUND);
 		return result;
 	}
 
@@ -41,7 +38,7 @@ export class ArticlesService {
 			return result;
 		} catch (error) {
 			if (pgError(error).isForeignKeyViolation) {
-				throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
+				throw new NotFoundError(ERROR.CATEGORY.NOT_FOUND);
 			}
 			throw error;
 		}
@@ -51,20 +48,20 @@ export class ArticlesService {
 		const article = await this.findOne(id);
 
 		if (user.role !== USER_ROLES.ADMIN && article.authorId !== user.userId) {
-			throw new ForbiddenException(ERROR.ACCESS.ROLE);
+			throw new ForbiddenError(ERROR.ACCESS.ROLE);
 		}
 
 		if (updateArticleDto.status && updateArticleDto.status !== article.status) {
 			const allowed = ARTICLE_STATUS_TRANSITIONS[article.status] || [];
 			if (!allowed.includes(updateArticleDto.status)) {
-				throw new BadRequestException(
+				throw new ValidationError(
 					`Invalid status transition from ${article.status} to ${updateArticleDto.status}`,
 				);
 			}
 		}
 
 		const result = await this.articlesRepository.update(id, updateArticleDto);
-		if (!result) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
+		if (!result) throw new NotFoundError(ERROR.ARTICLE.NOT_FOUND);
 		return result;
 	}
 
@@ -72,11 +69,11 @@ export class ArticlesService {
 		const article = await this.findOne(id);
 
 		if (user.role !== USER_ROLES.ADMIN && article.authorId !== user.userId) {
-			throw new ForbiddenException(ERROR.ACCESS.ROLE);
+			throw new ForbiddenError(ERROR.ACCESS.ROLE);
 		}
 
 		const result = await this.articlesRepository.remove(id);
-		if (!result) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
+		if (!result) throw new NotFoundError(ERROR.ARTICLE.NOT_FOUND);
 		return result;
 	}
 }

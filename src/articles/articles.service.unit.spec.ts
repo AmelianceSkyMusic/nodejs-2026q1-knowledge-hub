@@ -1,10 +1,8 @@
-import {
-	BadRequestException,
-	ForbiddenException,
-	InternalServerErrorException,
-	NotFoundException,
-} from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { NotFoundError } from 'src/common/errors/not-found.error';
+import { ValidationError } from 'src/common/errors/validation.error';
 import { PG_ERROR } from 'src/common/utils/pg-error';
 
 import { ArticlesService } from './articles.service';
@@ -122,7 +120,7 @@ describe('ArticlesService', () => {
 		it('should call .findOne() and throw NotFoundException if not found', async () => {
 			mockArticlesRepository.findOne.mockResolvedValue(null);
 
-			await expect(service.findOne(article.id)).rejects.toThrow(NotFoundException);
+			await expect(service.findOne(article.id)).rejects.toThrow(NotFoundError);
 		});
 	});
 
@@ -143,7 +141,7 @@ describe('ArticlesService', () => {
 		it('should throw NotFoundException() if category does not exist (FK violation)', async () => {
 			mockArticlesRepository.create.mockRejectedValue({ code: PG_ERROR.FOREIGN_KEY_VIOLATION });
 
-			await expect(service.create(createArticleDto, jwtUser)).rejects.toThrow(NotFoundException);
+			await expect(service.create(createArticleDto, jwtUser)).rejects.toThrow(NotFoundError);
 		});
 
 		it('should throw InternalServerErrorException() if create returns null', async () => {
@@ -179,7 +177,7 @@ describe('ArticlesService', () => {
 			mockArticlesRepository.findOne.mockResolvedValue({ ...article, authorId: 'another-id' });
 
 			await expect(service.update(article.id, updateArticleDto, jwtUser)).rejects.toThrow(
-				ForbiddenException,
+				ForbiddenError,
 			);
 			expect(mockArticlesRepository.update).not.toHaveBeenCalled();
 		});
@@ -191,7 +189,7 @@ describe('ArticlesService', () => {
 			const dtoWithoutStatusChange = { ...updateArticleDto, status: article.status };
 
 			await expect(service.update(article.id, dtoWithoutStatusChange, jwtUser)).rejects.toThrow(
-				NotFoundException,
+				NotFoundError,
 			);
 		});
 
@@ -213,7 +211,7 @@ describe('ArticlesService', () => {
 			const updateDto = { status: ARTICLE_STATUS.DRAFT } as UpdateArticleDto;
 
 			await expect(service.update(article.id, updateDto, adminUser)).rejects.toThrow(
-				BadRequestException,
+				ValidationError,
 			);
 			expect(mockArticlesRepository.update).not.toHaveBeenCalled();
 		});
@@ -233,7 +231,7 @@ describe('ArticlesService', () => {
 		it('should throw ForbiddenException if user is not owner and not admin', async () => {
 			mockArticlesRepository.findOne.mockResolvedValue({ ...article, authorId: 'other-id' });
 
-			await expect(service.remove(article.id, jwtUser)).rejects.toThrow(ForbiddenException);
+			await expect(service.remove(article.id, jwtUser)).rejects.toThrow(ForbiddenError);
 			expect(mockArticlesRepository.remove).not.toHaveBeenCalled();
 		});
 
@@ -250,7 +248,7 @@ describe('ArticlesService', () => {
 			mockArticlesRepository.findOne.mockResolvedValue(article);
 			mockArticlesRepository.remove.mockResolvedValue(null);
 
-			await expect(service.remove(article.id, jwtUser)).rejects.toThrow(NotFoundException);
+			await expect(service.remove(article.id, jwtUser)).rejects.toThrow(NotFoundError);
 		});
 	});
 });

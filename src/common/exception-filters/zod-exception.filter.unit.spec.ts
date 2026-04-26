@@ -1,8 +1,8 @@
-import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ZodValidationException } from 'nestjs-zod';
 import { z, ZodError } from 'zod';
 
+import { AppLogger } from '../app-logger/app-logger.service';
 import { ZodExceptionFilter } from './zod-exception.filter';
 
 import type { ArgumentsHost } from '@nestjs/common';
@@ -10,6 +10,7 @@ import type { TestingModule } from '@nestjs/testing';
 
 describe('ZodExceptionFilter', () => {
 	let filter: ZodExceptionFilter;
+	let mockLogger: AppLogger;
 
 	const mockResponse = {
 		status: vi.fn().mockReturnThis(),
@@ -23,8 +24,19 @@ describe('ZodExceptionFilter', () => {
 	} as unknown as ArgumentsHost;
 
 	beforeEach(async () => {
+		mockLogger = {
+			warn: vi.fn(),
+			error: vi.fn(),
+		} as unknown as AppLogger;
+
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [ZodExceptionFilter],
+			providers: [
+				ZodExceptionFilter,
+				{
+					provide: AppLogger,
+					useValue: mockLogger,
+				},
+			],
 		}).compile();
 
 		filter = module.get<ZodExceptionFilter>(ZodExceptionFilter);
@@ -52,13 +64,11 @@ describe('ZodExceptionFilter', () => {
 	});
 
 	it('should log warning for ZodValidationException', () => {
-		const loggerSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
 		const zodError = new ZodError([]);
 		const exception = new ZodValidationException(zodError);
 
 		filter.catch(exception, mockArgumentsHost);
 
-		expect(loggerSpy).toHaveBeenCalled();
-		loggerSpy.mockRestore();
+		expect(mockLogger.warn).toHaveBeenCalled();
 	});
 });

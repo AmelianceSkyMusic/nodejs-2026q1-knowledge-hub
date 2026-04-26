@@ -1,12 +1,12 @@
 import {
-	ForbiddenException,
 	Injectable,
 	InternalServerErrorException,
-	NotFoundException,
 	UnprocessableEntityException,
 } from '@nestjs/common';
 import { Id } from 'shared/common/schemas/id.schema';
 import { JwtUserDto } from 'src/auth/dto/jwt-user.dto';
+import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { NotFoundError } from 'src/common/errors/not-found.error';
 import { pgError } from 'src/common/utils/pg-error';
 
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -26,7 +26,7 @@ export class CommentsService {
 
 	async findById(id: Id) {
 		const comment = await this.commentsRepository.findOne(id);
-		if (!comment) throw new NotFoundException(ERROR.COMMENT.NOT_FOUND);
+		if (!comment) throw new NotFoundError(ERROR.COMMENT.NOT_FOUND);
 		return comment;
 	}
 
@@ -52,11 +52,11 @@ export class CommentsService {
 		if (user.role !== USER_ROLES.ADMIN) {
 			const comment = await this.findById(id);
 			if (comment.authorId !== user.userId) {
-				throw new ForbiddenException(ERROR.ACCESS.ROLE);
+				throw new ForbiddenError(ERROR.ACCESS.ROLE);
 			}
 		}
 		const result = await this.commentsRepository.remove(id);
-		if (!result) throw new NotFoundException(ERROR.COMMENT.NOT_FOUND);
+		if (!result) throw new NotFoundError(ERROR.COMMENT.NOT_FOUND);
 		return result;
 	}
 }

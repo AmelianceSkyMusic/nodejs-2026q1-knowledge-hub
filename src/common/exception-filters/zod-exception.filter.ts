@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import {
 	ZodSchemaDeclarationException,
 	ZodSerializationException,
@@ -6,9 +6,11 @@ import {
 } from 'nestjs-zod';
 import { ZodError } from 'zod';
 
+import { AppLogger } from '../app-logger/app-logger.service';
+
 @Catch(ZodValidationException, ZodSerializationException, ZodSchemaDeclarationException)
 export class ZodExceptionFilter implements ExceptionFilter {
-	private readonly logger = new Logger('ZodExceptionFilter');
+	constructor(private readonly appLogger: AppLogger) {}
 
 	catch(
 		exception: ZodValidationException | ZodSerializationException | ZodSchemaDeclarationException,
@@ -18,7 +20,11 @@ export class ZodExceptionFilter implements ExceptionFilter {
 		const response = ctx.getResponse();
 
 		if (exception instanceof ZodSchemaDeclarationException) {
-			this.logger.error(`Zod Schema Declaration Error: ${exception.message}`);
+			this.appLogger.error(
+				`Zod Schema Declaration Error: ${exception.message}`,
+				exception.stack,
+				'ZodExceptionFilter',
+			);
 			return response.status(500).json({
 				statusCode: 500,
 				message: 'Missing nestjs-zod schema declaration (DTO) for parameter',
@@ -35,9 +41,17 @@ export class ZodExceptionFilter implements ExceptionFilter {
 			const logMessage = `${isValidation ? 'Validation' : 'Serialization'} Error details:`;
 
 			if (isValidation) {
-				this.logger.warn(`${logMessage} ${JSON.stringify(zodError.issues, null, 2)}`);
+				this.appLogger.warn(
+					`${logMessage} ${JSON.stringify(zodError.issues, null, 2)}`,
+					'ZodExceptionFilter',
+				);
 			} else {
-				this.logger.error(`${logMessage} ${JSON.stringify(zodError.issues, null, 2)}`);
+				const stack = exception instanceof Error ? exception.stack : '';
+				this.appLogger.error(
+					`${logMessage} ${JSON.stringify(zodError.issues, null, 2)}`,
+					stack,
+					'ZodExceptionFilter',
+				);
 			}
 
 			return response.status(status).json({

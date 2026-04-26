@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -6,9 +5,13 @@ import { apiReference } from '@scalar/nestjs-api-reference';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 import { AppModule } from './app.module';
+import { AppLogger } from './common/app-logger/app-logger.service';
+import { AllExceptionsFilter } from './common/exception-filters/all-exceptions.filter';
 
 async function bootstrap() {
-	const app = await NestFactory.create(AppModule);
+	const app = await NestFactory.create(AppModule, {
+		bufferLogs: true,
+	});
 
 	const config = new DocumentBuilder()
 		.setTitle('Knowledge Hub')
@@ -58,14 +61,35 @@ async function bootstrap() {
 	const apiPrefix = configService.get<string>('apiPrefix');
 	if (apiPrefix) app.setGlobalPrefix(apiPrefix);
 
+	const appLogger = app.get(AppLogger);
+
+	process.on('uncaughtException', (err) => {
+		appLogger.fatal(`Uncaught Exception: ${err.message}`, err.stack, 'Process');
+		app.close().then(() => {
+			setTimeout(() => process.exit(1), 1000);
+		});
+	});
+
+	process.on('unhandledRejection', (reason, promise) => {
+		appLogger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`, '', 'Process');
+		app.close().then(() => {
+			setTimeout(() => process.exit(1), 1000);
+		});
+	});
+
+	app.useLogger(appLogger);
+	app.useGlobalFilters(new AllExceptionsFilter(appLogger));
+	app.enableShutdownHooks();
+
 	const port = configService.get<number>('port');
 
 	if (!port) throw new Error('PORT environment variable is missing');
 
 	await app.listen(port);
 
-	const logger = new Logger('Bootstrap');
-
-	logger.debug(`\n  > Application is running on: http://localhost:${port}/${apiPrefix}`);
+	appLogger.debug(
+		`\n  > Application is running on: http://localhost:${port}/${apiPrefix}`,
+		'Bootstrap',
+	);
 }
 bootstrap();

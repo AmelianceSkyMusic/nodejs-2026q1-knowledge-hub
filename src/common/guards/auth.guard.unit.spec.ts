@@ -1,9 +1,9 @@
-import { UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { TokensService } from 'src/tokens/tokens.service';
 
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { UnauthorizedError } from '../errors/unauthorized.error';
 import { AuthGuard } from './auth.guard';
 
 import { USER_ROLES } from 'shared/users/constants/user-role';
@@ -128,24 +128,24 @@ describe('AuthGuard', () => {
 			if (key === IS_PUBLIC_KEY) return false;
 			return null;
 		});
-		expect(() => guard.canActivate(mockUnauthenticatedContext)).toThrow(UnauthorizedException);
+		expect(() => guard.canActivate(mockUnauthenticatedContext)).toThrow(UnauthorizedError);
 	});
 
-	it('should not allow invalid token type string to access and throw UnauthorizedException()', () => {
+	it('should not allow invalid token type string to access and throw UnauthorizedError()', () => {
 		mockReflector.getAllAndOverride.mockImplementation((key) => {
 			if (key === IS_PUBLIC_KEY) return false;
 			return null;
 		});
-		expect(() => guard.canActivate(mackInvalidTokenContext)).toThrow(UnauthorizedException);
+		expect(() => guard.canActivate(mackInvalidTokenContext)).toThrow(UnauthorizedError);
 	});
 
-	it('should not allow non verify token and throw UnauthorizedException()', () => {
+	it('should not allow non verify token and throw UnauthorizedError()', () => {
 		mockReflector.getAllAndOverride.mockImplementation((key) => {
 			if (key === IS_PUBLIC_KEY) return false;
 			return null;
 		});
 		mockTokensService.verifyAccessToken.mockReturnValue(null);
-		expect(() => guard.canActivate(mackInvalidTokenContext)).toThrow(UnauthorizedException);
+		expect(() => guard.canActivate(mackInvalidTokenContext)).toThrow(UnauthorizedError);
 	});
 
 	it('should allow access to authorized user', () => {

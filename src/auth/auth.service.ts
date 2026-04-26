@@ -1,5 +1,7 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { compare } from 'bcrypt';
+import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { UnauthorizedError } from 'src/common/errors/unauthorized.error';
 import { TokensService } from 'src/tokens/tokens.service';
 import { UsersService } from 'src/users/users.service';
 
@@ -24,7 +26,7 @@ export class AuthService {
 	async login(loginDto: LoginDto) {
 		const user = await this.usersService.findOneByLoginWithPassword(loginDto.login);
 		if (!user || !(await compare(loginDto.password, user.password))) {
-			throw new ForbiddenException(ERROR.AUTH.INVALID_LOGIN_OR_PASSWORD);
+			throw new ForbiddenError(ERROR.AUTH.INVALID_LOGIN_OR_PASSWORD);
 		}
 
 		return this.tokensService.generateTokens({
@@ -35,19 +37,19 @@ export class AuthService {
 	}
 
 	async refresh(refreshDto: RefreshDto) {
-		if (!refreshDto.refreshToken) throw new UnauthorizedException(ERROR.TOKEN.EMPTY);
+		if (!refreshDto.refreshToken) throw new UnauthorizedError(ERROR.TOKEN.EMPTY);
 
 		const payload = this.tokensService.verifyRefreshToken(refreshDto.refreshToken);
-		if (!payload) throw new ForbiddenException(ERROR.TOKEN.INVALID);
+		if (!payload) throw new ForbiddenError(ERROR.TOKEN.INVALID);
 
 		const isValid = await this.tokensService.validateRefreshToken(
 			payload.userId,
 			refreshDto.refreshToken,
 		);
-		if (!isValid) throw new ForbiddenException(ERROR.TOKEN.INVALID);
+		if (!isValid) throw new ForbiddenError(ERROR.TOKEN.INVALID);
 
 		const user = await this.usersService.findOne(payload.userId);
-		if (!user) throw new ForbiddenException(ERROR.TOKEN.INVALID);
+		if (!user) throw new ForbiddenError(ERROR.TOKEN.INVALID);
 
 		return this.tokensService.generateTokens({
 			userId: user.id,
@@ -57,10 +59,10 @@ export class AuthService {
 	}
 
 	async logout(refreshDto: RefreshDto) {
-		if (!refreshDto.refreshToken) throw new UnauthorizedException(ERROR.TOKEN.EMPTY);
+		if (!refreshDto.refreshToken) throw new UnauthorizedError(ERROR.TOKEN.EMPTY);
 
 		const payload = this.tokensService.verifyRefreshToken(refreshDto.refreshToken);
-		if (!payload) throw new ForbiddenException(ERROR.TOKEN.INVALID);
+		if (!payload) throw new ForbiddenError(ERROR.TOKEN.INVALID);
 
 		await this.tokensService.removeRefreshToken(payload.userId, refreshDto.refreshToken);
 	}

@@ -1,5 +1,6 @@
-import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { NotFoundError } from 'src/common/errors/not-found.error';
 
 import { CategoriesService } from './categories.service';
 import { CategoriesRepository } from './repositories/categories.repository';
@@ -87,10 +88,10 @@ describe('CategoriesService', () => {
 			expect(mockCategoriesRepository.findOne).toHaveBeenCalledTimes(1);
 		});
 
-		it('should call .findOne() and throw NotFoundException() if not found', async () => {
+		it('should call .findOne() and throw NotFoundError() if not found', async () => {
 			mockCategoriesRepository.findOne.mockResolvedValue(null);
 
-			await expect(service.findOne(category.id)).rejects.toThrow(NotFoundException);
+			await expect(service.findOne(category.id)).rejects.toThrow(NotFoundError);
 		});
 	});
 
@@ -128,11 +129,11 @@ describe('CategoriesService', () => {
 			expect(mockCategoriesRepository.update).toHaveBeenCalledTimes(1);
 		});
 
-		it('should call .update() and throw NotFoundException if category not found', async () => {
+		it('should call .update() and throw NotFoundError if category not found', async () => {
 			mockCategoriesRepository.update.mockResolvedValue(null);
 
 			await expect(service.update(category.id, updateCategoryDto)).rejects.toThrow(
-				NotFoundException,
+				NotFoundError,
 			);
 		});
 	});
@@ -148,10 +149,10 @@ describe('CategoriesService', () => {
 			expect(mockCategoriesRepository.remove).toHaveBeenCalledTimes(1);
 		});
 
-		it('should call .remove() and throw NotFoundException() if category not found', async () => {
+		it('should call .remove() and throw NotFoundError() if category not found', async () => {
 			mockCategoriesRepository.remove.mockResolvedValue(null);
 
-			await expect(service.remove(category.id)).rejects.toThrow(NotFoundException);
+			await expect(service.remove(category.id)).rejects.toThrow(NotFoundError);
 		});
 	});
 });

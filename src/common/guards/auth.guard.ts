@@ -1,5 +1,6 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { UnauthorizedError } from 'src/common/errors/unauthorized.error';
 import { TokensService } from 'src/tokens/tokens.service';
 
 import { checkIsPublic, checkIsSystemPublicPath } from '../utils/guard';
@@ -20,13 +21,13 @@ export class AuthGuard implements CanActivate {
 		if (checkIsSystemPublicPath(request.url)) return true;
 
 		const token = request.headers.authorization;
-		if (!token) throw new UnauthorizedException(ERROR.TOKEN.INVALID);
+		if (!token) throw new UnauthorizedError(ERROR.TOKEN.INVALID);
 
 		const [type, accessToken] = token.split(' ');
-		if (type !== 'Bearer') throw new UnauthorizedException(ERROR.TOKEN.INVALID);
+		if (type !== 'Bearer') throw new UnauthorizedError(ERROR.TOKEN.INVALID);
 
 		const payload = this.tokensService.verifyAccessToken(accessToken);
-		if (!payload) throw new UnauthorizedException(ERROR.TOKEN.INVALID);
+		if (!payload) throw new UnauthorizedError(ERROR.TOKEN.INVALID);
 
 		request.user = payload;
 

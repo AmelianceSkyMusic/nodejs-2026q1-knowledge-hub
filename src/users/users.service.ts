@@ -1,13 +1,9 @@
-import {
-	BadRequestException,
-	ConflictException,
-	ForbiddenException,
-	Injectable,
-	InternalServerErrorException,
-	NotFoundException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { compare, hash } from 'bcrypt';
 import { Id } from 'shared/common/schemas/id.schema';
+import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { NotFoundError } from 'src/common/errors/not-found.error';
+import { ValidationError } from 'src/common/errors/validation.error';
 import { pgError } from 'src/common/utils/pg-error';
 
 import { CreateUserDto } from './dto/create-user.dto';
@@ -27,7 +23,7 @@ export class UsersService {
 
 	async findOne(userId: Id) {
 		const user = await this.usersRepository.findOne(userId);
-		if (!user) throw new NotFoundException(ERROR.USER.NOT_FOUND);
+		if (!user) throw new NotFoundError(ERROR.USER.NOT_FOUND);
 
 		return user;
 	}
@@ -48,7 +44,7 @@ export class UsersService {
 			return result;
 		} catch (error) {
 			if (pgError(error).isUniqueViolation) {
-				throw new ConflictException(ERROR.USER.ALREADY_EXISTS);
+				throw new ValidationError(ERROR.USER.ALREADY_EXISTS);
 			}
 			throw error;
 		}
@@ -56,23 +52,23 @@ export class UsersService {
 
 	async updatePassword(userId: Id, updatePasswordDto: UpdatePasswordDto) {
 		const user = await this.usersRepository.findWithPassword(userId);
-		if (!user) throw new NotFoundException(ERROR.USER.NOT_FOUND);
+		if (!user) throw new NotFoundError(ERROR.USER.NOT_FOUND);
 
 		if (!(await compare(updatePasswordDto.oldPassword, user.password))) {
-			throw new ForbiddenException(ERROR.PASSWORD.INVALID);
+			throw new ForbiddenError(ERROR.PASSWORD.INVALID);
 		}
 
 		const hashedPassword = await hash(updatePasswordDto.newPassword, 10);
 		const result = await this.usersRepository.update(userId, {
 			password: hashedPassword,
 		});
-		if (!result) throw new NotFoundException(ERROR.USER.NOT_FOUND);
+		if (!result) throw new NotFoundError(ERROR.USER.NOT_FOUND);
 		return result;
 	}
 
 	async remove(userId: Id) {
 		const result = await this.usersRepository.remove(userId);
-		if (!result) throw new NotFoundException(ERROR.USER.NOT_FOUND);
+		if (!result) throw new NotFoundError(ERROR.USER.NOT_FOUND);
 		return result;
 	}
 
@@ -88,7 +84,7 @@ export class UsersService {
 			return result;
 		} catch (error) {
 			if (pgError(error).isUniqueViolation) {
-				throw new BadRequestException(ERROR.USER.LOGIN_ALREADY_TAKEN);
+				throw new ValidationError(ERROR.USER.LOGIN_ALREADY_TAKEN);
 			}
 			throw error;
 		}
