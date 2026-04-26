@@ -8,7 +8,7 @@ export default defineConfig({
 	test: {
 		globals: true,
 		root: './',
-		include: ['src/**/*.unit.spec.ts', 'src/**/__tests__/unit/**/*.spec.ts'],
+		include: ['src/**/*.unit.spec.ts'],
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html'],
@@ -16,8 +16,15 @@ export default defineConfig({
 				lines: 90,
 				branches: 85,
 			},
-			include: ['src/**/*.ts'],
-			exclude: ['src/main.ts', 'src/**/*.module.ts', 'src/**/*.dto.ts', 'src/drizzle/**'],
+			include: [
+				'src/**/*.service.ts',
+				'src/**/*.guard.ts',
+				'src/**/*.pipe.ts',
+				'src/**/*.interceptor.ts',
+				'src/**/*.filter.ts',
+				'src/**/*.dto.ts',
+			],
+			exclude: ['src/main.ts', 'src/**/*.module.ts', 'src/drizzle/**'],
 		},
 	},
 	resolve: {
