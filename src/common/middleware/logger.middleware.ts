@@ -21,7 +21,7 @@ export class LoggerMiddleware implements NestMiddleware {
 					query: req.query,
 					body: req.body,
 					status: res.statusCode,
-					time: `${duration}ms`,
+					time: `${duration.toFixed(2)}ms`,
 				},
 				'LoggerMiddleware',
 			);
