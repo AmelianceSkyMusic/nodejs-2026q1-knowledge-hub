@@ -1,5 +1,6 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Id } from 'shared/common/schemas/id.schema';
+import { NotFoundError } from 'src/common/errors/not-found.error';
 
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { GetCategoriesWithPaginationQueryDto } from './dto/get-categories-with-pagination-query.dto';
@@ -18,7 +19,7 @@ export class CategoriesService {
 
 	async findOne(id: Id) {
 		const result = await this.categoriesRepository.findOne(id);
-		if (!result) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
+		if (!result) throw new NotFoundError(ERROR.CATEGORY.NOT_FOUND);
 		return result;
 	}
 
@@ -30,13 +31,13 @@ export class CategoriesService {
 
 	async update(id: Id, createCategoryDto: UpdateCategoryDto) {
 		const result = await this.categoriesRepository.update(id, createCategoryDto);
-		if (!result) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
+		if (!result) throw new NotFoundError(ERROR.CATEGORY.NOT_FOUND);
 		return result;
 	}
 
 	async remove(id: Id) {
 		const result = await this.categoriesRepository.remove(id);
-		if (!result) throw new NotFoundException(ERROR.CATEGORY.NOT_FOUND);
+		if (!result) throw new NotFoundError(ERROR.CATEGORY.NOT_FOUND);
 		return result;
 	}
 }
