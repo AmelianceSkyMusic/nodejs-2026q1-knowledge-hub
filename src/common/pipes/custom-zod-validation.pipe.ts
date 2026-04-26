@@ -1,9 +1,11 @@
-import { ArgumentMetadata, Injectable, Logger } from '@nestjs/common';
+import { ArgumentMetadata, Injectable } from '@nestjs/common';
 import {
 	createZodValidationPipe,
 	ZodSchemaDeclarationException,
 	ZodValidationException,
 } from 'nestjs-zod';
+
+import { AppLogger } from '../app-logger/app-logger.service';
 
 import type { ZodError } from 'zod';
 
@@ -17,15 +19,19 @@ const BaseCustomZodValidationPipe = createZodValidationPipe({
 
 @Injectable()
 export class CustomZodValidationPipe extends BaseCustomZodValidationPipe {
-	private readonly logger = new Logger(CustomZodValidationPipe.name);
+	constructor(private readonly appLogger: AppLogger) {
+		super();
+	}
 
 	override transform(value: unknown, metadata: ArgumentMetadata) {
 		try {
 			return super.transform(value, metadata);
 		} catch (error) {
 			if (error instanceof ZodSchemaDeclarationException) {
-				this.logger.error(
+				this.appLogger.error(
 					`Zod Schema Declaration Error: ${error.message}. This is likely due to missing @ZodDto() in your controller route`,
+					error.stack,
+					'CustomZodValidationPipe',
 				);
 			}
 			throw error;
