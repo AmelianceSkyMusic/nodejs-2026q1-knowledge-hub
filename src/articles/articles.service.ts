@@ -31,7 +31,8 @@ export class ArticlesService {
 	}
 
 	async create(createArticleDto: CreateArticleDto, user: JwtUser) {
-		const authorId = createArticleDto.authorId ?? user.userId;
+		const authorId =
+			createArticleDto.authorId === undefined ? user.userId : createArticleDto.authorId;
 		try {
 			const result = await this.articlesRepository.create({ ...createArticleDto, authorId });
 			if (!result) throw new InternalServerErrorException(ERROR.ARTICLE.CREATE_FAILED);
