@@ -61,8 +61,24 @@ async function bootstrap() {
 	const apiPrefix = configService.get<string>('apiPrefix');
 	if (apiPrefix) app.setGlobalPrefix(apiPrefix);
 
-	app.useLogger(app.get(AppLogger));
-	app.useGlobalFilters(new AllExceptionsFilter(app.get(AppLogger)));
+	const appLogger = app.get(AppLogger);
+
+	process.on('uncaughtException', (err) => {
+		appLogger.fatal(`Uncaught Exception: ${err.message}`, err.stack, 'Process');
+		app.close().then(() => {
+			setTimeout(() => process.exit(1), 1000);
+		});
+	});
+
+	process.on('unhandledRejection', (reason, promise) => {
+		appLogger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`, '', 'Process');
+		app.close().then(() => {
+			setTimeout(() => process.exit(1), 1000);
+		});
+	});
+
+	app.useLogger(appLogger);
+	app.useGlobalFilters(new AllExceptionsFilter(appLogger));
 	app.enableShutdownHooks();
 
 	const port = configService.get<number>('port');
@@ -71,21 +87,9 @@ async function bootstrap() {
 
 	await app.listen(port);
 
-	const appLogger = app.get(AppLogger);
-
 	appLogger.debug(
 		`\n  > Application is running on: http://localhost:${port}/${apiPrefix}`,
 		'Bootstrap',
 	);
-
-	process.on('uncaughtException', (err) => {
-		appLogger.fatal(`Uncaught Exception: ${err.message}`, err.stack, 'Process');
-		app.close().then(() => process.exit(1));
-	});
-
-	process.on('unhandledRejection', (reason, promise) => {
-		appLogger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`, '', 'Process');
-		app.close().then(() => process.exit(1));
-	});
 }
 bootstrap();
