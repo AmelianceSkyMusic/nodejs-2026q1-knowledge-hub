@@ -48,6 +48,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
 			errorName = exception.name;
 		}
 
+		const req = ctx.getRequest<Request>();
+		const { method, url } = req;
+
 		const responseBody = {
 			statusCode,
 			error: errorName,
@@ -57,7 +60,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 					: errorMessage,
 		};
 
-		this.appLogger.error(message, stack, context);
+		this.appLogger.error(`${method} ${url} - ${errorMessage}`, stack, context);
 
 		response.status(statusCode).json(responseBody);
 	}
