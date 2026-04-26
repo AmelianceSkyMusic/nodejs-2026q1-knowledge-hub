@@ -9,7 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
 import { CommentsModule } from './comments/comments.module';
 import configuration from './common/config/configuration';
-import { ZodExceptionFilter } from './common/exception-filters/zod-exception-filter';
+import { ZodExceptionFilter } from './common/exception-filters/zod-exception.filter';
 import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { LoggerMiddleware } from './common/middleware/logger-middleware.middleware';
