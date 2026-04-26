@@ -149,24 +149,28 @@ describe('TokensService', () => {
 		});
 	});
 
-	it('should call .removeRefreshToken() and return repository result', async () => {
-		mockTokensRepository.deleteByUserId.mockResolvedValue(true);
+	describe('removeRefreshToken', () => {
+		it('should call .removeRefreshToken() and return repository result', async () => {
+			mockTokensRepository.deleteByUserId.mockResolvedValue(true);
 
-		const result = await service.removeRefreshToken(MOCKED_USER_ID, MOCKED_TOKEN);
+			const result = await service.removeRefreshToken(MOCKED_USER_ID, MOCKED_TOKEN);
 
-		expect(result).toBe(true);
-		expect(mockTokensRepository.deleteByUserId).toHaveBeenCalledWith(
-			MOCKED_USER_ID,
-			MOCKED_TOKEN,
-		);
+			expect(result).toBe(true);
+			expect(mockTokensRepository.deleteByUserId).toHaveBeenCalledWith(
+				MOCKED_USER_ID,
+				MOCKED_TOKEN,
+			);
+		});
 	});
 
-	it('should call .validateRefreshToken() and return repository result', async () => {
-		mockTokensRepository.validate.mockResolvedValue(true);
+	describe('validateRefreshToken', () => {
+		it('should call .validateRefreshToken() and return repository result', async () => {
+			mockTokensRepository.validate.mockResolvedValue(true);
 
-		const result = await service.validateRefreshToken(MOCKED_USER_ID, MOCKED_TOKEN);
+			const result = await service.validateRefreshToken(MOCKED_USER_ID, MOCKED_TOKEN);
 
-		expect(result).toBe(true);
-		expect(mockTokensRepository.validate).toHaveBeenCalledWith(MOCKED_USER_ID, MOCKED_TOKEN);
+			expect(result).toBe(true);
+			expect(mockTokensRepository.validate).toHaveBeenCalledWith(MOCKED_USER_ID, MOCKED_TOKEN);
+		});
 	});
 });

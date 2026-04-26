@@ -82,31 +82,35 @@ describe('CommentsService', () => {
 		expect(service).toBeDefined();
 	});
 
-	it('should call .findAllForArticle() with arguments and return a result', async () => {
-		const query = {
-			articleId: MOCKED_ARTICLE_ID,
-		} as GetCommentsWithPaginationQueryDto;
-		mockCommentsRepository.findAll.mockResolvedValue(comments);
+	describe('findAllForArticle', () => {
+		it('should call .findAllForArticle() with arguments and return a result', async () => {
+			const query = {
+				articleId: MOCKED_ARTICLE_ID,
+			} as GetCommentsWithPaginationQueryDto;
+			mockCommentsRepository.findAll.mockResolvedValue(comments);
 
-		const result = await service.findAllForArticle(query);
+			const result = await service.findAllForArticle(query);
 
-		expect(result).toEqual(comments);
-		expect(mockCommentsRepository.findAll).toHaveBeenCalledWith(query);
+			expect(result).toEqual(comments);
+			expect(mockCommentsRepository.findAll).toHaveBeenCalledWith(query);
+		});
 	});
 
-	it('should call .findById() with arguments and return a result', async () => {
-		mockCommentsRepository.findOne.mockResolvedValue(comment);
+	describe('findById', () => {
+		it('should call .findById() with arguments and return a result', async () => {
+			mockCommentsRepository.findOne.mockResolvedValue(comment);
 
-		const result = await service.findById(comment.id);
+			const result = await service.findById(comment.id);
 
-		expect(result).toEqual(comment);
-		expect(mockCommentsRepository.findOne).toHaveBeenCalledWith(comment.id);
-	});
+			expect(result).toEqual(comment);
+			expect(mockCommentsRepository.findOne).toHaveBeenCalledWith(comment.id);
+		});
 
-	it('should call .findById() and throw NotFoundException() if not found', async () => {
-		mockCommentsRepository.findOne.mockResolvedValue(null);
+		it('should call .findById() and throw NotFoundException() if not found', async () => {
+			mockCommentsRepository.findOne.mockResolvedValue(null);
 
-		await expect(service.findById(comment.id)).rejects.toThrow(NotFoundException);
+			await expect(service.findById(comment.id)).rejects.toThrow(NotFoundException);
+		});
 	});
 
 	describe('create', () => {

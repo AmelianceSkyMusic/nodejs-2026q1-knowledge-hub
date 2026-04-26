@@ -62,81 +62,96 @@ describe('CategoriesService', () => {
 		expect(service).toBeDefined();
 	});
 
-	it('should call .findAll() with arguments and return a result', async () => {
-		const query = {} as GetCategoriesWithPaginationQueryDto;
+	describe('findAll', () => {
+		it('should call .findAll() with arguments and return a result', async () => {
+			const query = {} as GetCategoriesWithPaginationQueryDto;
 
-		mockCategoriesRepository.findAll.mockResolvedValue(categories);
+			mockCategoriesRepository.findAll.mockResolvedValue(categories);
 
-		const result = await service.findAll(query);
+			const result = await service.findAll(query);
 
-		expect(result).toEqual(categories);
-		expect(mockCategoriesRepository.findAll).toHaveBeenCalledWith(query);
-		expect(mockCategoriesRepository.findAll).toHaveBeenCalledTimes(1);
+			expect(result).toEqual(categories);
+			expect(mockCategoriesRepository.findAll).toHaveBeenCalledWith(query);
+			expect(mockCategoriesRepository.findAll).toHaveBeenCalledTimes(1);
+		});
 	});
 
-	it('should call .findOne() with arguments and return a result', async () => {
-		mockCategoriesRepository.findOne.mockResolvedValue(category);
+	describe('findOne', () => {
+		it('should call .findOne() with arguments and return a result', async () => {
+			mockCategoriesRepository.findOne.mockResolvedValue(category);
 
-		const result = await service.findOne(category.id);
+			const result = await service.findOne(category.id);
 
-		expect(result).toEqual(category);
-		expect(mockCategoriesRepository.findOne).toHaveBeenCalledWith(category.id);
-		expect(mockCategoriesRepository.findOne).toHaveBeenCalledTimes(1);
+			expect(result).toEqual(category);
+			expect(mockCategoriesRepository.findOne).toHaveBeenCalledWith(category.id);
+			expect(mockCategoriesRepository.findOne).toHaveBeenCalledTimes(1);
+		});
+
+		it('should call .findOne() and throw NotFoundException() if not found', async () => {
+			mockCategoriesRepository.findOne.mockResolvedValue(null);
+
+			await expect(service.findOne(category.id)).rejects.toThrow(NotFoundException);
+		});
 	});
 
-	it('should call .findOne() and throw NotFoundException() if not found', async () => {
-		mockCategoriesRepository.findOne.mockResolvedValue(null);
+	describe('create', () => {
+		it('should call .create() with arguments and return a result', async () => {
+			mockCategoriesRepository.create.mockResolvedValue(category);
 
-		await expect(service.findOne(category.id)).rejects.toThrow(NotFoundException);
+			const result = await service.create(createCategoryDto);
+
+			expect(result).toEqual(category);
+			expect(mockCategoriesRepository.create).toHaveBeenCalledWith(createCategoryDto);
+			expect(mockCategoriesRepository.create).toHaveBeenCalledTimes(1);
+		});
+
+		it('should call .create() and throw InternalServerErrorException() if failed', async () => {
+			mockCategoriesRepository.create.mockResolvedValue(null);
+
+			await expect(service.create(createCategoryDto)).rejects.toThrow(
+				InternalServerErrorException,
+			);
+		});
 	});
 
-	it('should call .create() with arguments and return a result', async () => {
-		mockCategoriesRepository.create.mockResolvedValue(category);
+	describe('update', () => {
+		it('should call .update() with arguments and return a result', async () => {
+			mockCategoriesRepository.update.mockResolvedValue(category);
 
-		const result = await service.create(createCategoryDto);
+			const result = await service.update(category.id, updateCategoryDto);
 
-		expect(result).toEqual(category);
-		expect(mockCategoriesRepository.create).toHaveBeenCalledWith(createCategoryDto);
-		expect(mockCategoriesRepository.create).toHaveBeenCalledTimes(1);
+			expect(result).toEqual(category);
+			expect(mockCategoriesRepository.update).toHaveBeenCalledWith(
+				category.id,
+				updateCategoryDto,
+			);
+			expect(mockCategoriesRepository.update).toHaveBeenCalledTimes(1);
+		});
+
+		it('should call .update() and throw NotFoundException if category not found', async () => {
+			mockCategoriesRepository.update.mockResolvedValue(null);
+
+			await expect(service.update(category.id, updateCategoryDto)).rejects.toThrow(
+				NotFoundException,
+			);
+		});
 	});
 
-	it('should call .create() and throw InternalServerErrorException() if failed', async () => {
-		mockCategoriesRepository.create.mockResolvedValue(null);
+	describe('remove', () => {
+		it('should call .remove() with arguments and return a result', async () => {
+			mockCategoriesRepository.remove.mockResolvedValue(category);
 
-		await expect(service.create(createCategoryDto)).rejects.toThrow(InternalServerErrorException);
-	});
+			const result = await service.remove(category.id);
 
-	it('should call .update() with arguments and return a result', async () => {
-		mockCategoriesRepository.update.mockResolvedValue(category);
+			expect(result).toEqual(category);
+			expect(mockCategoriesRepository.remove).toHaveBeenCalledWith(category.id);
+			expect(mockCategoriesRepository.remove).toHaveBeenCalledTimes(1);
+		});
 
-		const result = await service.update(category.id, updateCategoryDto);
+		it('should call .remove() and throw NotFoundException() if category not found', async () => {
+			mockCategoriesRepository.remove.mockResolvedValue(null);
 
-		expect(result).toEqual(category);
-		expect(mockCategoriesRepository.update).toHaveBeenCalledWith(category.id, updateCategoryDto);
-		expect(mockCategoriesRepository.update).toHaveBeenCalledTimes(1);
-	});
-
-	it('should call .update() and throw NotFoundException if category not found', async () => {
-		mockCategoriesRepository.update.mockResolvedValue(null);
-
-		await expect(service.update(category.id, updateCategoryDto)).rejects.toThrow(
-			NotFoundException,
-		);
-	});
-
-	it('should call .remove() with arguments and return a result', async () => {
-		mockCategoriesRepository.remove.mockResolvedValue(category);
-
-		const result = await service.remove(category.id);
-
-		expect(result).toEqual(category);
-		expect(mockCategoriesRepository.remove).toHaveBeenCalledWith(category.id);
-		expect(mockCategoriesRepository.remove).toHaveBeenCalledTimes(1);
-	});
-
-	it('should call .remove() and throw NotFoundException() if category not found', async () => {
-		mockCategoriesRepository.remove.mockResolvedValue(null);
-
-		await expect(service.remove(category.id)).rejects.toThrow(NotFoundException);
+			await expect(service.remove(category.id)).rejects.toThrow(NotFoundException);
+		});
 	});
 });
