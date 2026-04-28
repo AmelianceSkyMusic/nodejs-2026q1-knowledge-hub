@@ -5,11 +5,8 @@ import { CustomZodValidationPipe } from './custom-zod-validation.pipe';
 
 import type { ArgumentMetadata } from '@nestjs/common';
 
-import type { AppLogger } from '../app-logger/app-logger.service';
-
 describe('CustomZodValidationPipe', () => {
 	let pipe: CustomZodValidationPipe;
-	let mockLogger: AppLogger;
 
 	const user = {
 		name: 'testUser',
@@ -46,11 +43,7 @@ describe('CustomZodValidationPipe', () => {
 	};
 
 	beforeEach(() => {
-		mockLogger = {
-			error: vi.fn(),
-		} as unknown as AppLogger;
-
-		pipe = new CustomZodValidationPipe(mockLogger);
+		pipe = new CustomZodValidationPipe();
 	});
 
 	it('should be defined', () => {
@@ -70,15 +63,10 @@ describe('CustomZodValidationPipe', () => {
 		expect(() => pipe.transform(value, metadataUser)).toThrow(ZodValidationException);
 	});
 
-	it('should log custom message on ZodSchemaDeclarationException', () => {
+	it('should throw ZodSchemaDeclarationException on invalid metadata', () => {
 		const badDto = null;
 		const badMetadata: ArgumentMetadata = { ...metadataUser, metatype: badDto };
 
 		expect(() => pipe.transform({}, badMetadata)).toThrow(ZodSchemaDeclarationException);
-		expect(mockLogger.error).toHaveBeenCalledWith(
-			expect.stringContaining('Zod Schema Declaration Error'),
-			expect.any(String),
-			'CustomZodValidationPipe',
-		);
 	});
 });
