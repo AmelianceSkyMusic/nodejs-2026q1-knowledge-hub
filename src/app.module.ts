@@ -10,6 +10,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { CommentsModule } from './comments/comments.module';
 import { AppLoggerModule } from './common/app-logger/app-logger.module';
 import configuration from './common/config/configuration';
+import { AllExceptionsFilter } from './common/exception-filters/all-exceptions.filter';
 import { ZodExceptionFilter } from './common/exception-filters/zod-exception.filter';
 import { AuthGuard } from './common/guards/auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -23,6 +24,7 @@ import { UsersModule } from './users/users.module';
 @Module({
 	imports: [
 		ConfigModule.forRoot({ load: [configuration], isGlobal: true }),
+		AppLoggerModule,
 		ThrottlerModule.forRoot([
 			{
 				name: 'short',
@@ -48,7 +50,6 @@ import { UsersModule } from './users/users.module';
 		DrizzleModule,
 		AuthModule,
 		TokensModule,
-		AppLoggerModule,
 	],
 	providers: [
 		{
@@ -70,6 +71,10 @@ import { UsersModule } from './users/users.module';
 		{
 			provide: APP_FILTER,
 			useClass: ZodExceptionFilter,
+		},
+		{
+			provide: APP_FILTER,
+			useClass: AllExceptionsFilter,
 		},
 	],
 })
