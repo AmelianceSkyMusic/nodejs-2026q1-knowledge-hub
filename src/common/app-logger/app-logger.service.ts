@@ -1,12 +1,19 @@
-import { ConsoleLogger, ConsoleLoggerOptions, Injectable, LogLevel } from '@nestjs/common';
+import {
+	ConsoleLogger,
+	ConsoleLoggerOptions,
+	Injectable,
+	LogLevel,
+	OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as fs from 'fs';
-import * as path from 'path';
 
+import { RotatingStream } from '../utils/rotating-stream';
 import { isRequestLog } from './types/request-log';
 
 @Injectable()
-export class AppLogger extends ConsoleLogger {
+export class AppLogger extends ConsoleLogger implements OnModuleDestroy {
+	private rotatingStream: RotatingStream | null = null;
+
 	constructor(private configService: ConfigService) {
 		const isProduction = configService.get('nodeEnv') === 'production';
 		const logLevel = configService.get<string>('logLevel');
@@ -16,6 +23,18 @@ export class AppLogger extends ConsoleLogger {
 		} as ConsoleLoggerOptions);
 
 		this.setLogLevels(this.getLevels(logLevel));
+
+		const logDir = configService.get<string>('logDir');
+		const logFile = configService.get<string>('logFile');
+		const maxSize = configService.get<number>('logMaxFileSize');
+
+		if (logDir && logFile) {
+			this.rotatingStream = new RotatingStream(logDir, logFile, maxSize);
+		}
+	}
+
+	onModuleDestroy() {
+		this.rotatingStream?.end();
 	}
 
 	log(message: unknown, context?: string) {
@@ -68,39 +87,18 @@ export class AppLogger extends ConsoleLogger {
 	}
 
 	private writeToFile(message: unknown, level: LogLevel, context?: string, stack?: string) {
-		if (!this.isLevelEnabled(level)) return;
+		if (!this.rotatingStream || !this.isLevelEnabled(level)) return;
 
-		const logDir = this.configService.get('logDir');
-		const filePath = path.join(logDir, this.configService.get('logFile'));
+		const logEntry = {
+			timestamp: new Date().toISOString(),
+			level: level.toUpperCase(),
+			context: context || 'App',
+			requestId: isRequestLog(message) ? message.requestId : undefined,
+			message: typeof message === 'object' && message !== null ? message : { msg: message },
+			stack: stack || undefined,
+		};
 
-		try {
-			if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
-
-			if (fs.existsSync(filePath)) {
-				const fileStat = fs.statSync(filePath);
-				if (fileStat.size > this.configService.get('logMaxFileSize')) {
-					const date = new Date().toISOString().split('.')[0].replace(/:/g, '-');
-					const ext = path.extname(filePath);
-					const base = path.basename(filePath, ext);
-					const dir = path.dirname(filePath);
-					const newPath = path.join(dir, `${base}-${date}${ext}`);
-					fs.renameSync(filePath, newPath);
-				}
-			}
-
-			const logEntry = {
-				timestamp: new Date().toISOString(),
-				level: level.toUpperCase(),
-				context: context || 'App',
-				requestId: isRequestLog(message) ? message.requestId : undefined,
-				message: typeof message === 'object' && message !== null ? message : { msg: message },
-				stack: stack || undefined,
-			};
-
-			fs.appendFileSync(filePath, `${JSON.stringify(logEntry)}\n`);
-		} catch (error) {
-			super.error('Failed to write log to file', error.stack, 'AppLogger');
-		}
+		this.rotatingStream.write(`${JSON.stringify(logEntry)}\n`);
 	}
 
 	private formatForConsole(message: unknown): unknown {
