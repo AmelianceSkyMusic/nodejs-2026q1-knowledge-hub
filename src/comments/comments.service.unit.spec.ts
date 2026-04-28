@@ -1,7 +1,8 @@
-import { InternalServerErrorException, UnprocessableEntityException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { NotFoundError } from 'src/common/errors/not-found.error';
+import { UnprocessableEntityError } from 'src/common/errors/unprocessable-entity.error';
 import { PG_ERROR } from 'src/common/utils/pg-error';
 
 import { CommentsService } from './comments.service';
@@ -123,19 +124,19 @@ describe('CommentsService', () => {
 			});
 		});
 
-		it('should throw UnprocessableEntityException() if article does not exist (foreign key violation)', async () => {
+		it('should throw UnprocessableEntity() if article does not exist (foreign key violation)', async () => {
 			mockCommentsRepository.create.mockRejectedValue({ code: PG_ERROR.FOREIGN_KEY_VIOLATION });
 
 			await expect(service.create(createCommentDto, jwtUser)).rejects.toThrow(
-				UnprocessableEntityException,
+				UnprocessableEntityError,
 			);
 		});
 
-		it('should throw InternalServerErrorException() if create returns null', async () => {
+		it('should throw InternalServerError() if create returns null', async () => {
 			mockCommentsRepository.create.mockResolvedValue(null);
 
 			await expect(service.create(createCommentDto, jwtUser)).rejects.toThrow(
-				InternalServerErrorException,
+				InternalServerError,
 			);
 		});
 	});

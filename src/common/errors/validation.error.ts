@@ -4,8 +4,10 @@ import { CUSTOM_ERROR } from '../constants/custom-error';
 
 export class ValidationError extends AppError {
 	constructor(message: string) {
-		super(message);
-		this.statusCode = 400;
-		this.name = CUSTOM_ERROR.ERROR_NAMES.VALIDATION;
+		super({
+			message,
+			statusCode: 400,
+			errorName: CUSTOM_ERROR.NAMES.VALIDATION,
+		});
 	}
 }

@@ -1,8 +1,9 @@
 import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ConflictError } from 'src/common/errors/conflict.error';
 import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { NotFoundError } from 'src/common/errors/not-found.error';
-import { ValidationError } from 'src/common/errors/validation.error';
 import { PG_ERROR } from 'src/common/utils/pg-error';
 
 import { UsersRepository } from './repository/users.repository';
@@ -182,10 +183,10 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.findOneByLoginWithPassword).not.toHaveBeenCalled();
 		});
 
-		it('should call .create() with arguments and throw InternalServerErrorException()', async () => {
+		it('should call .create() with arguments and throw InternalServerError()', async () => {
 			mockUsersRepository.create.mockResolvedValue(null);
 
-			await expect(service.create(createUserDto)).rejects.toThrow(InternalServerErrorException);
+			await expect(service.create(createUserDto)).rejects.toThrow(InternalServerError);
 
 			expect(mockUsersRepository.create).toHaveBeenCalled();
 			expect(mockUsersRepository.create).toHaveBeenCalledTimes(1);
@@ -195,10 +196,10 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.findOneByLoginWithPassword).not.toHaveBeenCalled();
 		});
 
-		it('should call .create() with arguments and throw ValidationError() if user already exists', async () => {
+		it('should call .create() with arguments and throw ConflictError() if user already exists', async () => {
 			mockUsersRepository.create.mockRejectedValue({ code: PG_ERROR.UNIQUE_VIOLATION });
 
-			await expect(service.create(createUserDto)).rejects.toThrow(ValidationError);
+			await expect(service.create(createUserDto)).rejects.toThrow(ConflictError);
 
 			expect(mockUsersRepository.create).toHaveBeenCalled();
 			expect(mockUsersRepository.create).toHaveBeenCalledTimes(1);
@@ -325,12 +326,10 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.findOneByLoginWithPassword).not.toHaveBeenCalled();
 		});
 
-		it('should call .createWithSignup() with arguments and throw InternalServerErrorException()', async () => {
+		it('should throw InternalServerError if create returns null', async () => {
 			mockUsersRepository.create.mockResolvedValue(null);
 
-			await expect(service.createWithSignup(createUserDto)).rejects.toThrow(
-				InternalServerErrorException,
-			);
+			await expect(service.createWithSignup(createUserDto)).rejects.toThrow(InternalServerError);
 
 			expect(mockUsersRepository.create).toHaveBeenCalled();
 			expect(mockUsersRepository.create).toHaveBeenCalledTimes(1);
@@ -340,10 +339,10 @@ describe('UsersService', () => {
 			expect(mockUsersRepository.findOneByLoginWithPassword).not.toHaveBeenCalled();
 		});
 
-		it('should call .createWithSignup() with arguments and throw ValidationError() if user already exists', async () => {
+		it('should call .createWithSignup() with arguments and throw ConflictError() if user already exists', async () => {
 			mockUsersRepository.create.mockRejectedValue({ code: PG_ERROR.UNIQUE_VIOLATION });
 
-			await expect(service.createWithSignup(createUserDto)).rejects.toThrow(ValidationError);
+			await expect(service.createWithSignup(createUserDto)).rejects.toThrow(ConflictError);
 
 			expect(mockUsersRepository.create).toHaveBeenCalled();
 			expect(mockUsersRepository.create).toHaveBeenCalledTimes(1);

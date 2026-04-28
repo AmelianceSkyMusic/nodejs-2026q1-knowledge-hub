@@ -2,12 +2,12 @@ import { AppError } from './app.error';
 
 import { CUSTOM_ERROR } from '../constants/custom-error';
 
-export class UnauthorizedError extends AppError {
+export class ConflictError extends AppError {
 	constructor(message: string) {
 		super({
 			message,
-			statusCode: 401,
-			errorName: CUSTOM_ERROR.NAMES.UNAUTHORIZED,
+			statusCode: 409,
+			errorName: CUSTOM_ERROR.NAMES.CONFLICT,
 		});
 	}
 }

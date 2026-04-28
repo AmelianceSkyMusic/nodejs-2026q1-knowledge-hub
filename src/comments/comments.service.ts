@@ -1,12 +1,10 @@
-import {
-	Injectable,
-	InternalServerErrorException,
-	UnprocessableEntityException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Id } from 'shared/common/schemas/id.schema';
 import { JwtUserDto } from 'src/auth/dto/jwt-user.dto';
 import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { NotFoundError } from 'src/common/errors/not-found.error';
+import { UnprocessableEntityError } from 'src/common/errors/unprocessable-entity.error';
 import { pgError } from 'src/common/utils/pg-error';
 
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -35,13 +33,13 @@ export class CommentsService {
 			createCommentDto.authorId === undefined ? user.userId : createCommentDto.authorId;
 		try {
 			const result = await this.commentsRepository.create({ ...createCommentDto, authorId });
-			if (!result) throw new InternalServerErrorException(ERROR.COMMENT.CREATE_FAILED);
+			if (!result) throw new InternalServerError(ERROR.COMMENT.CREATE_FAILED);
 			return result;
 		} catch (error) {
 			const dbError = pgError(error);
 
 			if (dbError.isForeignKeyViolation) {
-				throw new UnprocessableEntityException(ERROR.ARTICLE.NOT_FOUND);
+				throw new UnprocessableEntityError(ERROR.ARTICLE.NOT_FOUND);
 			}
 
 			throw error;

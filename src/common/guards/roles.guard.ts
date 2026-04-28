@@ -1,7 +1,8 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { UserRole } from 'shared/users/types/user-role';
+import { ForbiddenError } from 'src/common/errors/forbidden.error';
 
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { checkIsPublic } from '../utils/guard';
@@ -17,7 +18,7 @@ export class RolesGuard implements CanActivate {
 		if (checkIsPublic(this.reflector, context)) return true;
 
 		const { user } = context.switchToHttp().getRequest<Request>();
-		if (!user) throw new ForbiddenException(ERROR.ACCESS.ROLE);
+		if (!user) throw new ForbiddenError(ERROR.ACCESS.ROLE);
 
 		if (user.role === USER_ROLES.ADMIN) return true;
 
@@ -29,7 +30,7 @@ export class RolesGuard implements CanActivate {
 		if (!requiredRoles?.length) return false;
 
 		const hasRole = requiredRoles.includes(user.role);
-		if (!hasRole) throw new ForbiddenException(ERROR.ACCESS.ROLE);
+		if (!hasRole) throw new ForbiddenError(ERROR.ACCESS.ROLE);
 
 		return true;
 	}

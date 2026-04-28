@@ -1,5 +1,5 @@
-import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { NotFoundError } from 'src/common/errors/not-found.error';
 
 import { CategoriesService } from './categories.service';
@@ -106,12 +106,10 @@ describe('CategoriesService', () => {
 			expect(mockCategoriesRepository.create).toHaveBeenCalledTimes(1);
 		});
 
-		it('should call .create() and throw InternalServerErrorException() if failed', async () => {
+		it('should call .create() and throw InternalServerError() if failed', async () => {
 			mockCategoriesRepository.create.mockResolvedValue(null);
 
-			await expect(service.create(createCategoryDto)).rejects.toThrow(
-				InternalServerErrorException,
-			);
+			await expect(service.create(createCategoryDto)).rejects.toThrow(InternalServerError);
 		});
 	});
 

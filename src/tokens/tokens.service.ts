@@ -1,9 +1,10 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sign, SignOptions, verify } from 'jsonwebtoken';
 import { JwtUser } from 'shared/auth/schemas/jwt-user.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 import { UserRole } from 'shared/users/types/user-role';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 
 import { TokensRepository } from './repositories/tokens.repository';
 
@@ -65,14 +66,14 @@ export class TokensService {
 
 	private getJwtSecret() {
 		const jwtSecret = this.configService.get<string>('JWT_SECRET');
-		if (!jwtSecret) throw new InternalServerErrorException(ERROR.ENV.JWT_SECRET_NOT_FOUND);
+		if (!jwtSecret) throw new InternalServerError(ERROR.ENV.JWT_SECRET_NOT_FOUND);
 		return jwtSecret;
 	}
 
 	private getJwtRefreshSecret() {
 		const jwtRefreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
 		if (!jwtRefreshSecret) {
-			throw new InternalServerErrorException(ERROR.ENV.JWT_REFRESH_SECRET_NOT_FOUND);
+			throw new InternalServerError(ERROR.ENV.JWT_REFRESH_SECRET_NOT_FOUND);
 		}
 		return jwtRefreshSecret;
 	}

@@ -1,9 +1,10 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtUser } from 'shared/auth/schemas/jwt-user.schema';
 import { Id } from 'shared/common/schemas/id.schema';
+import { BadRequestError } from 'src/common/errors/bad-request.error';
 import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { NotFoundError } from 'src/common/errors/not-found.error';
-import { ValidationError } from 'src/common/errors/validation.error';
 import { pgError } from 'src/common/utils/pg-error';
 
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -34,7 +35,7 @@ export class ArticlesService {
 			createArticleDto.authorId === undefined ? user.userId : createArticleDto.authorId;
 		try {
 			const result = await this.articlesRepository.create({ ...createArticleDto, authorId });
-			if (!result) throw new InternalServerErrorException(ERROR.ARTICLE.CREATE_FAILED);
+			if (!result) throw new InternalServerError(ERROR.ARTICLE.CREATE_FAILED);
 			return result;
 		} catch (error) {
 			if (pgError(error).isForeignKeyViolation) {
@@ -54,7 +55,7 @@ export class ArticlesService {
 		if (updateArticleDto.status && updateArticleDto.status !== article.status) {
 			const allowed = ARTICLE_STATUS_TRANSITIONS[article.status] || [];
 			if (!allowed.includes(updateArticleDto.status)) {
-				throw new ValidationError(
+				throw new BadRequestError(
 					`Invalid status transition from ${article.status} to ${updateArticleDto.status}`,
 				);
 			}
