@@ -21,9 +21,9 @@ export class ZodExceptionFilter implements ExceptionFilter {
 
 		if (exception instanceof ZodSchemaDeclarationException) {
 			this.appLogger.error(
-				`Zod Schema Declaration Error: ${exception.message}`,
+				`Zod Schema Declaration Error: ${exception.message}. Hint: check if @ZodDto() is missing in the controller.`,
 				exception.stack,
-				'ZodExceptionFilter',
+				ZodExceptionFilter.name,
 			);
 			return response.status(500).json({
 				statusCode: 500,
@@ -43,14 +43,14 @@ export class ZodExceptionFilter implements ExceptionFilter {
 			if (isValidation) {
 				this.appLogger.warn(
 					`${logMessage} ${JSON.stringify(zodError.issues, null, 2)}`,
-					'ZodExceptionFilter',
+					ZodExceptionFilter.name,
 				);
 			} else {
 				const stack = exception instanceof Error ? exception.stack : '';
 				this.appLogger.error(
 					`${logMessage} ${JSON.stringify(zodError.issues, null, 2)}`,
 					stack,
-					'ZodExceptionFilter',
+					ZodExceptionFilter.name,
 				);
 			}
 
