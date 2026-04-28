@@ -3,14 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
 
-type RequestLog = {
-	method: string;
-	url: string;
-	query: Record<string, unknown>;
-	body: Record<string, unknown>;
-	status: number;
-	time: string;
-};
+import { isRequestLog } from './types/request-log';
 
 @Injectable()
 export class AppLogger extends ConsoleLogger {
@@ -23,14 +16,6 @@ export class AppLogger extends ConsoleLogger {
 		} as ConsoleLoggerOptions);
 
 		this.setLogLevels(this.getLevels(logLevel));
-	}
-
-	private getLevels(level: string): LogLevel[] {
-		const levels: LogLevel[] = ['fatal', 'error', 'warn', 'log', 'debug', 'verbose'];
-		const index = levels.indexOf(level as LogLevel);
-		return index === -1
-			? ['log', 'warn', 'error', 'fatal']
-			: (levels.slice(0, index + 1) as LogLevel[]);
 	}
 
 	log(message: unknown, context?: string) {
@@ -75,6 +60,13 @@ export class AppLogger extends ConsoleLogger {
 		this.writeToFile(sanitized, 'fatal', context, stack);
 	}
 
+	private getLevels(targetLevel: string): LogLevel[] {
+		const ALL_LEVELS: LogLevel[] = ['fatal', 'error', 'warn', 'log', 'debug', 'verbose'];
+		const index = ALL_LEVELS.indexOf(targetLevel as LogLevel);
+		if (index === -1) return ['fatal', 'error', 'warn', 'log'];
+		return ALL_LEVELS.slice(0, index + 1);
+	}
+
 	private writeToFile(message: unknown, level: LogLevel, context?: string, stack?: string) {
 		if (!this.isLevelEnabled(level)) return;
 
@@ -98,10 +90,11 @@ export class AppLogger extends ConsoleLogger {
 
 			const logEntry = {
 				timestamp: new Date().toISOString(),
-				level,
-				context,
-				message,
-				stack,
+				level: level.toUpperCase(),
+				context: context || 'App',
+				requestId: isRequestLog(message) ? message.requestId : undefined,
+				message: typeof message === 'object' && message !== null ? message : { msg: message },
+				stack: stack || undefined,
 			};
 
 			fs.appendFileSync(filePath, `${JSON.stringify(logEntry)}\n`);
@@ -113,26 +106,22 @@ export class AppLogger extends ConsoleLogger {
 	private formatForConsole(message: unknown): unknown {
 		const isProduction = this.configService.get('nodeEnv') === 'production';
 
-		if (this.isRequestLog(message) && !isProduction) {
-			const { method, url, query, body, status, time } = message;
-			return (
-				`[${method}] ${url}\n` +
-				`   | Query: ${JSON.stringify(query)}\n` +
-				`   | Body: ${JSON.stringify(body)}\n` +
-				`   | Status: ${status} | Time: ${time}`
-			);
-		}
-		return message;
-	}
+		if (!isRequestLog(message) || isProduction) return message;
 
-	private isRequestLog(message: unknown): message is RequestLog {
-		return (
-			typeof message === 'object' &&
-			message !== null &&
-			'method' in message &&
-			'url' in message &&
-			'status' in message
-		);
+		const { method, url, type, requestId } = message;
+		const arrow = type === 'in' ? '-->' : '<--';
+
+		if (type === 'in') {
+			const { query, body } = message;
+			return (
+				`${arrow} [${method}] ${url} (ID: ${requestId})\n` +
+				`   | Query: ${JSON.stringify(query)}\n` +
+				`   | Body: ${JSON.stringify(body)}`
+			);
+		} else {
+			const { status, time } = message;
+			return `${arrow} [${method}] ${url} | Status: ${status} | Time: ${time} (ID: ${requestId})`;
+		}
 	}
 
 	private sanitize(data: unknown): unknown {
