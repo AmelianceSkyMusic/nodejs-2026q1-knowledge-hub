@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { compare, hash } from 'bcrypt';
 import { Id } from 'shared/common/schemas/id.schema';
 import { ConflictError } from 'src/common/errors/conflict.error';
@@ -16,7 +17,10 @@ import { ERROR } from 'shared/common/constants/error';
 
 @Injectable()
 export class UsersService {
-	constructor(private readonly usersRepository: UsersRepository) {}
+	constructor(
+		private readonly configService: ConfigService,
+		private readonly usersRepository: UsersRepository,
+	) {}
 
 	async findAll(getUsersWithPaginationQueryDto: GetUsersWithPaginationQueryDto) {
 		return await this.usersRepository.findAll(getUsersWithPaginationQueryDto);
@@ -35,7 +39,8 @@ export class UsersService {
 
 	async create(createUserDto: CreateUserDto) {
 		const { password, ...restCreateUser } = createUserDto;
-		const hashedPassword = await hash(password, 10);
+		const salt = this.configService.get<number>('cryptSalt');
+		const hashedPassword = await hash(password, salt);
 		try {
 			const result = await this.usersRepository.create({
 				...restCreateUser,
@@ -59,7 +64,8 @@ export class UsersService {
 			throw new ForbiddenError(ERROR.PASSWORD.INVALID);
 		}
 
-		const hashedPassword = await hash(updatePasswordDto.newPassword, 10);
+		const salt = this.configService.get<number>('cryptSalt');
+		const hashedPassword = await hash(updatePasswordDto.newPassword, salt);
 		const result = await this.usersRepository.update(userId, {
 			password: hashedPassword,
 		});
@@ -75,7 +81,8 @@ export class UsersService {
 
 	async createWithSignup(createUserDto: CreateUserDto) {
 		const { password, ...restCreateUser } = createUserDto;
-		const hashedPassword = await hash(password, 10);
+		const salt = this.configService.get<number>('cryptSalt');
+		const hashedPassword = await hash(password, salt);
 		try {
 			const result = await this.usersRepository.create({
 				...restCreateUser,

@@ -41,10 +41,10 @@ describe('TokensService', () => {
 
 	beforeEach(async () => {
 		mockConfigService.get.mockImplementation((key: string) => {
-			if (key === 'JWT_SECRET') return 'secret';
-			if (key === 'JWT_REFRESH_SECRET') return 'refresh-secret';
-			if (key === 'JWT_ACCESS_TTL') return '15m';
-			if (key === 'JWT_REFRESH_TTL') return '7d';
+			if (key === 'jwt.secret') return 'secret';
+			if (key === 'jwt.refreshSecret') return 'refresh-secret';
+			if (key === 'jwt.accessTtl') return '15m';
+			if (key === 'jwt.refreshTtl') return '7d';
 			return undefined;
 		});
 
@@ -88,7 +88,7 @@ describe('TokensService', () => {
 
 		it('should throw InternalServerError() if JWT_SECRET is missing', async () => {
 			mockConfigService.get.mockImplementation((key: string) => {
-				if (key === 'JWT_SECRET') return undefined;
+				if (key === 'jwt.secret') return undefined;
 				return 'val';
 			});
 
@@ -97,7 +97,7 @@ describe('TokensService', () => {
 
 		it('should throw InternalServerError() if JWT_REFRESH_SECRET is missing', async () => {
 			mockConfigService.get = vi.fn().mockImplementation((key: string) => {
-				if (key === 'JWT_REFRESH_SECRET') return undefined;
+				if (key === 'jwt.refreshSecret') return undefined;
 				return 'secret';
 			});
 

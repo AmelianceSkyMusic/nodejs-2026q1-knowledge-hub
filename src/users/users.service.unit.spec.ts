@@ -1,4 +1,4 @@
-import { InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { ConflictError } from 'src/common/errors/conflict.error';
 import { ForbiddenError } from 'src/common/errors/forbidden.error';
@@ -64,6 +64,10 @@ describe('UsersService', () => {
 
 	const updatePasswordArgs = [user.id, { password: MOCKED_HASHED_PASSWORD }];
 
+	const mockConfigService = {
+		get: vi.fn(),
+	};
+
 	const mockUsersRepository = {
 		findAll: vi.fn(),
 		findOne: vi.fn(),
@@ -79,6 +83,10 @@ describe('UsersService', () => {
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				UsersService,
+				{
+					provide: ConfigService,
+					useValue: mockConfigService,
+				},
 				{
 					provide: UsersRepository,
 					useValue: mockUsersRepository,
