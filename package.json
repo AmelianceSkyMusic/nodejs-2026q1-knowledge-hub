@@ -32,19 +32,20 @@
 		"test:coverage": "vitest run --coverage",
 		"test:coverage:watch": "vitest run --coverage --watch",
 		"test": "npm run test:unit && npm run test:jest",
-		"db:generate": "drizzle-kit generate",
-		"db:migrate": "drizzle-kit migrate",
-		"db:push:dev-only": "drizzle-kit push",
-		"db:seed": "tsx src/drizzle/db/seed.ts",
-		"db:studio": "drizzle-kit studio",
-		"db:clean-start": "npm run docker:down && npm run docker:db && powershell -Command \"Start-Sleep -s 3\" && npm run db:migrate && npm run db:studio",
 		"docker:down": "docker compose down -v",
 		"docker:rebuild": "docker compose up --build",
 		"docker:up": "docker compose up -d",
 		"docker:db": "docker compose up db -d",
 		"docker:db:logs": "docker compose logs -f db",
-		"docker:rerun": "npm run docker:down && npm run docker:up",
-		"docker:rerun-db": "npm run docker:down && npm run docker:db",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:push:dev-only": "drizzle-kit push",
+		"db:seed": "tsx src/drizzle/db/seed.ts",
+		"db:studio": "drizzle-kit studio",
+		"db:wait": "tsx scripts/wait-db.ts",
+		"db:setup": "npm run db:migrate && npm run db:seed",
+		"db:reset": "npm run docker:down && npm run docker:db && npm run db:wait && npm run db:setup",
+		"db:clean-start": "npm run db:reset && npm run db:studio",
 		"prepare": "husky"
 	},
 	"dependencies": {
@@ -105,6 +106,7 @@
 		"tsx": "^4.21.0",
 		"typescript": "^5.3.3",
 		"unplugin-swc": "^1.5.9",
-		"vitest": "^4.1.5"
+		"vitest": "^4.1.5",
+		"wait-on": "^9.0.5"
 	}
 }
