@@ -2,10 +2,10 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import { NativeLogger } from 'nestjs-pino';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 import { AppModule } from './app.module';
-import { AppLogger } from './common/app-logger/app-logger.service';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule, {
@@ -13,14 +13,15 @@ async function bootstrap() {
 	});
 
 	const configService = app.get(ConfigService);
-	const appLogger = app.get(AppLogger);
+	const appLogger = app.get(NativeLogger);
 
 	app.useLogger(appLogger);
+	app.flushLogs();
 
 	const apiPrefix = configService.get<string>('apiPrefix');
 	if (apiPrefix) app.setGlobalPrefix(apiPrefix);
 
-	const isProduction = configService.get('nodeEnv') === 'production';
+	const isProduction = configService.get<boolean>('isProduction');
 	const gracefulExit = async (error: Error, type: string) => {
 		appLogger.fatal(`${type}: ${error.message}`, error.stack, 'Process');
 
@@ -34,7 +35,11 @@ async function bootstrap() {
 				),
 			]);
 		} catch (err) {
-			appLogger.error(`Error during forced shutdown: ${err.message}`, '', 'Process');
+			appLogger.error(
+				`Error during forced shutdown: ${err instanceof Error ? err.message : String(err)}`,
+				'',
+				'Process',
+			);
 		} finally {
 			process.exit(1);
 		}

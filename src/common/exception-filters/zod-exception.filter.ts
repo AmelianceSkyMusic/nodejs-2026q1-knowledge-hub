@@ -1,4 +1,4 @@
-import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
 import {
 	ZodSchemaDeclarationException,
 	ZodSerializationException,
@@ -6,11 +6,9 @@ import {
 } from 'nestjs-zod';
 import { ZodError } from 'zod';
 
-import { AppLogger } from '../app-logger/app-logger.service';
-
 @Catch(ZodValidationException, ZodSerializationException, ZodSchemaDeclarationException)
 export class ZodExceptionFilter implements ExceptionFilter {
-	constructor(private readonly appLogger: AppLogger) {}
+	private readonly logger = new Logger(ZodExceptionFilter.name);
 
 	catch(
 		exception: ZodValidationException | ZodSerializationException | ZodSchemaDeclarationException,
@@ -20,10 +18,9 @@ export class ZodExceptionFilter implements ExceptionFilter {
 		const response = ctx.getResponse();
 
 		if (exception instanceof ZodSchemaDeclarationException) {
-			this.appLogger.error(
+			this.logger.error(
 				`Zod Schema Declaration Error: ${exception.message}. Hint: check if @ZodDto() is missing in the controller.`,
 				exception.stack,
-				ZodExceptionFilter.name,
 			);
 			return response.status(500).json({
 				statusCode: 500,
@@ -34,24 +31,31 @@ export class ZodExceptionFilter implements ExceptionFilter {
 
 		const status = exception.getStatus();
 		const zodError = exception.getZodError();
+		const req = ctx.getRequest();
+		const { method, url } = req;
 
 		if (zodError instanceof ZodError) {
 			const isValidation = exception instanceof ZodValidationException;
+			const issuesList = zodError.issues
+				.map((issue) => `  - [${issue.path.join('.') || 'root'}]: ${issue.message}`)
+				.join('\n');
 
-			const logMessage = `${isValidation ? 'Validation' : 'Serialization'} Error details:`;
+			const logMessage = `${isValidation ? 'Validation' : 'Serialization'} Error details:\n${issuesList}`;
+
+			const logData = {
+				method,
+				url,
+				status,
+				message: logMessage,
+				requestId: req['id'],
+				type: 'out',
+			};
 
 			if (isValidation) {
-				this.appLogger.warn(
-					`${logMessage} ${JSON.stringify(zodError.issues, null, 2)}`,
-					ZodExceptionFilter.name,
-				);
+				this.logger.warn(logData);
 			} else {
 				const stack = exception instanceof Error ? exception.stack : '';
-				this.appLogger.error(
-					`${logMessage} ${JSON.stringify(zodError.issues, null, 2)}`,
-					stack,
-					ZodExceptionFilter.name,
-				);
+				this.logger.error(logData, stack);
 			}
 
 			return response.status(status).json({

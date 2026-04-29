@@ -1,8 +1,7 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import { AppLogger } from 'src/common/app-logger/app-logger.service';
 
 import { relations } from './db/relations';
 import * as schema from './db/schema';
@@ -14,11 +13,9 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
 	public db: DrizzleDb;
 	private pool: Pool;
 	private isEnded = false;
+	private readonly logger = new Logger(DrizzleService.name);
 
-	constructor(
-		private configService: ConfigService,
-		private appLogger: AppLogger,
-	) {
+	constructor(private configService: ConfigService) {
 		const databaseUrl = this.configService.get<string>('databaseUrl');
 		const isDbLogsEnabled = this.configService.get<boolean>('dbLogs');
 
@@ -40,16 +37,16 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
 			schema,
 			relations,
 			casing: 'snake_case', //* Convert all table and column names to snake_case, so we don't to describe it in schema
-			logger: isDbLogsEnabled ? new DrizzleLogger(this.appLogger) : false,
+			logger: isDbLogsEnabled ? new DrizzleLogger() : false,
 		});
 	}
 
 	async onModuleInit() {
 		try {
 			await this.pool.connect();
-			this.appLogger.log('Database connection established', DrizzleService.name);
+			this.logger.log('Database connection established');
 		} catch (error) {
-			this.appLogger.error('Failed to connect to database', error.stack, DrizzleService.name);
+			this.logger.error('Failed to connect to database', error.stack);
 			throw error;
 		}
 	}
@@ -61,9 +58,9 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
 
 		try {
 			await this.pool.end();
-			this.appLogger.log('Database pool closed gracefully', DrizzleService.name);
+			this.logger.log('Database pool closed gracefully');
 		} catch (error) {
-			this.appLogger.error('Error closing database pool', error.stack, DrizzleService.name);
+			this.logger.error('Error closing database pool', error.stack);
 		}
 	}
 }

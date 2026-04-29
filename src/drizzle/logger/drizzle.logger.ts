@@ -1,19 +1,50 @@
+import { Injectable, Logger as NestLogger } from '@nestjs/common';
+
 import type { Logger } from 'drizzle-orm/logger';
-import type { AppLogger } from 'src/common/app-logger/app-logger.service';
+import type { format } from 'sql-formatter';
 
-const SQL_KEYWORDS_REGEX =
-	/\b(select|from|where|insert into|values|returning|update|set|delete from|inner join|left join|and|or|order by|group by|limit|offset)\b/gi;
+type FormatFn = typeof format;
 
+@Injectable()
 export class DrizzleLogger implements Logger {
-	constructor(private readonly appLogger: AppLogger) {}
+	private readonly logger = new NestLogger(DrizzleLogger.name);
+	private formatFn: FormatFn | undefined;
 
 	logQuery(query: string, params: unknown[]): void {
-		const formattedQuery = query.replaceAll(SQL_KEYWORDS_REGEX, '\n  $1');
+		let interpolated = query;
+		for (let i = params.length - 1; i >= 0; i--) {
+			const p = params[i];
+			let value: string;
+			if (p === null) value = 'NULL';
+			else if (typeof p === 'boolean') value = p ? 'TRUE' : 'FALSE';
+			else value = typeof p === 'string' ? `'${p}'` : String(p);
 
-		const message = `\n[SQL]:${formattedQuery}${
-			params.length > 0 ? `\n[Params]:\n${JSON.stringify(params, null, 2)}` : ''
-		}`;
+			interpolated = interpolated.replace(new RegExp(`\\$${i + 1}(?!\\d)`, 'g'), value);
+		}
 
-		this.appLogger.verbose(message, DrizzleLogger.name);
+		const log = (fn = this.formatFn) => {
+			try {
+				const res = fn
+					? fn(interpolated, { language: 'postgresql', keywordCase: 'upper' })
+					: interpolated;
+				const indented = res
+					.replace(/"/g, '')
+					.split('\n')
+					.map((line) => `  ${line}`)
+					.join('\n');
+				this.logger.debug(`Query:\n${indented}`);
+			} catch {
+				this.logger.debug(`Query:\n  ${interpolated}`);
+			}
+		};
+
+		if (this.formatFn) return log();
+
+		import('sql-formatter')
+			.then((m) => {
+				this.formatFn = m.format;
+				log();
+			})
+			.catch(() => log());
 	}
 }

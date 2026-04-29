@@ -70,11 +70,11 @@ import { UsersModule } from './users/users.module';
 		},
 		{
 			provide: APP_FILTER,
-			useClass: ZodExceptionFilter,
+			useClass: AllExceptionsFilter,
 		},
 		{
 			provide: APP_FILTER,
-			useClass: AllExceptionsFilter,
+			useClass: ZodExceptionFilter,
 		},
 	],
 })

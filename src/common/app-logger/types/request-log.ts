@@ -13,7 +13,8 @@ interface IncomingLog extends BaseLog {
 interface OutgoingLog extends BaseLog {
 	type: 'out';
 	status: number;
-	time: string;
+	time?: string;
+	message?: string;
 }
 
 export type RequestLog = IncomingLog | OutgoingLog;

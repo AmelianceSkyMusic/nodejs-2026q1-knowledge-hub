@@ -9,9 +9,6 @@ export const CUSTOM_ERROR = {
 		INTERNAL_SERVER_ERROR: 'InternalServerError',
 		UNPROCESSABLE_ENTITY: 'UnprocessableEntityError',
 	},
-	CONTEXTS: {
-		ALL_EXCEPTION_FILTER: 'AllExceptionsFilter',
-	},
 	MESSAGES: {
 		INTERNAL_SERVER_ERROR: 'Internal Server Error',
 		UNEXPECTED_ERROR: 'An unexpected error occurred',
