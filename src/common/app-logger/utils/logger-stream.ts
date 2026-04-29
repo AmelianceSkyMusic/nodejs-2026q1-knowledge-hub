@@ -2,14 +2,12 @@ import { ConsoleLogger } from '@nestjs/common';
 import { Writable } from 'stream';
 
 import { isRequestLog } from '../types/request-log';
-import { RotatingStream } from './rotating-stream';
 
 import type { ConsoleLoggerOptions, LogLevel } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 
 export class LoggerStream extends Writable {
 	private consoleLogger: ConsoleLogger;
-	private rotatingStream: RotatingStream | null = null;
 	private configService: ConfigService;
 	private enabledLevels: Set<LogLevel>;
 
@@ -26,14 +24,6 @@ export class LoggerStream extends Writable {
 		const levels = this.getLevels(logLevel || 'log');
 		this.enabledLevels = new Set(levels);
 		this.consoleLogger.setLogLevels(levels);
-
-		const logDir = configService.get<string>('logDir');
-		const logFile = configService.get<string>('logFile');
-		const maxSize = configService.get<number>('logMaxFileSize');
-
-		if (logDir && logFile && maxSize) {
-			this.rotatingStream = new RotatingStream(logDir, logFile, maxSize);
-		}
 	}
 
 	private getLevels(targetLevel: string): LogLevel[] {
@@ -74,7 +64,6 @@ export class LoggerStream extends Writable {
 				} else {
 					this.consoleLogger[level](formatted, context);
 				}
-				this.writeToFile(sanitized, level, context, stack, requestId, logObj.timestamp);
 			}
 		} catch (err) {
 			this.consoleLogger.error(
@@ -89,28 +78,6 @@ export class LoggerStream extends Writable {
 
 	private isLevelEnabled(level: string): boolean {
 		return this.enabledLevels.has(level as LogLevel);
-	}
-
-	private writeToFile(
-		message: unknown,
-		level: string,
-		context?: string,
-		stack?: string,
-		requestId?: string,
-		timestamp?: number,
-	) {
-		if (!this.rotatingStream) return;
-
-		const logEntry = {
-			timestamp: timestamp ? new Date(timestamp).toISOString() : new Date().toISOString(),
-			level: level.toUpperCase(),
-			context: context || 'App',
-			requestId,
-			message: typeof message === 'object' && message !== null ? message : { msg: message },
-			stack: stack || undefined,
-		};
-
-		this.rotatingStream.write(`${JSON.stringify(logEntry)}\n`);
 	}
 
 	private formatForConsole(message: unknown): unknown {

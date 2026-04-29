@@ -8,9 +8,7 @@ export default () => {
 		nodeEnv,
 		isProduction,
 		logLevel: process.env.LOG_LEVEL || 'log',
-		logMaxFileSize: process.env.LOG_MAX_FILE_SIZE
-			? Number(process.env.LOG_MAX_FILE_SIZE) * 1024
-			: 1024 * 1024,
+		logMaxFileSize: process.env.LOG_MAX_FILE_SIZE || '10240',
 		logDir: 'logs',
 		logFile: 'app.log',
 		databaseUrl: process.env.DATABASE_URL,
