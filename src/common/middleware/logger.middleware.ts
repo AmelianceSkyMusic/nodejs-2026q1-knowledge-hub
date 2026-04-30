@@ -33,6 +33,7 @@ export class LoggerMiddleware implements NestMiddleware {
 				status: res.statusCode,
 				time,
 				requestId,
+				userId: req.user?.userId,
 				type: 'out',
 			});
 		});

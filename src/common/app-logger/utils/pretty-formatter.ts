@@ -56,9 +56,9 @@ export const getLevelColor = (levelNum: number, colors: Colors) => {
 };
 
 const LEVEL_LABELS: Record<number, string> = {
-	10: 'TRACE',
+	10: 'VERBOSE',
 	20: 'DEBUG',
-	30: 'INFO',
+	30: 'LOG',
 	40: 'WARN',
 	50: 'ERROR',
 	60: 'FATAL',
@@ -70,10 +70,14 @@ export const customPrettifiers = {
 };
 
 const config = {
-	showMeta: false,
 	colorizeDetails: false,
 	showBody: true,
-	showStackTrace: true,
+	showStackTrace: false,
+	meta: {
+		requestId: false,
+		userId: true,
+		context: false,
+	},
 };
 
 interface LogObject extends Record<string, unknown> {
@@ -111,7 +115,7 @@ export const messageFormat = (
 	const time = date.toLocaleTimeString(undefined, { hour12: false });
 	const ms = String(date.getMilliseconds()).padStart(3, '0');
 	const timeStr = colors.reset(`[${time}.${ms}] `);
-	const levelStr = baseColor(`${label}: `.padStart(7, ' '));
+	const levelStr = baseColor(`${label}: `.padStart(9, ' '));
 
 	const contextStr = log.context
 		? levelNum === 10
@@ -136,15 +140,16 @@ export const messageFormat = (
 				const formattedBody = JSON.stringify(msg.body, null, 2).replace(/\n/g, '\n  |  ');
 				details += `\n  |  Body: ${formattedBody}`;
 			}
-			const metaStr = config.showMeta
-				? `${colors.blue(`[ID: ${reqId}]`)}${contextStr ? ' ' + contextStr : ''}`
-				: '';
+			const metaParts = [];
+			if (config.meta.requestId) metaParts.push(colors.blue(`| ID: ${reqId}`));
+			if (config.meta.context && contextStr) metaParts.push(contextStr);
+			const metaStr = metaParts.length > 0 ? ` ${metaParts.join(' ')}` : '';
 
 			const colorizedDetails = config.colorizeDetails
 				? baseColor(details)
 				: colors.gray(details);
 
-			return `${prefix}${baseColor('-->')} ${colors.yellowBright(methodStr)} ${colors.greenBright(msg.url)} ${metaStr}${config.showBody ? colorizedDetails : ''}`;
+			return `${prefix}${baseColor('-->')} ${colors.yellowBright(methodStr)} ${colors.greenBright(msg.url)}${metaStr}${config.showBody ? colorizedDetails : ''}`;
 		}
 		if (msg.type === 'out') {
 			const statusColor =
@@ -153,12 +158,16 @@ export const messageFormat = (
 					: msg.status >= 400
 						? colors.yellowBright
 						: colors.greenBright;
-			const metaStr = config.showMeta
-				? `${colors.blue(`[ID: ${reqId}]`)}${contextStr ? ' ' + contextStr : ''}`
-				: '';
+			const metaParts = [];
+			if (config.meta.requestId) metaParts.push(colors.blue(`| ID: ${reqId}`));
+			if (config.meta.userId && msg.userId)
+				metaParts.push(colors.magenta(`| User: ${msg.userId}`));
+			if (config.meta.context && contextStr) metaParts.push(contextStr);
+			const metaStr = metaParts.length > 0 ? ` ${metaParts.join(' ')}` : '';
+
 			const reqTimeStr = msg.time ? ` ${colors.cyanBright(msg.time)}` : '';
 
-			let outMsg = `${prefix}${baseColor('<--')} ${colors.yellowBright(methodStr)} ${colors.greenBright(msg.url)} ${statusColor(String(msg.status))}${reqTimeStr} ${metaStr}`;
+			let outMsg = `${prefix}${baseColor('<--')} ${colors.yellowBright(methodStr)} ${colors.greenBright(msg.url)} ${statusColor(String(msg.status))}${reqTimeStr}${metaStr}`;
 
 			if (msg.message) {
 				const formattedMsg = String(msg.message).replace(/\n/g, '\n  |  ');

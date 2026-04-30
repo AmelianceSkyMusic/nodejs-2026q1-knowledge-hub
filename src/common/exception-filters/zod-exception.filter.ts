@@ -1,4 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
+import { Request } from 'express';
 import {
 	ZodSchemaDeclarationException,
 	ZodSerializationException,
@@ -31,7 +32,7 @@ export class ZodExceptionFilter implements ExceptionFilter {
 
 		const status = exception.getStatus();
 		const zodError = exception.getZodError();
-		const req = ctx.getRequest();
+		const req = ctx.getRequest<Request>();
 		const { method, url } = req;
 
 		if (zodError instanceof ZodError) {
@@ -48,6 +49,7 @@ export class ZodExceptionFilter implements ExceptionFilter {
 				status,
 				message: logMessage,
 				requestId: req['id'],
+				userId: req.user?.userId,
 				type: 'out',
 			};
 

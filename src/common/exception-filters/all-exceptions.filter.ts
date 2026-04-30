@@ -1,5 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 import { AppError } from '../errors/app.error';
 
@@ -65,6 +65,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 				status: statusCode,
 				message: errorMessage,
 				requestId: req['id'],
+				userId: req.user?.userId,
 				type: 'out',
 			},
 			stack,
