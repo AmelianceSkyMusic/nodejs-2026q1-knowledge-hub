@@ -32,9 +32,9 @@ export class DrizzleLogger implements Logger {
 					.split('\n')
 					.map((line) => `  ${line}`)
 					.join('\n');
-				this.logger.debug(`Query:\n${indented}`);
+				this.logger.verbose(`Query:\n${indented}`);
 			} catch {
-				this.logger.debug(`Query:\n  ${interpolated}`);
+				this.logger.verbose(`Query:\n  ${interpolated}`);
 			}
 		};
 

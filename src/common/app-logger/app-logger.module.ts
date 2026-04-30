@@ -4,20 +4,17 @@ import { LoggerModule, nativeLoggerOptions } from 'nestjs-pino';
 import { join } from 'path';
 import pino from 'pino';
 
-import { LoggerStream } from './utils/logger-stream';
-
 @Global()
 @Module({
 	imports: [
 		LoggerModule.forRootAsync({
 			inject: [ConfigService],
-			useFactory: (configService: ConfigService) => {
-				const stream = new LoggerStream(configService);
-
+			useFactory: async (configService: ConfigService) => {
 				const nestLevel = configService.get<string>('logLevel');
 				const logDir = configService.get<string>('logDir');
 				const logFile = configService.get<string>('logFile');
 				const maxSize = configService.get<string>('logMaxFileSize');
+				const isProduction = configService.get<boolean>('isProduction');
 
 				let pinoLevel: pino.Level = 'info';
 				if (nestLevel === 'verbose' || nestLevel === 'trace') pinoLevel = 'trace';
@@ -27,7 +24,29 @@ import { LoggerStream } from './utils/logger-stream';
 				else if (nestLevel === 'error') pinoLevel = 'error';
 				else if (nestLevel === 'fatal') pinoLevel = 'fatal';
 
-				const streams: pino.StreamEntry[] = [{ stream, level: pinoLevel }];
+				const streams: pino.StreamEntry[] = [];
+
+				if (isProduction) {
+					streams.push({ stream: process.stdout, level: pinoLevel });
+				} else {
+					const { default: buildPrettyStream } = await import('pino-pretty');
+
+					const { customPrettifiers, messageFormat } = await import(
+						'./utils/pretty-formatter'
+					);
+
+					const prettyStream = buildPrettyStream({
+						colorize: true,
+						sync: true,
+						hideObject: true,
+						ignore: 'pid,hostname',
+						levelFirst: true,
+						messageKey: 'message',
+						customPrettifiers,
+						messageFormat,
+					});
+					streams.push({ stream: prettyStream, level: pinoLevel });
+				}
 
 				if (logDir && logFile) {
 					const fileTransport = pino.transport({
@@ -44,12 +63,31 @@ import { LoggerStream } from './utils/logger-stream';
 					streams.push({ stream: fileTransport, level: pinoLevel });
 				}
 
+				const { formatters, ...restNativeLoggerOptions } = nativeLoggerOptions;
+
 				return {
 					pinoHttp: [
 						{
-							...nativeLoggerOptions,
+							...restNativeLoggerOptions,
 							autoLogging: false,
 							level: pinoLevel,
+							redact: {
+								paths: [
+									'req.headers.authorization',
+									'req.headers.cookie',
+									'message.body.password',
+									'message.body.oldPassword',
+									'message.body.newPassword',
+									'message.body.accessToken',
+									'message.body.refreshToken',
+									'message.query.token',
+									'*.password',
+									'*.*.password',
+									'*.*.oldPassword',
+									'*.*.newPassword',
+								],
+								censor: '[REDACTED]',
+							},
 						},
 						pino.multistream(streams),
 					],

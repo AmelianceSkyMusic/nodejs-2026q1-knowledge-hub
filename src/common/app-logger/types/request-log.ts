@@ -15,6 +15,7 @@ interface OutgoingLog extends BaseLog {
 	status: number;
 	time?: string;
 	message?: string;
+	stack?: string;
 }
 
 export type RequestLog = IncomingLog | OutgoingLog;

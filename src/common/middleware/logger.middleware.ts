@@ -6,12 +6,15 @@ export class LoggerMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(LoggerMiddleware.name);
 
 	use(req: Request, res: Response, next: NextFunction) {
-		const startTime = performance.now();
+		const start = performance.now();
+		const requestId =
+			(req.headers['x-request-id'] as string) ||
+			(req.headers['x-correlation-id'] as string) ||
+			crypto.randomUUID();
 
-		const requestId = crypto.randomUUID();
 		req['id'] = requestId;
 
-		this.logger.log({
+		this.logger.debug({
 			method: req.method,
 			url: req.originalUrl,
 			query: req.query,
@@ -21,14 +24,14 @@ export class LoggerMiddleware implements NestMiddleware {
 		});
 
 		res.on('finish', () => {
-			const endTime = performance.now();
-			const duration = endTime - startTime;
+			const end = performance.now();
+			const time = `${(end - start).toFixed(2)}ms`;
 
 			this.logger.log({
 				method: req.method,
 				url: req.originalUrl,
 				status: res.statusCode,
-				time: `${duration.toFixed(2)}ms`,
+				time,
 				requestId,
 				type: 'out',
 			});
