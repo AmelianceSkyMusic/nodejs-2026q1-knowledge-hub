@@ -18,9 +18,7 @@ export class GlobalThrottlerGuard extends ThrottlerGuard {
 	}
 
 	protected async shouldSkip(context: ExecutionContext): Promise<boolean> {
-		if (await super.shouldSkip(context)) {
-			return true;
-		}
+		if (await super.shouldSkip(context)) return true;
 
 		const handler = context.getHandler();
 		const classRef = context.getClass();
@@ -31,9 +29,7 @@ export class GlobalThrottlerGuard extends ThrottlerGuard {
 			return this.reflector.getAllAndOverride(`THROTTLER:SKIP${t.name}`, targets);
 		});
 
-		if (skippedTier) {
-			return true;
-		}
+		if (skippedTier) return true;
 
 		return false;
 	}
