@@ -129,7 +129,7 @@ Press <kbd>F5</kbd> to debug.
 
 For more information, visit: https://code.visualstudio.com/docs/editor/debugging
 
-# Run db with container
+## Run db with container
 
 1. `npm run docker:down` (`docker compose down -v`) — stop, remove container with its volume
 2. `npm run db:generate -- --name init` (`npx drizzle-kit generate --name init`) — generate init migration file (if not init migration exists in /drizzle), or remove /drizzle folder and run this command to start from scratch
@@ -151,16 +151,24 @@ For more information, visit: https://code.visualstudio.com/docs/editor/debugging
 ### Model Selection
 
 In assignment is assumed that you will use stable model
+
 Since `gemini-2.0-flash` has no free-tier limits, you can use next generation `gemini-2.5-flash` as a production ready model with best price-performance ratio, but for checking you can try other models:
 
 - **`gemini-2.5-flash`**: Production-ready and stable
-  _Limits: 5 RPM, 250K TPM, 20 RPD_
+
+   _Limits: 5 RPM, 250K TPM, 20 RPD_
+
 - **`gemini-3.1-flash-lite-preview`**: Model with most generous free-tier limits, but not simple as gemma
-  _Limits: 15 RPM, 250K TPM, 500 RPD_
+
+   _Limits: 15 RPM, 250K TPM, 500 RPD_
+
 - **`gemma-3-27b-it`**: Simple alternative model with high-limit for test purposes, but it doesn't work with system prompts as excepted and may has some issues with output data
-  _Limits: 30 RPM, 15K TPM, **14.4K RPD**_
+
+   _Limits: 30 RPM, 15K TPM, **14.4K RPD**_
+
 - **`gemini-3-flash-preview`**: Next-gen model currently in preview (not yet production-ready)
-  _Limits: 5 RPM, 250K TPM, 20 RPD_
+
+   _Limits: 5 RPM, 250K TPM, 20 RPD_
 
 ### Setup Guide
 
@@ -187,17 +195,17 @@ Follow these steps to get the project running locally:
 
 4. **Create and prepare `.env` file:**
 
-```bash
-cp .env.example .env
-```
+   ```bash
+   cp .env.example .env
+   ```
 
-4. **Configure API Key**:
+5. **Configure API Key**:
    Open the `.env` file and replace `your-gemini-api-key` with your actual key
 
-5. **Configure Model**:
+6. **Configure Model**:
    Open the `.env` file and replace `gemini-2.0-flash` with your actual model
 
-6. **Initialize Services**:
+7. **Initialize Services**:
    You can start everything (database reset, migrations, and studio) with one command:
 
    ```bash
@@ -214,7 +222,7 @@ cp .env.example .env
    npx drizzle-kit studio
    ```
 
-7. **Troubleshooting Docker**:
+8. **Troubleshooting Docker**:
    If Docker fails to start, try a full reset:
 
    ```bash
@@ -224,7 +232,7 @@ cp .env.example .env
 
    Ensure **Docker Desktop** is running
 
-8. **Launch the Application**:
+9. **Launch the Application**:
    ```bash
    npm run dev
    ```
@@ -233,7 +241,7 @@ cp .env.example .env
 
 **Custom client:**
 
-- Open ./api-client.html in your browser
+- Open `client/ai.html` in your browser
 
 **Scalar:**
 
@@ -248,9 +256,9 @@ cp .env.example .env
 - http://localhost:4000/doc/json
 - http://localhost:4000/doc/yaml
 
-## Known limitations
+### Known limitations
 
-### Model limitation
+#### Model limitation
 
 | Model                         | RPM | TPM  | RPD   |
 | ----------------------------- | --- | ---- | ----- |
@@ -260,6 +268,7 @@ cp .env.example .env
 | gemini-3-flash-preview        | 5   | 250K | 20    |
 
 (Limits current as of 2026-05-01)
+
 Full details available at: [Google AI Studio Rate Limits](https://aistudio.google.com/rate-limit)
 
 ⚠️ **Note**: Latency and regional availability may vary. Please verify service status in your current region
