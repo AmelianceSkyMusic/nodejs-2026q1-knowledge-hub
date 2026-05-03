@@ -8,6 +8,7 @@ export const CUSTOM_ERROR = {
 		CONFLICT: 'ConflictError',
 		INTERNAL_SERVER_ERROR: 'InternalServerError',
 		UNPROCESSABLE_ENTITY: 'UnprocessableEntityError',
+		SERVICE_UNAVAILABLE: 'ServiceUnavailableError',
 	},
 	MESSAGES: {
 		INTERNAL_SERVER_ERROR: 'Internal Server Error',
