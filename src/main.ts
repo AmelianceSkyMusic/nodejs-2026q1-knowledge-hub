@@ -20,6 +20,7 @@ async function bootstrap() {
 		origin: isProduction ? configService.get('FRONTEND_URL') : true,
 		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 		credentials: true,
+		exposedHeaders: ['Retry-After', 'retry-after'],
 	});
 
 	const appLogger = app.get(NativeLogger);
