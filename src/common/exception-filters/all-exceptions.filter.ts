@@ -29,6 +29,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
 		const stack = exception instanceof Error ? exception.stack : '';
 
+		const isAppError = exception instanceof AppError;
 		const isHttpException = exception instanceof HttpException;
 		const isInternalError = statusCode === 500;
 
@@ -53,23 +54,27 @@ export class AllExceptionsFilter implements ExceptionFilter {
 			statusCode,
 			error: errorName,
 			message:
-				isInternalError && !isHttpException
+				isInternalError && !isHttpException && !isAppError
 					? CUSTOM_ERROR.MESSAGES.UNEXPECTED_ERROR
 					: errorMessage,
 		};
 
-		this.logger.error(
-			{
-				method,
-				url,
-				status: statusCode,
-				message: errorMessage,
-				requestId: req['id'],
-				userId: req.user?.userId,
-				type: 'out',
-			},
+		const logData = {
+			method,
+			url,
+			status: statusCode,
+			message: errorMessage,
+			requestId: req['id'],
+			userId: req.user?.userId,
 			stack,
-		);
+			type: 'out',
+		};
+
+		if (isInternalError) {
+			this.logger.error(logData, stack);
+		} else {
+			this.logger.warn(logData);
+		}
 
 		response.status(statusCode).json(responseBody);
 	}
