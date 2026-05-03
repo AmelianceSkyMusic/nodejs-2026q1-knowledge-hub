@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
 	ApiCreatedResponse,
@@ -11,7 +11,6 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { ZodResponse } from 'nestjs-zod';
 import { Public } from 'src/common/decorators/public.decorator';
-import { OptionalThrottlerGuard } from 'src/common/guards/optional-throttler.guard';
 import { UserDto } from 'src/users/dto/user.dto';
 
 import { AuthService } from './auth.service';
@@ -22,7 +21,6 @@ import { TokensDto } from './dto/tokens.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
-@UseGuards(OptionalThrottlerGuard)
 export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
