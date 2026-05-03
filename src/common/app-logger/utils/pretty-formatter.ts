@@ -120,7 +120,9 @@ export const messageFormat = (
 	const contextStr = log.context
 		? levelNum === 10
 			? colors.reset(`[${String(log.context)}]`)
-			: colors.yellowBright(`[${String(log.context)}]`)
+			: levelNum === 50 || levelNum === 60
+				? colors.redBright(`[${String(log.context)}]`)
+				: colors.yellowBright(`[${String(log.context)}]`)
 		: '';
 
 	const prefix = `${timeStr}${levelStr}`;
@@ -154,7 +156,7 @@ export const messageFormat = (
 		if (msg.type === 'out') {
 			const statusColor =
 				msg.status >= 500
-					? colors.red
+					? colors.redBright
 					: msg.status >= 400
 						? colors.yellowBright
 						: colors.greenBright;
@@ -191,7 +193,7 @@ export const messageFormat = (
 
 	const contextPrefix = contextStr ? `${contextStr} ` : '';
 	const mainMessage =
-		typeof msg === 'object' && msg !== null ? JSON.stringify(msg) : String(msg ?? '');
+		typeof msg === 'object' && msg !== null ? JSON.stringify(msg, null, 2) : String(msg ?? '');
 
 	let result = `${prefix}${contextPrefix}${baseColor(mainMessage)}`;
 
