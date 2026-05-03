@@ -1,6 +1,10 @@
 import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { ZodValidationException } from 'nestjs-zod';
+import {
+	ZodSchemaDeclarationException,
+	ZodSerializationException,
+	ZodValidationException,
+} from 'nestjs-zod';
 import { z, ZodError } from 'zod';
 
 import { ZodExceptionFilter } from './zod-exception.filter';
@@ -20,6 +24,7 @@ describe('ZodExceptionFilter', () => {
 		method: 'GET',
 		url: '/test',
 		id: 'test-id',
+		user: { userId: 'user-id' },
 	};
 
 	const mockArgumentsHost = {
@@ -60,12 +65,43 @@ describe('ZodExceptionFilter', () => {
 		});
 	});
 
-	it('should log warning for ZodValidationException', () => {
-		const zodError = new ZodError([]);
-		const exception = new ZodValidationException(zodError);
+	it('should catch ZodSerializationException and return status and log error', () => {
+		const zodError = new ZodError([{ path: ['test'], message: 'invalid', code: 'custom' }]);
+		const exception = new ZodSerializationException(zodError);
 
 		filter.catch(exception, mockArgumentsHost);
 
-		expect(Logger.prototype.warn).toHaveBeenCalled();
+		expect(mockResponse.status).toHaveBeenCalledWith(500);
+		expect(Logger.prototype.error).toHaveBeenCalled();
+	});
+
+	it('should catch ZodSchemaDeclarationException and return 500 status', () => {
+		const exception = new ZodSchemaDeclarationException();
+
+		filter.catch(exception, mockArgumentsHost);
+
+		expect(mockResponse.status).toHaveBeenCalledWith(500);
+		expect(mockResponse.json).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: 500,
+				message: 'Missing nestjs-zod schema declaration (DTO) for parameter',
+			}),
+		);
+		expect(Logger.prototype.error).toHaveBeenCalled();
+	});
+
+	it('should return 500 for unknown exception data', () => {
+		const exception = {
+			getStatus: () => 400,
+			getZodError: () => ({}),
+		} as any;
+
+		filter.catch(exception, mockArgumentsHost);
+
+		expect(mockResponse.status).toHaveBeenCalledWith(500);
+		expect(mockResponse.json).toHaveBeenCalledWith({
+			statusCode: 500,
+			message: 'Internal Server Error',
+		});
 	});
 });
