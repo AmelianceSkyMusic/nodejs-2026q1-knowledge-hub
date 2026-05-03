@@ -86,7 +86,10 @@ export class AiService {
 
 		const { messageText, tokens } = await this.runGemini(articleContent, systemInstruction);
 
-		const translatedArticle = parseAiResponse(ArticleTranslationSchema, messageText);
+		const translatedArticle = parseAiResponse(
+			ArticleTranslationSchema.omit({ articleId: true }),
+			messageText,
+		);
 
 		this.aiRepository.updateStats('ai/translate', tokens);
 
@@ -110,7 +113,10 @@ export class AiService {
 
 		const { messageText, tokens } = await this.runGemini(articleContent, systemInstruction);
 
-		const analyzedArticle = parseAiResponse(ArticleAnalysisSchema, messageText);
+		const analyzedArticle = parseAiResponse(
+			ArticleAnalysisSchema.omit({ articleId: true }),
+			messageText,
+		);
 
 		this.aiRepository.updateStats('ai/analyze', tokens);
 
