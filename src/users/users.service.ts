@@ -1,9 +1,11 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { compare, hash } from 'bcrypt';
 import { Id } from 'shared/common/schemas/id.schema';
+import { ConflictError } from 'src/common/errors/conflict.error';
 import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { NotFoundError } from 'src/common/errors/not-found.error';
-import { ValidationError } from 'src/common/errors/validation.error';
 import { pgError } from 'src/common/utils/pg-error';
 
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,7 +17,10 @@ import { ERROR } from 'shared/common/constants/error';
 
 @Injectable()
 export class UsersService {
-	constructor(private readonly usersRepository: UsersRepository) {}
+	constructor(
+		private readonly configService: ConfigService,
+		private readonly usersRepository: UsersRepository,
+	) {}
 
 	async findAll(getUsersWithPaginationQueryDto: GetUsersWithPaginationQueryDto) {
 		return await this.usersRepository.findAll(getUsersWithPaginationQueryDto);
@@ -34,17 +39,18 @@ export class UsersService {
 
 	async create(createUserDto: CreateUserDto) {
 		const { password, ...restCreateUser } = createUserDto;
-		const hashedPassword = await hash(password, 10);
+		const salt = this.configService.get<number>('cryptSalt');
+		const hashedPassword = await hash(password, salt);
 		try {
 			const result = await this.usersRepository.create({
 				...restCreateUser,
 				password: hashedPassword,
 			});
-			if (!result) throw new InternalServerErrorException(ERROR.USER.CREATE_FAILED);
+			if (!result) throw new InternalServerError(ERROR.USER.CREATE_FAILED);
 			return result;
 		} catch (error) {
 			if (pgError(error).isUniqueViolation) {
-				throw new ValidationError(ERROR.USER.ALREADY_EXISTS);
+				throw new ConflictError(ERROR.USER.ALREADY_EXISTS);
 			}
 			throw error;
 		}
@@ -58,7 +64,8 @@ export class UsersService {
 			throw new ForbiddenError(ERROR.PASSWORD.INVALID);
 		}
 
-		const hashedPassword = await hash(updatePasswordDto.newPassword, 10);
+		const salt = this.configService.get<number>('cryptSalt');
+		const hashedPassword = await hash(updatePasswordDto.newPassword, salt);
 		const result = await this.usersRepository.update(userId, {
 			password: hashedPassword,
 		});
@@ -74,17 +81,18 @@ export class UsersService {
 
 	async createWithSignup(createUserDto: CreateUserDto) {
 		const { password, ...restCreateUser } = createUserDto;
-		const hashedPassword = await hash(password, 10);
+		const salt = this.configService.get<number>('cryptSalt');
+		const hashedPassword = await hash(password, salt);
 		try {
 			const result = await this.usersRepository.create({
 				...restCreateUser,
 				password: hashedPassword,
 			});
-			if (!result) throw new InternalServerErrorException(ERROR.USER.CREATE_FAILED);
+			if (!result) throw new InternalServerError(ERROR.USER.CREATE_FAILED);
 			return result;
 		} catch (error) {
 			if (pgError(error).isUniqueViolation) {
-				throw new ValidationError(ERROR.USER.LOGIN_ALREADY_TAKEN);
+				throw new ConflictError(ERROR.USER.LOGIN_ALREADY_TAKEN);
 			}
 			throw error;
 		}

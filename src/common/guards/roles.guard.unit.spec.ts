@@ -1,6 +1,6 @@
-import { ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
+import { ForbiddenError } from 'src/common/errors/forbidden.error';
 
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -78,13 +78,13 @@ describe('RolesGuard', () => {
 		expect(guard.canActivate(mockViewerContext)).toBe(true);
 	});
 
-	it('should not allow unauthenticated user to access and throw ForbiddenException()', () => {
+	it('should not allow unauthenticated user to access and throw ForbiddenError', () => {
 		mockReflector.getAllAndOverride.mockImplementation((key) => {
 			if (key === IS_PUBLIC_KEY) return false;
 			return null;
 		});
 
-		expect(() => guard.canActivate(mockUnauthenticatedContext)).toThrow(ForbiddenException);
+		expect(() => guard.canActivate(mockUnauthenticatedContext)).toThrow(ForbiddenError);
 	});
 
 	it('should allow admin to access', () => {
@@ -109,13 +109,13 @@ describe('RolesGuard', () => {
 		expect(guard.canActivate(mockViewerContext)).toBe(true);
 	});
 
-	it('should not allow viewer to access as admin is required', () => {
+	it('should not allow viewer to access as admin is required and throw ForbiddenError()', () => {
 		mockReflector.getAllAndOverride.mockImplementation((key) => {
 			if (key === IS_PUBLIC_KEY) return false;
 			if (key === ROLES_KEY) return [USER_ROLES.ADMIN];
 			return null;
 		});
-		expect(() => guard.canActivate(mockViewerContext)).toThrow(ForbiddenException);
+		expect(() => guard.canActivate(mockViewerContext)).toThrow(ForbiddenError);
 	});
 
 	it('should return false if no roles are required', () => {

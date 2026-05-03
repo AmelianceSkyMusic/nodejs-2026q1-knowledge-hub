@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import 'dotenv/config';
+import { ilike } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 
@@ -20,6 +21,10 @@ export default async function globalSetup(): Promise<void> {
 		relations,
 		casing: 'snake_case',
 	});
+
+	await db.delete(schema.articles).where(ilike(schema.articles.title, 'TEST_%'));
+	await db.delete(schema.categories).where(ilike(schema.categories.name, 'TEST_%'));
+	await db.delete(schema.users).where(ilike(schema.users.login, 'TEST_%'));
 
 	const hashedPassword = await bcrypt.hash(SEED_ADMIN_PASSWORD, 10);
 

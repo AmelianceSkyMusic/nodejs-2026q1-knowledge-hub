@@ -1,8 +1,12 @@
+import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { ZodValidationException } from 'nestjs-zod';
+import {
+	ZodSchemaDeclarationException,
+	ZodSerializationException,
+	ZodValidationException,
+} from 'nestjs-zod';
 import { z, ZodError } from 'zod';
 
-import { AppLogger } from '../app-logger/app-logger.service';
 import { ZodExceptionFilter } from './zod-exception.filter';
 
 import type { ArgumentsHost } from '@nestjs/common';
@@ -10,37 +14,35 @@ import type { TestingModule } from '@nestjs/testing';
 
 describe('ZodExceptionFilter', () => {
 	let filter: ZodExceptionFilter;
-	let mockLogger: AppLogger;
 
 	const mockResponse = {
 		status: vi.fn().mockReturnThis(),
 		json: vi.fn().mockReturnThis(),
 	};
 
+	const mockRequest = {
+		method: 'GET',
+		url: '/test',
+		id: 'test-id',
+		user: { userId: 'user-id' },
+	};
+
 	const mockArgumentsHost = {
 		switchToHttp: () => ({
 			getResponse: () => mockResponse,
+			getRequest: () => mockRequest,
 		}),
 	} as unknown as ArgumentsHost;
 
 	beforeEach(async () => {
-		mockLogger = {
-			warn: vi.fn(),
-			error: vi.fn(),
-		} as unknown as AppLogger;
-
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [
-				ZodExceptionFilter,
-				{
-					provide: AppLogger,
-					useValue: mockLogger,
-				},
-			],
+			providers: [ZodExceptionFilter],
 		}).compile();
 
 		filter = module.get<ZodExceptionFilter>(ZodExceptionFilter);
 		vi.clearAllMocks();
+		vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+		vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 	});
 
 	it('should be defined', () => {
@@ -63,12 +65,43 @@ describe('ZodExceptionFilter', () => {
 		});
 	});
 
-	it('should log warning for ZodValidationException', () => {
-		const zodError = new ZodError([]);
-		const exception = new ZodValidationException(zodError);
+	it('should catch ZodSerializationException and return status and log error', () => {
+		const zodError = new ZodError([{ path: ['test'], message: 'invalid', code: 'custom' }]);
+		const exception = new ZodSerializationException(zodError);
 
 		filter.catch(exception, mockArgumentsHost);
 
-		expect(mockLogger.warn).toHaveBeenCalled();
+		expect(mockResponse.status).toHaveBeenCalledWith(500);
+		expect(Logger.prototype.error).toHaveBeenCalled();
+	});
+
+	it('should catch ZodSchemaDeclarationException and return 500 status', () => {
+		const exception = new ZodSchemaDeclarationException();
+
+		filter.catch(exception, mockArgumentsHost);
+
+		expect(mockResponse.status).toHaveBeenCalledWith(500);
+		expect(mockResponse.json).toHaveBeenCalledWith(
+			expect.objectContaining({
+				statusCode: 500,
+				message: 'Missing nestjs-zod schema declaration (DTO) for parameter',
+			}),
+		);
+		expect(Logger.prototype.error).toHaveBeenCalled();
+	});
+
+	it('should return 500 for unknown exception data', () => {
+		const exception = {
+			getStatus: () => 400,
+			getZodError: () => ({}),
+		} as any;
+
+		filter.catch(exception, mockArgumentsHost);
+
+		expect(mockResponse.status).toHaveBeenCalledWith(500);
+		expect(mockResponse.json).toHaveBeenCalledWith({
+			statusCode: 500,
+			message: 'Internal Server Error',
+		});
 	});
 });

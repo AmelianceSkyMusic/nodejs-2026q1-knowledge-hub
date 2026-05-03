@@ -1,60 +1,66 @@
-import { Injectable, Logger as NestLogger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Logger } from 'drizzle-orm/logger';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 
 import { relations } from './db/relations';
 import * as schema from './db/schema';
+import { DrizzleLogger } from './logger/drizzle.logger';
 import { DrizzleDb } from './types/drizzle-db';
-
-const SQL_KEYWORDS_REGEX =
-	/\b(select|from|where|insert into|values|returning|update|set|delete from|inner join|left join|and|or|order by|group by|limit|offset)\b/gi;
-
-class DrizzleLogger implements Logger {
-	private readonly logger = new NestLogger('Drizzle');
-
-	logQuery(query: string, params: unknown[]): void {
-		const formattedQuery = query.replaceAll(SQL_KEYWORDS_REGEX, '\n  $1');
-
-		const message = `\n[SQL]:${formattedQuery}${
-			params.length > 0 ? `\n[Params]:\n${JSON.stringify(params, null, 2)}` : ''
-		}`;
-
-		this.logger.verbose(message);
-	}
-}
 
 @Injectable()
 export class DrizzleService implements OnModuleInit, OnModuleDestroy {
 	public db: DrizzleDb;
 	private pool: Pool;
+	private isEnded = false;
+	private readonly logger = new Logger(DrizzleService.name);
 
-	constructor(configService: ConfigService) {
-		const databaseUrl = configService.get<string>('DATABASE_URL');
-		const dbLogs = configService.get<string>('DB_LOGS');
-		const isDbLogsEnabled = dbLogs === 'enable';
+	constructor(private configService: ConfigService) {
+		const databaseUrl = this.configService.get<string>('databaseUrl');
+		const isDbLogsEnabled = this.configService.get<boolean>('dbLogs');
+
+		const poolMax = this.configService.get<number>('dbPoolMax');
+		const poolIdleTimeout = this.configService.get<number>('dbPoolIdleTimeout');
+		const poolConnectionTimeout = this.configService.get<number>('dbPoolConnectionTimeout');
+		const poolMaxUses = this.configService.get<number>('dbPoolMaxUses');
 
 		this.pool = new Pool({
 			connectionString: databaseUrl,
-			max: 10,
-			idleTimeoutMillis: 10000,
+			max: poolMax,
+			idleTimeoutMillis: poolIdleTimeout,
+			connectionTimeoutMillis: poolConnectionTimeout,
+			maxUses: poolMaxUses,
 		});
 
 		this.db = drizzle({
 			client: this.pool,
 			schema,
 			relations,
-			casing: 'snake_case', //* convert all table and column names to snake_case, so we don't to describe it in schema
+			casing: 'snake_case', //* Convert all table and column names to snake_case, so we don't to describe it in schema
 			logger: isDbLogsEnabled ? new DrizzleLogger() : false,
 		});
 	}
 
 	async onModuleInit() {
-		await this.pool.connect();
+		try {
+			await this.pool.connect();
+			this.logger.log('Database connection established');
+		} catch (error) {
+			this.logger.error('Failed to connect to database', error.stack);
+			throw error;
+		}
 	}
 
 	async onModuleDestroy() {
-		await this.pool.end();
+		//* Prevent calling pool.end() multiple times if both shutdown hooks and manual close are triggered
+		if (this.isEnded) return;
+		this.isEnded = true;
+
+		try {
+			await this.pool.end();
+			this.logger.log('Database pool closed gracefully');
+		} catch (error) {
+			this.logger.error('Error closing database pool', error.stack);
+		}
 	}
 }

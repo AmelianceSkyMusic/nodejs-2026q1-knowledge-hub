@@ -1,5 +1,6 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Id } from 'shared/common/schemas/id.schema';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { NotFoundError } from 'src/common/errors/not-found.error';
 
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -25,7 +26,7 @@ export class CategoriesService {
 
 	async create(createCategoryDto: CreateCategoryDto) {
 		const result = await this.categoriesRepository.create(createCategoryDto);
-		if (!result) throw new InternalServerErrorException(ERROR.CATEGORY.CREATE_FAILED);
+		if (!result) throw new InternalServerError(ERROR.CATEGORY.CREATE_FAILED);
 		return result;
 	}
 

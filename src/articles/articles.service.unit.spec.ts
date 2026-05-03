@@ -1,8 +1,8 @@
-import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { BadRequestError } from 'src/common/errors/bad-request.error';
 import { ForbiddenError } from 'src/common/errors/forbidden.error';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { NotFoundError } from 'src/common/errors/not-found.error';
-import { ValidationError } from 'src/common/errors/validation.error';
 import { PG_ERROR } from 'src/common/utils/pg-error';
 
 import { ArticlesService } from './articles.service';
@@ -117,7 +117,7 @@ describe('ArticlesService', () => {
 			expect(mockArticlesRepository.findOne).toHaveBeenCalledWith(article.id);
 		});
 
-		it('should call .findOne() and throw NotFoundException if not found', async () => {
+		it('should call .findOne() and throw NotFoundError if not found', async () => {
 			mockArticlesRepository.findOne.mockResolvedValue(null);
 
 			await expect(service.findOne(article.id)).rejects.toThrow(NotFoundError);
@@ -138,17 +138,17 @@ describe('ArticlesService', () => {
 			});
 		});
 
-		it('should throw NotFoundException() if category does not exist (FK violation)', async () => {
+		it('should throw NotFoundError if category does not exist (foreign key violation)', async () => {
 			mockArticlesRepository.create.mockRejectedValue({ code: PG_ERROR.FOREIGN_KEY_VIOLATION });
 
 			await expect(service.create(createArticleDto, jwtUser)).rejects.toThrow(NotFoundError);
 		});
 
-		it('should throw InternalServerErrorException() if create returns null', async () => {
+		it('should throw InternalServerError if create returns null', async () => {
 			mockArticlesRepository.create.mockResolvedValue(null);
 
 			await expect(service.create(createArticleDto, jwtUser)).rejects.toThrow(
-				InternalServerErrorException,
+				InternalServerError,
 			);
 		});
 	});
@@ -173,7 +173,7 @@ describe('ArticlesService', () => {
 			expect(result).toEqual(article);
 		});
 
-		it('should throw ForbiddenException() if user is not owner and not admin', async () => {
+		it('should throw ForbiddenError if user is not owner and not admin', async () => {
 			mockArticlesRepository.findOne.mockResolvedValue({ ...article, authorId: 'another-id' });
 
 			await expect(service.update(article.id, updateArticleDto, jwtUser)).rejects.toThrow(
@@ -182,7 +182,7 @@ describe('ArticlesService', () => {
 			expect(mockArticlesRepository.update).not.toHaveBeenCalled();
 		});
 
-		it('should throw NotFoundException() if update returns null', async () => {
+		it('should throw NotFoundError if update returns null', async () => {
 			mockArticlesRepository.findOne.mockResolvedValue(article);
 			mockArticlesRepository.update.mockResolvedValue(null);
 
@@ -193,7 +193,7 @@ describe('ArticlesService', () => {
 			);
 		});
 
-		it('should allow valid status transition (DRAFT -> PUBLISHED)', async () => {
+		it('should allow valid status transition (draft -> published)', async () => {
 			const draftArticle = { ...article, status: ARTICLE_STATUS.DRAFT };
 			mockArticlesRepository.findOne.mockResolvedValue(draftArticle);
 			mockArticlesRepository.update.mockResolvedValue(article);
@@ -204,14 +204,14 @@ describe('ArticlesService', () => {
 			expect(mockArticlesRepository.update).toHaveBeenCalledWith(article.id, updateDto);
 		});
 
-		it('should throw BadRequestException for invalid status transition (ARCHIVED -> DRAFT)', async () => {
+		it('should throw BadRequestError for invalid status transition (archived -> draft)', async () => {
 			const archivedArticle = { ...article, status: ARTICLE_STATUS.ARCHIVED };
 			mockArticlesRepository.findOne.mockResolvedValue(archivedArticle);
 
 			const updateDto = { status: ARTICLE_STATUS.DRAFT } as UpdateArticleDto;
 
 			await expect(service.update(article.id, updateDto, adminUser)).rejects.toThrow(
-				ValidationError,
+				BadRequestError,
 			);
 			expect(mockArticlesRepository.update).not.toHaveBeenCalled();
 		});
@@ -228,7 +228,7 @@ describe('ArticlesService', () => {
 			expect(mockArticlesRepository.remove).toHaveBeenCalledWith(article.id);
 		});
 
-		it('should throw ForbiddenException if user is not owner and not admin', async () => {
+		it('should throw ForbiddenError if user is not owner and not admin', async () => {
 			mockArticlesRepository.findOne.mockResolvedValue({ ...article, authorId: 'other-id' });
 
 			await expect(service.remove(article.id, jwtUser)).rejects.toThrow(ForbiddenError);
@@ -244,7 +244,7 @@ describe('ArticlesService', () => {
 			expect(mockArticlesRepository.remove).toHaveBeenCalledWith(article.id);
 		});
 
-		it('should call .remove() and throw NotFoundException() if not found', async () => {
+		it('should throw NotFoundError if not found', async () => {
 			mockArticlesRepository.findOne.mockResolvedValue(article);
 			mockArticlesRepository.remove.mockResolvedValue(null);
 

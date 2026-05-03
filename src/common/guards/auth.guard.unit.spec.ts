@@ -123,7 +123,7 @@ describe('AuthGuard', () => {
 		expect(guard.canActivate(mockDocPathContext)).toBe(true);
 	});
 
-	it('should not allow unauthenticated user to access and throw UnauthorizedException()', () => {
+	it('should not allow unauthenticated user to access and throw UnauthorizedError()', () => {
 		mockReflector.getAllAndOverride.mockImplementation((key) => {
 			if (key === IS_PUBLIC_KEY) return false;
 			return null;

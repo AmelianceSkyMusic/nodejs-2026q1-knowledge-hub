@@ -1,16 +1,18 @@
 export const CUSTOM_ERROR = {
-	MESSAGES: {
-		INTERNAL_SERVER_ERROR: 'Internal Server Error',
-		UNEXPECTED_ERROR: 'An unexpected error occurred',
-		PORT_MISSING: 'PORT environment variable is missing',
-	},
-	ERROR_NAMES: {
+	NAMES: {
 		NOT_FOUND: 'NotFoundError',
 		VALIDATION: 'ValidationError',
 		UNAUTHORIZED: 'UnauthorizedError',
 		FORBIDDEN: 'ForbiddenError',
+		BAD_REQUEST: 'BadRequestError',
+		CONFLICT: 'ConflictError',
+		INTERNAL_SERVER_ERROR: 'InternalServerError',
+		UNPROCESSABLE_ENTITY: 'UnprocessableEntityError',
+		SERVICE_UNAVAILABLE: 'ServiceUnavailableError',
 	},
-	CONTEXTS: {
-		ALL_EXCEPTION_FILTER: 'AllExceptionsFilter',
+	MESSAGES: {
+		INTERNAL_SERVER_ERROR: 'Internal Server Error',
+		UNEXPECTED_ERROR: 'An unexpected error occurred',
+		PORT_MISSING: 'PORT environment variable is missing',
 	},
 };

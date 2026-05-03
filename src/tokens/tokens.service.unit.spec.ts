@@ -1,7 +1,7 @@
-import { InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { sign, verify } from 'jsonwebtoken';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 
 import { TokensRepository } from './repositories/tokens.repository';
 import { TokensService } from './tokens.service';
@@ -41,10 +41,10 @@ describe('TokensService', () => {
 
 	beforeEach(async () => {
 		mockConfigService.get.mockImplementation((key: string) => {
-			if (key === 'JWT_SECRET') return 'secret';
-			if (key === 'JWT_REFRESH_SECRET') return 'refresh-secret';
-			if (key === 'JWT_ACCESS_TTL') return '15m';
-			if (key === 'JWT_REFRESH_TTL') return '7d';
+			if (key === 'jwt.secret') return 'secret';
+			if (key === 'jwt.refreshSecret') return 'refresh-secret';
+			if (key === 'jwt.accessTtl') return '15m';
+			if (key === 'jwt.refreshTtl') return '7d';
 			return undefined;
 		});
 
@@ -86,26 +86,22 @@ describe('TokensService', () => {
 			expect(sign).toHaveBeenCalledTimes(2);
 		});
 
-		it('should throw InternalServerErrorException() if JWT_SECRET is missing', async () => {
+		it('should throw InternalServerError() if JWT_SECRET is missing', async () => {
 			mockConfigService.get.mockImplementation((key: string) => {
-				if (key === 'JWT_SECRET') return undefined;
+				if (key === 'jwt.secret') return undefined;
 				return 'val';
 			});
 
-			await expect(service.generateTokens(payload)).rejects.toThrow(
-				InternalServerErrorException,
-			);
+			await expect(service.generateTokens(payload)).rejects.toThrow(InternalServerError);
 		});
 
-		it('should throw InternalServerErrorException() if JWT_REFRESH_SECRET is missing', async () => {
+		it('should throw InternalServerError() if JWT_REFRESH_SECRET is missing', async () => {
 			mockConfigService.get = vi.fn().mockImplementation((key: string) => {
-				if (key === 'JWT_REFRESH_SECRET') return undefined;
+				if (key === 'jwt.refreshSecret') return undefined;
 				return 'secret';
 			});
 
-			await expect(service.generateTokens(payload)).rejects.toThrow(
-				InternalServerErrorException,
-			);
+			await expect(service.generateTokens(payload)).rejects.toThrow(InternalServerError);
 		});
 	});
 

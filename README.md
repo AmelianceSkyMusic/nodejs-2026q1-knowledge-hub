@@ -129,7 +129,7 @@ Press <kbd>F5</kbd> to debug.
 
 For more information, visit: https://code.visualstudio.com/docs/editor/debugging
 
-# Run db with container
+## Run db with container
 
 1. `npm run docker:down` (`docker compose down -v`) — stop, remove container with its volume
 2. `npm run db:generate -- --name init` (`npx drizzle-kit generate --name init`) — generate init migration file (if not init migration exists in /drizzle), or remove /drizzle folder and run this command to start from scratch
@@ -137,3 +137,138 @@ For more information, visit: https://code.visualstudio.com/docs/editor/debugging
 4. `npm run db:migrate` (`npx drizzle-kit migrate`) — run migration file
 5. `npm run db:seed` (`npx drizzle-kit seed`) — run seed file (optional)
 6. `npm run db:studio` (`npx drizzle-kit studio`) — open db studio
+
+## Requirements
+
+### How to obtain a Gemini API key
+
+1. **Create an account**: Sign in to your [Google Account](https://accounts.google.com)
+2. **Access AI Studio**: Visit [Google AI Studio](https://aistudio.google.com) and click **Get started**
+3. **Navigate to API Keys**: Click **Get API key** in the bottom-left sidebar or go directly to the [API Keys page](https://aistudio.google.com/app/apikey)
+4. **Generate Key**: Click **Create API key**, name key and select (or create) a project, and confirm
+5. **Configure**: Copy the key and paste it into your `.env` file under the `GEMINI_API_KEY` variable
+
+### Model Selection
+
+In assignment is assumed that you will use stable model
+
+Since `gemini-2.0-flash` has no free-tier limits, you can use next generation `gemini-2.5-flash` as a production ready model with best price-performance ratio, but for checking you can try other models:
+
+- **`gemini-2.5-flash`**: Production-ready and stable
+
+   _Limits: 5 RPM, 250K TPM, 20 RPD_
+
+- **`gemini-3.1-flash-lite-preview`**: Model with most generous free-tier limits, but not simple as gemma
+
+   _Limits: 15 RPM, 250K TPM, 500 RPD_
+
+- **`gemma-3-27b-it`**: Simple alternative model with high-limit for test purposes, but it doesn't work with system prompts as excepted and may has some issues with output data
+
+   _Limits: 30 RPM, 15K TPM, **14.4K RPD**_
+
+- **`gemini-3-flash-preview`**: Next-gen model currently in preview (not yet production-ready)
+
+   _Limits: 5 RPM, 250K TPM, 20 RPD_
+
+### Setup Guide
+
+Follow these steps to get the project running locally:
+
+1. **Clone the Repository**:
+
+   ```bash
+   git clone https://github.com/AmelianceSkyMusic/nodejs-2026q1-knowledge-hub.git .
+   ```
+
+2. **Switch to Target Branch**:
+   For the AI Integration assignment, use:
+
+   ```bash
+   git checkout kh-07-ai-llm-integration
+   ```
+
+3. **Install Dependencies & environment**:
+
+   ```bash
+   npm install
+   ```
+
+4. **Create and prepare `.env` file:**
+
+   ```bash
+   cp .env.example .env
+   ```
+
+5. **Configure API Key**:
+   Open the `.env` file and replace `your-gemini-api-key` with your actual key
+
+6. **Configure Model**:
+   Open the `.env` file and replace `gemini-2.0-flash` with your actual model
+
+7. **Initialize Services**:
+   You can start everything (database reset, migrations, and studio) with one command:
+
+   ```bash
+   npm run db:clean-start
+   ```
+
+   _If the above command fails, run these steps manually:_
+
+   ```bash
+   docker compose down -v
+   docker compose up db -d
+   # Wait for DB to start
+   npx drizzle-kit migrate
+   npx drizzle-kit studio
+   ```
+
+8. **Troubleshooting Docker**:
+   If Docker fails to start, try a full reset:
+
+   ```bash
+   docker stop postgres && docker rm postgres
+   docker compose down -v
+   ```
+
+   Ensure **Docker Desktop** is running
+
+9. **Launch the Application**:
+   ```bash
+   npm run dev
+   ```
+
+### Test AI endpoints
+
+**Custom client:**
+
+- Open `client/ai.html` in your browser
+
+**Scalar:**
+
+- http://localhost:4000/doc
+
+**Swagger:**
+
+- http://localhost:4000/doc/swagger
+
+**Generate json / yaml file and import in your favorite API client:**
+
+- http://localhost:4000/doc/json
+- http://localhost:4000/doc/yaml
+
+### Known limitations
+
+#### Model limitation
+
+| Model                         | RPM | TPM  | RPD   |
+| ----------------------------- | --- | ---- | ----- |
+| gemini-3-flash-preview        | 5   | 250K | 20    |
+| gemini-2.5-flash              | 5   | 250K | 20    |
+| gemini-3.1-flash-lite-preview | 15  | 250K | 500   |
+| gemma-3-27b-it                | 30  | 15K  | 14.4K |
+
+(Limits current as of 2026-05-01)
+
+Full details available at: [Google AI Studio Rate Limits](https://aistudio.google.com/rate-limit)
+
+⚠️ **Note**: Latency and regional availability may vary. Please verify service status in your current region

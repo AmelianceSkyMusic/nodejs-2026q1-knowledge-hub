@@ -5,7 +5,6 @@ import {
 	Get,
 	HttpCode,
 	HttpStatus,
-	NotFoundException,
 	Param,
 	Post,
 	Put,
@@ -36,7 +35,6 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { GetArticlesWithPaginationQueryDto } from './dto/get-articles-with-pagination.query.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 
-import { ERROR } from 'shared/common/constants/error';
 import { USER_ROLES } from 'shared/users/constants/user-role';
 import { SWAGGER } from 'src/common/constants/swagger';
 
@@ -83,9 +81,7 @@ export class ArticlesController {
 	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: ArticleDto })
 	async findOne(@Param() { id }: IdParamDto) {
-		const article = await this.articlesService.findOne(id);
-		if (!article) throw new NotFoundException(ERROR.ARTICLE.NOT_FOUND);
-		return article;
+		return await this.articlesService.findOne(id);
 	}
 
 	@Post()

@@ -1,9 +1,10 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sign, SignOptions, verify } from 'jsonwebtoken';
 import { JwtUser } from 'shared/auth/schemas/jwt-user.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 import { UserRole } from 'shared/users/types/user-role';
+import { InternalServerError } from 'src/common/errors/internal-server.error';
 
 import { TokensRepository } from './repositories/tokens.repository';
 
@@ -46,7 +47,7 @@ export class TokensService {
 	private generateAccessToken(payload: { userId: Id; login: string; role: UserRole }) {
 		const jwtSecret = this.getJwtSecret();
 		const accessTokenExpiresIn =
-			this.configService.get<SignOptions['expiresIn']>('JWT_ACCESS_TTL') || '15m';
+			this.configService.get<SignOptions['expiresIn']>('jwt.accessTtl');
 
 		return sign(payload, jwtSecret, {
 			expiresIn: accessTokenExpiresIn,
@@ -56,7 +57,7 @@ export class TokensService {
 	private generateRefreshToken(payload: { userId: Id; login: string; role: UserRole }) {
 		const jwtRefreshSecret = this.getJwtRefreshSecret();
 		const refreshTokenExpiresIn =
-			this.configService.get<SignOptions['expiresIn']>('JWT_REFRESH_TTL') || '7d';
+			this.configService.get<SignOptions['expiresIn']>('jwt.refreshTtl');
 
 		return sign(payload, jwtRefreshSecret, {
 			expiresIn: refreshTokenExpiresIn,
@@ -64,15 +65,15 @@ export class TokensService {
 	}
 
 	private getJwtSecret() {
-		const jwtSecret = this.configService.get<string>('JWT_SECRET');
-		if (!jwtSecret) throw new InternalServerErrorException(ERROR.ENV.JWT_SECRET_NOT_FOUND);
+		const jwtSecret = this.configService.get<string>('jwt.secret');
+		if (!jwtSecret) throw new InternalServerError(ERROR.ENV.JWT_SECRET_NOT_FOUND);
 		return jwtSecret;
 	}
 
 	private getJwtRefreshSecret() {
-		const jwtRefreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+		const jwtRefreshSecret = this.configService.get<string>('jwt.refreshSecret');
 		if (!jwtRefreshSecret) {
-			throw new InternalServerErrorException(ERROR.ENV.JWT_REFRESH_SECRET_NOT_FOUND);
+			throw new InternalServerError(ERROR.ENV.JWT_REFRESH_SECRET_NOT_FOUND);
 		}
 		return jwtRefreshSecret;
 	}

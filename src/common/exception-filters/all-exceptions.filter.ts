@@ -1,14 +1,13 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
-import { Response } from 'express';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
+import { Request, Response } from 'express';
 
-import { AppLogger } from '../app-logger/app-logger.service';
 import { AppError } from '../errors/app.error';
 
 import { CUSTOM_ERROR } from '../constants/custom-error';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-	constructor(private readonly appLogger: AppLogger) {}
+	private readonly logger = new Logger(AllExceptionsFilter.name);
 
 	catch(exception: unknown, host: ArgumentsHost) {
 		const ctx = host.switchToHttp();
@@ -29,8 +28,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
 					: CUSTOM_ERROR.MESSAGES.INTERNAL_SERVER_ERROR;
 
 		const stack = exception instanceof Error ? exception.stack : '';
-		const context = CUSTOM_ERROR.CONTEXTS.ALL_EXCEPTION_FILTER;
 
+		const isAppError = exception instanceof AppError;
 		const isHttpException = exception instanceof HttpException;
 		const isInternalError = statusCode === 500;
 
@@ -55,12 +54,27 @@ export class AllExceptionsFilter implements ExceptionFilter {
 			statusCode,
 			error: errorName,
 			message:
-				isInternalError && !isHttpException
+				isInternalError && !isHttpException && !isAppError
 					? CUSTOM_ERROR.MESSAGES.UNEXPECTED_ERROR
 					: errorMessage,
 		};
 
-		this.appLogger.error(`${method} ${url} - ${errorMessage}`, stack, context);
+		const logData = {
+			method,
+			url,
+			status: statusCode,
+			message: errorMessage,
+			requestId: req['id'],
+			userId: req.user?.userId,
+			stack,
+			type: 'out',
+		};
+
+		if (isInternalError) {
+			this.logger.error(logData, stack);
+		} else {
+			this.logger.warn(logData);
+		}
 
 		response.status(statusCode).json(responseBody);
 	}

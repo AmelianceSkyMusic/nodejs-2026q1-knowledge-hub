@@ -2,16 +2,72 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import { NativeLogger } from 'nestjs-pino';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 import { AppModule } from './app.module';
-import { AppLogger } from './common/app-logger/app-logger.service';
-import { AllExceptionsFilter } from './common/exception-filters/all-exceptions.filter';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule, {
 		bufferLogs: true,
 	});
+
+	const configService = app.get(ConfigService);
+
+	const isProduction = configService.get<boolean>('isProduction');
+
+	app.enableCors({
+		origin: isProduction ? configService.get('FRONTEND_URL') : true,
+		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+		credentials: true,
+		exposedHeaders: ['Retry-After', 'retry-after'],
+	});
+
+	const appLogger = app.get(NativeLogger);
+
+	app.useLogger(appLogger);
+	app.flushLogs();
+
+	const apiPrefix = configService.get<string>('apiPrefix');
+	if (apiPrefix) app.setGlobalPrefix(apiPrefix);
+
+	const gracefulExit = async (error: Error, type: string) => {
+		appLogger.fatal(`${type}: ${error.message}`, error.stack, 'Process');
+
+		const shutdownTimeout = isProduction ? 10000 : 0;
+
+		try {
+			await Promise.race([
+				app.close(),
+				new Promise((_, reject) =>
+					setTimeout(() => reject(new Error('Shutdown timeout')), shutdownTimeout),
+				),
+			]);
+		} catch (err) {
+			appLogger.error(
+				`Error during forced shutdown: ${err instanceof Error ? err.message : String(err)}`,
+				'',
+				'Process',
+			);
+		} finally {
+			process.exit(1);
+		}
+	};
+
+	process.on('uncaughtException', (err) => gracefulExit(err, 'Uncaught Exception'));
+	process.on('unhandledRejection', (reason) =>
+		gracefulExit(
+			reason instanceof Error ? reason : new Error(String(reason)),
+			'Unhandled Rejection',
+		),
+	);
+
+	if (isProduction) {
+		app.enableShutdownHooks();
+	} else {
+		process.on('SIGINT', () => process.exit(0));
+		process.on('SIGTERM', () => process.exit(0));
+	}
 
 	const config = new DocumentBuilder()
 		.setTitle('Knowledge Hub')
@@ -56,31 +112,6 @@ async function bootstrap() {
 		}),
 	);
 
-	const configService = app.get(ConfigService);
-
-	const apiPrefix = configService.get<string>('apiPrefix');
-	if (apiPrefix) app.setGlobalPrefix(apiPrefix);
-
-	const appLogger = app.get(AppLogger);
-
-	process.on('uncaughtException', (err) => {
-		appLogger.fatal(`Uncaught Exception: ${err.message}`, err.stack, 'Process');
-		app.close().then(() => {
-			setTimeout(() => process.exit(1), 1000);
-		});
-	});
-
-	process.on('unhandledRejection', (reason, promise) => {
-		appLogger.error(`Unhandled Rejection at: ${promise}, reason: ${reason}`, '', 'Process');
-		app.close().then(() => {
-			setTimeout(() => process.exit(1), 1000);
-		});
-	});
-
-	app.useLogger(appLogger);
-	app.useGlobalFilters(new AllExceptionsFilter(appLogger));
-	app.enableShutdownHooks();
-
 	const port = configService.get<number>('port');
 
 	if (!port) throw new Error('PORT environment variable is missing');
@@ -88,8 +119,9 @@ async function bootstrap() {
 	await app.listen(port);
 
 	appLogger.debug(
-		`\n  > Application is running on: http://localhost:${port}/${apiPrefix}`,
+		`> Application is running on: http://localhost:${port}/${apiPrefix}`,
 		'Bootstrap',
 	);
 }
+
 bootstrap();

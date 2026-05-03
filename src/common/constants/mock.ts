@@ -47,4 +47,10 @@ export const MOCK = {
 		CONTENT: 'Comment Content',
 		SORT_BY: COMMENT_SORT_BY.CREATED_AT,
 	},
+	AI: {
+		BASE_URL: 'https://generativelanguage.googleapis.com',
+		API_KEY: 'mock-api-key',
+		MODEL: 'gemini-2.5-flash',
+		MESSAGE: 'Mock AI response',
+	},
 } as const;
