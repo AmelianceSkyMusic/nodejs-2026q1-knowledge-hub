@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { ArticleAnalysisSchema } from 'shared/ai/schemas/article-analysis.schema';
+import { ArticleTranslationSchema } from 'shared/ai/schemas/article-translation.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 import { ArticlesService } from 'src/articles/articles.service';
 import { ServiceUnavailableError } from 'src/common/errors/service-unavailable.error';
@@ -18,6 +20,7 @@ import { masterPrompt } from './prompts/master.prompt';
 import { AiRepository } from './repositories/ai.repository';
 import { GeminiRequest } from './types/gemini/request.types';
 import { generateGeminiContent } from './utils/generate-gemini-content';
+import { parseAiResponse } from './utils/parse-ai-response';
 import { prepareAiResponse } from './utils/prepare-ai-response';
 
 @Injectable()
@@ -49,11 +52,13 @@ export class AiService {
 
 		this.aiRepository.updateStats('ai/summarize', tokens);
 
+		const cleanSummary = prepareAiResponse(messageText);
+
 		const response = {
 			articleId,
-			summary: messageText,
+			summary: cleanSummary,
 			originalLength: article.content.length,
-			summaryLength: messageText.length,
+			summaryLength: cleanSummary.length,
 		};
 		this.aiCacheService.setCache(cacheKey, response);
 
@@ -81,19 +86,7 @@ export class AiService {
 
 		const { messageText, tokens } = await this.runGemini(articleContent, systemInstruction);
 
-		const translatedArticle = JSON.parse(prepareAiResponse(messageText));
-
-		const isValidResponse =
-			'translatedText' in translatedArticle &&
-			translatedArticle.translatedText &&
-			'detectedLanguage' in translatedArticle &&
-			translatedArticle.detectedLanguage &&
-			typeof translatedArticle.translatedText === 'string' &&
-			translatedArticle.translatedText.length > 0 &&
-			typeof translatedArticle.detectedLanguage === 'string' &&
-			translatedArticle.detectedLanguage.length > 0;
-
-		if (!isValidResponse) throw new ServiceUnavailableError('AI error');
+		const translatedArticle = parseAiResponse(ArticleTranslationSchema, messageText);
 
 		this.aiRepository.updateStats('ai/translate', tokens);
 
@@ -117,15 +110,7 @@ export class AiService {
 
 		const { messageText, tokens } = await this.runGemini(articleContent, systemInstruction);
 
-		const analyzedArticle = JSON.parse(prepareAiResponse(messageText));
-
-		const isValidResponse =
-			'analysis' in analyzedArticle &&
-			'suggestions' in analyzedArticle &&
-			Array.isArray(analyzedArticle.suggestions) &&
-			'severity' in analyzedArticle;
-
-		if (!isValidResponse) throw new ServiceUnavailableError('AI error');
+		const analyzedArticle = parseAiResponse(ArticleAnalysisSchema, messageText);
 
 		this.aiRepository.updateStats('ai/analyze', tokens);
 
