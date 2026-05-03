@@ -24,6 +24,12 @@ export default () => {
 			accessTtl: process.env.JWT_ACCESS_TTL || '15m',
 			refreshTtl: process.env.JWT_REFRESH_TTL || '7d',
 		},
-		testMode: process.env.TEST_MODE === 'auth',
+		ai: {
+			apiKey: process.env.GEMINI_API_KEY,
+			model: process.env.GEMINI_MODEL,
+			baseUrl: process.env.GEMINI_API_BASE_URL,
+			rateLimit: Number(process.env.AI_RATE_LIMIT_RPM) || 20,
+			cacheTtlSec: Number(process.env.AI_CACHE_TTL_SEC) || 300,
+		},
 	};
 };
