@@ -13,6 +13,15 @@ async function bootstrap() {
 	});
 
 	const configService = app.get(ConfigService);
+
+	const isProduction = configService.get<boolean>('isProduction');
+
+	app.enableCors({
+		origin: isProduction ? configService.get('FRONTEND_URL') : true,
+		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+		credentials: true,
+	});
+
 	const appLogger = app.get(NativeLogger);
 
 	app.useLogger(appLogger);
@@ -21,7 +30,6 @@ async function bootstrap() {
 	const apiPrefix = configService.get<string>('apiPrefix');
 	if (apiPrefix) app.setGlobalPrefix(apiPrefix);
 
-	const isProduction = configService.get<boolean>('isProduction');
 	const gracefulExit = async (error: Error, type: string) => {
 		appLogger.fatal(`${type}: ${error.message}`, error.stack, 'Process');
 
