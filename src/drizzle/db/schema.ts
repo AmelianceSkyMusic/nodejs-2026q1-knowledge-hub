@@ -78,3 +78,9 @@ export type CommentEntity = typeof comments.$inferSelect;
 export type CategoryEntity = typeof categories.$inferSelect;
 export type TagEntity = typeof tags.$inferSelect;
 export type TokenEntity = typeof tokens.$inferSelect;
+
+export type ArticleWithRelationsEntity = ArticleEntity & {
+	author: UserEntity | null;
+	category: CategoryEntity | null;
+	tags: TagEntity[];
+};
