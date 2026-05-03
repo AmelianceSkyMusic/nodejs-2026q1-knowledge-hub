@@ -4,6 +4,7 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ZodSerializerInterceptor } from 'nestjs-zod';
 
+import { AiModule } from './ai/ai.module';
 import { ArticlesModule } from './articles/articles.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -62,6 +63,7 @@ import { UsersModule } from './users/users.module';
 		DrizzleModule,
 		AuthModule,
 		TokensModule,
+		AiModule,
 	],
 	providers: [
 		{
