@@ -262,10 +262,10 @@ Follow these steps to get the project running locally:
 
 | Model                         | RPM | TPM  | RPD   |
 | ----------------------------- | --- | ---- | ----- |
+| gemini-3-flash-preview        | 5   | 250K | 20    |
+| gemini-2.5-flash              | 5   | 250K | 20    |
 | gemini-3.1-flash-lite-preview | 15  | 250K | 500   |
 | gemma-3-27b-it                | 30  | 15K  | 14.4K |
-| gemini-2.5-flash              | 5   | 250K | 20    |
-| gemini-3-flash-preview        | 5   | 250K | 20    |
 
 (Limits current as of 2026-05-01)
 
