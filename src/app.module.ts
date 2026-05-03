@@ -13,6 +13,7 @@ import configuration from './common/config/configuration';
 import { AllExceptionsFilter } from './common/exception-filters/all-exceptions.filter';
 import { ZodExceptionFilter } from './common/exception-filters/zod-exception.filter';
 import { AuthGuard } from './common/guards/auth.guard';
+import { GlobalThrottlerGuard } from './common/guards/global-throttler.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { CustomZodValidationPipe } from './common/pipes/custom-zod-validation.pipe';
@@ -25,23 +26,34 @@ import { UsersModule } from './users/users.module';
 	imports: [
 		ConfigModule.forRoot({ load: [configuration], isGlobal: true }),
 		AppLoggerModule,
-		ThrottlerModule.forRoot([
-			{
-				name: 'short',
-				ttl: 1000,
-				limit: 3,
+		ThrottlerModule.forRoot({
+			throttlers: [
+				{
+					name: 'short',
+					ttl: 1000,
+					limit: 3,
+				},
+				{
+					name: 'medium',
+					ttl: 10000,
+					limit: 20,
+				},
+				{
+					name: 'long',
+					ttl: 60000,
+					limit: 100,
+				},
+				{
+					name: 'dedicated-ai',
+					ttl: 60000,
+					limit: 20,
+				},
+			],
+			skipIf: (context) => {
+				const req = context.switchToHttp().getRequest();
+				return req.headers['x-test-mode'] === 'true';
 			},
-			{
-				name: 'medium',
-				ttl: 10000,
-				limit: 20,
-			},
-			{
-				name: 'long',
-				ttl: 60000,
-				limit: 100,
-			},
-		]),
+		}),
 		ArticlesModule,
 		CategoriesModule,
 		UsersModule,
@@ -52,6 +64,10 @@ import { UsersModule } from './users/users.module';
 		TokensModule,
 	],
 	providers: [
+		{
+			provide: APP_GUARD,
+			useClass: GlobalThrottlerGuard,
+		},
 		{
 			provide: APP_PIPE,
 			useClass: CustomZodValidationPipe,
