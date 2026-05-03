@@ -106,10 +106,8 @@ export class GeminiService {
 			this.logger.warn(`AI blocked response: ${data.promptFeedback.blockReason}`);
 			throw new ServiceUnavailableError('AI Service is currently busy. Try again later');
 		}
-		if ('candidates' in data && data.candidates?.[0]) {
-			return data.candidates[0].content;
-		}
-		throw new ServiceUnavailableError('Empty AI response');
+
+		return data;
 	}
 
 	private prepareContent(content: GeminiRequest, model: string) {
