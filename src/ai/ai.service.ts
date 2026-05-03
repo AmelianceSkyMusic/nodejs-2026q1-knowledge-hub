@@ -3,6 +3,7 @@ import { Id } from 'shared/common/schemas/id.schema';
 import { ArticlesService } from 'src/articles/articles.service';
 import { ServiceUnavailableError } from 'src/common/errors/service-unavailable.error';
 
+import { AiCacheService } from './ai-cache.service';
 import { AnalyzeArticleDto } from './dto/analyze-article.dto';
 import { GenerateMessageDto } from './dto/generate-message.dto';
 import { SummarizeArticleDto } from './dto/summarize-article.dto';
@@ -25,10 +26,19 @@ export class AiService {
 		private readonly aiRepository: AiRepository,
 		private readonly geminiService: GeminiService,
 		private readonly articlesService: ArticlesService,
+		private readonly aiCacheService: AiCacheService,
 	) {}
 
 	async summarizeArticle(articleId: Id, summarizeArticleDto: SummarizeArticleDto) {
 		const article = await this.articlesService.findOne(articleId);
+		const cacheKey = `ai/summarize/${articleId}-${summarizeArticleDto.maxLength}-${article.updatedAt.getTime()}`;
+		const cached = this.aiCacheService.getCache(cacheKey) as {
+			articleId: Id;
+			summary: string;
+			originalLength: number;
+			summaryLength: number;
+		};
+		if (cached) return cached;
 
 		const articleContent = generateArticlePrompt(article);
 
@@ -39,16 +49,27 @@ export class AiService {
 
 		this.aiRepository.updateStats('ai/summarize', tokens);
 
-		return {
+		const response = {
 			articleId,
 			summary: messageText,
 			originalLength: article.content.length,
 			summaryLength: messageText.length,
 		};
+		this.aiCacheService.setCache(cacheKey, response);
+
+		return response;
 	}
 
 	async translateArticle(articleId: Id, translateArticleDto: TranslateArticleDto) {
 		const article = await this.articlesService.findOne(articleId);
+		const source = translateArticleDto.sourceLanguage || 'auto';
+		const cacheKey = `ai/translate/${articleId}-${source}-${translateArticleDto.targetLanguage}-${article.updatedAt.getTime()}`;
+		const cached = this.aiCacheService.getCache(cacheKey) as {
+			articleId: Id;
+			translatedText: string;
+			detectedLanguage: string;
+		};
+		if (cached) return cached;
 
 		const articleContent = generateArticlePrompt(article);
 
@@ -76,11 +97,14 @@ export class AiService {
 
 		this.aiRepository.updateStats('ai/translate', tokens);
 
-		return {
+		const response = {
 			articleId,
 			translatedText: translatedArticle.translatedText,
 			detectedLanguage: translatedArticle.detectedLanguage,
 		};
+		this.aiCacheService.setCache(cacheKey, response);
+
+		return response;
 	}
 
 	async analyzeArticle(articleId: Id, analyzeArticleDto: AnalyzeArticleDto) {
