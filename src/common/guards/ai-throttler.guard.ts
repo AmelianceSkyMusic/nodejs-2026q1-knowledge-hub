@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import {
+	ThrottlerException,
 	ThrottlerGuard,
+	ThrottlerLimitDetail,
 	ThrottlerModuleOptions,
 	ThrottlerRequest,
 	ThrottlerStorage,
@@ -34,5 +36,16 @@ export class AiThrottlerGuard extends ThrottlerGuard {
 			ttl,
 			throttler: { ...throttler, limit, ttl },
 		});
+	}
+	protected async throwThrottlingException(
+		context: ExecutionContext,
+		{ timeToExpire }: ThrottlerLimitDetail,
+	): Promise<void> {
+		const response = context.switchToHttp().getResponse();
+		const secondsToWait = Math.ceil(timeToExpire).toString();
+
+		response.setHeader('Retry-After', secondsToWait);
+
+		throw new ThrottlerException();
 	}
 }
