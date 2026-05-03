@@ -2,6 +2,10 @@ import { AppError } from './app.error';
 
 import { CUSTOM_ERROR } from '../constants/custom-error';
 
+/**
+ * Exception for 500 Internal Server Error responses.
+ * Used for unexpected server-side failures.
+ */
 export class InternalServerError extends AppError {
 	constructor(message: string) {
 		super({
