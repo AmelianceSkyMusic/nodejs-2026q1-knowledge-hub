@@ -158,13 +158,13 @@ Since `gemini-2.0-flash` has no free-tier limits, you can use next generation `g
 
    _Limits: 5 RPM, 250K TPM, 20 RPD_
 
-- **`gemini-3.1-flash-lite-preview`**: Model with most generous free-tier limits, but not simple as gemma
+- **`gemini-3.1-flash-lite`**: Model with most generous free-tier limits, but not simple as gemma
 
    _Limits: 15 RPM, 250K TPM, 500 RPD_
 
-- **`gemma-3-27b-it`**: Simple alternative model with high-limit for test purposes, but it doesn't work with system prompts as excepted and may has some issues with output data
+- **`gemini-3.1-flash-lite-preview`**: Preview version of the lite model with same limits
 
-   _Limits: 30 RPM, 15K TPM, **14.4K RPD**_
+   _Limits: 15 RPM, 250K TPM, 500 RPD_
 
 - **`gemini-3-flash-preview`**: Next-gen model currently in preview (not yet production-ready)
 
@@ -260,12 +260,12 @@ Follow these steps to get the project running locally:
 
 #### Model limitation
 
-| Model                         | RPM | TPM  | RPD   |
-| ----------------------------- | --- | ---- | ----- |
-| gemini-3-flash-preview        | 5   | 250K | 20    |
-| gemini-2.5-flash              | 5   | 250K | 20    |
-| gemini-3.1-flash-lite-preview | 15  | 250K | 500   |
-| gemma-3-27b-it                | 30  | 15K  | 14.4K |
+| Model                         | RPM | TPM  | RPD |
+| ----------------------------- | --- | ---- | --- |
+| gemini-3-flash-preview        | 5   | 250K | 20  |
+| gemini-2.5-flash              | 5   | 250K | 20  |
+| gemini-3.1-flash-lite         | 15  | 250K | 500 |
+| gemini-3.1-flash-lite-preview | 15  | 250K | 500 |
 
 (Limits current as of 2026-05-01)
 
