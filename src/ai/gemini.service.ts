@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger } from '@nestjs/common';
+import { OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom, retry, timer } from 'rxjs';
 import { BadRequestError } from 'src/common/errors/bad-request.error';
@@ -12,13 +13,60 @@ import { GeminiResponse } from './types/gemini/response.types';
 
 import { MODELS } from './constants/models';
 
+type GeminiModel = {
+	name: string;
+	inputTokenLimit?: number;
+	outputTokenLimit?: number;
+};
+
+type GeminiListModelsResponse = {
+	models: GeminiModel[];
+};
+
 @Injectable()
-export class GeminiService {
+export class GeminiService implements OnModuleInit {
 	private readonly logger = new Logger(GeminiService.name);
 	constructor(
 		private readonly httpService: HttpService,
 		private readonly configService: ConfigService,
 	) {}
+
+	async onModuleInit() {
+		const isProduction = this.configService.get<boolean>('isProduction');
+		if (!isProduction) {
+			try {
+				const models = await this.listModels();
+				const formattedModels = models
+					.map((model: GeminiModel) => {
+						const name = model.name.replace('models/', '');
+						const inputLimit = model.inputTokenLimit
+							? this.formatTokens(model.inputTokenLimit)
+							: '?';
+						const outputLimit = model.outputTokenLimit
+							? this.formatTokens(model.outputTokenLimit)
+							: '?';
+
+						const localConfig = (MODELS.GEMINI as Record<string, unknown>)[name] as
+							| { rpm: number; tpm: number; rpd: number }
+							| undefined;
+						let quotaInfo = '';
+						if (localConfig) {
+							const rpm = localConfig.rpm;
+							const tpm =
+								localConfig.tpm === Infinity ? '∞' : this.formatTokens(localConfig.tpm);
+							const rpd = localConfig.rpd;
+							quotaInfo = ` [RPM: ${rpm}, TPM: ${tpm}, RPD: ${rpd}]`;
+						}
+
+						return `\n - ${name} (In: ${inputLimit}, Out: ${outputLimit})${quotaInfo}`;
+					})
+					.join('');
+				this.logger.debug(`Available Gemini models:${formattedModels}`);
+			} catch (e) {
+				this.logger.error('Failed to list Gemini models', e);
+			}
+		}
+	}
 
 	async sendMessage(content: GeminiRequest) {
 		const isProduction = this.configService.get<boolean>('isProduction');
@@ -127,5 +175,30 @@ export class GeminiService {
 				{ ...lastContent, parts: [{ text: messageWithInstructions }] },
 			],
 		};
+	}
+
+	private async listModels() {
+		const aiConfig = this.configService.get('ai');
+		if (!aiConfig) throw new InternalServerError('AI config missing');
+		const { baseUrl, apiKey } = aiConfig;
+
+		const url = `${baseUrl}/v1beta/models?key=${apiKey}`;
+
+		const { data } = await firstValueFrom(
+			this.httpService.get<GeminiListModelsResponse>(url).pipe(
+				catchError((error) => {
+					this.logger.error(`Failed to list models: ${error.message}`);
+					throw error;
+				}),
+			),
+		);
+
+		return data.models || [];
+	}
+
+	private formatTokens(n: number): string {
+		if (n >= 1_000_000) return `${Math.round(n / 1_000_000)}M`;
+		if (n >= 1_000) return `${Math.round(n / 1_000)}K`;
+		return n.toString();
 	}
 }
