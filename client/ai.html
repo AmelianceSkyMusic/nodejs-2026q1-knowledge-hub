@@ -1081,10 +1081,20 @@
 							<span style="font-size: 0.75rem; font-weight: 800; color: white; letter-spacing: -0.02em;">${data.totalRequests || 0}</span>
 							<span style="font-size: 0.55rem; font-weight: 600; color: #818cf8; text-transform: uppercase; letter-spacing: 0.05em;">reqs</span>
 						</div>
-						<div style="display: flex; align-items: center; gap: 0.35rem; padding-left: 0.15rem;">
+						<div style="display: flex; align-items: center; gap: 0.35rem; padding: 0 0.5rem; border-right: 1px solid rgba(99, 102, 241, 0.3);">
 							<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>
 							<span style="font-size: 0.75rem; font-weight: 800; color: white; letter-spacing: -0.02em;">${(data.totalTokens || 0).toLocaleString()}</span>
 							<span style="font-size: 0.55rem; font-weight: 600; color: #818cf8; text-transform: uppercase; letter-spacing: 0.05em;">tokens</span>
+						</div>
+						<div style="display: flex; align-items: center; gap: 0.35rem; padding: 0 0.5rem; border-right: 1px solid rgba(99, 102, 241, 0.3);">
+							<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+							<span style="font-size: 0.75rem; font-weight: 800; color: white; letter-spacing: -0.02em;">${(parseFloat(data.cacheHitRatio || 0) * 100).toFixed(0)}%</span>
+							<span style="font-size: 0.55rem; font-weight: 600; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">cache</span>
+						</div>
+						<div style="display: flex; align-items: center; gap: 0.35rem; padding-left: 0.15rem;">
+							<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+							<span style="font-size: 0.75rem; font-weight: 800; color: white; letter-spacing: -0.02em;">${data.avgLatencyMs || 0}</span>
+							<span style="font-size: 0.55rem; font-weight: 600; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.05em;">ms</span>
 						</div>
 					`;
 
