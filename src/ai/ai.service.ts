@@ -41,16 +41,23 @@ export class AiService {
 			originalLength: number;
 			summaryLength: number;
 		};
-		if (cached) return cached;
+		if (cached) {
+			this.aiRepository.recordCacheHit();
+			return cached;
+		}
+		this.aiRepository.recordCacheMiss();
 
 		const articleContent = generateArticlePrompt(article);
 
 		const maxLengthPrompt = getSummarizeArticleMaxLengthPrompt(summarizeArticleDto.maxLength);
 		const systemInstruction = `${masterPrompt}\n${maxLengthPrompt}`;
 
-		const { messageText, tokens } = await this.runGemini(articleContent, systemInstruction);
+		const { messageText, tokens, latency } = await this.runGemini(
+			articleContent,
+			systemInstruction,
+		);
 
-		this.aiRepository.updateStats('ai/summarize', tokens);
+		this.aiRepository.updateStats('ai/summarize', tokens, latency);
 
 		const cleanSummary = prepareAiResponse(messageText);
 
@@ -74,7 +81,11 @@ export class AiService {
 			translatedText: string;
 			detectedLanguage: string;
 		};
-		if (cached) return cached;
+		if (cached) {
+			this.aiRepository.recordCacheHit();
+			return cached;
+		}
+		this.aiRepository.recordCacheMiss();
 
 		const articleContent = generateArticlePrompt(article);
 
@@ -84,14 +95,17 @@ export class AiService {
 		);
 		const systemInstruction = `${masterPrompt}\n${translationPrompt}`;
 
-		const { messageText, tokens } = await this.runGemini(articleContent, systemInstruction);
+		const { messageText, tokens, latency } = await this.runGemini(
+			articleContent,
+			systemInstruction,
+		);
 
 		const translatedArticle = parseAiResponse(
 			ArticleTranslationSchema.omit({ articleId: true }),
 			messageText,
 		);
 
-		this.aiRepository.updateStats('ai/translate', tokens);
+		this.aiRepository.updateStats('ai/translate', tokens, latency);
 
 		const response = {
 			articleId,
@@ -111,14 +125,17 @@ export class AiService {
 		const analyzeArticlePrompt = getAnalyzeArticlePrompt(analyzeArticleDto.task);
 		const systemInstruction = `${masterPrompt}\n${analyzeArticlePrompt}`;
 
-		const { messageText, tokens } = await this.runGemini(articleContent, systemInstruction);
+		const { messageText, tokens, latency } = await this.runGemini(
+			articleContent,
+			systemInstruction,
+		);
 
 		const analyzedArticle = parseAiResponse(
 			ArticleAnalysisSchema.omit({ articleId: true }),
 			messageText,
 		);
 
-		this.aiRepository.updateStats('ai/analyze', tokens);
+		this.aiRepository.updateStats('ai/analyze', tokens, latency);
 
 		return {
 			articleId,
@@ -146,14 +163,14 @@ export class AiService {
 			},
 		};
 
-		const { messageText, tokens } = await this.sendGeminiMessage(content);
+		const { messageText, tokens, latency } = await this.sendGeminiMessage(content);
 
 		this.aiRepository.addMessageByUserId(userId, {
 			role: 'model',
 			parts: [{ text: messageText }],
 		});
 
-		this.aiRepository.updateStats('ai/generate', tokens);
+		this.aiRepository.updateStats('ai/generate', tokens, latency);
 
 		return { message: messageText };
 	}
@@ -163,7 +180,10 @@ export class AiService {
 	}
 
 	private async sendGeminiMessage(content: GeminiRequest) {
+		const start = performance.now();
 		const geminiResponse = await this.geminiService.sendMessage(content);
+		const latency = performance.now() - start;
+
 		if ('error' in geminiResponse) throw new ServiceUnavailableError('AI error');
 
 		const responsePart = geminiResponse?.candidates?.[0]?.content?.parts?.[0];
@@ -171,7 +191,7 @@ export class AiService {
 
 		const tokens = geminiResponse?.usageMetadata?.totalTokenCount;
 
-		return { messageText, tokens };
+		return { messageText, tokens, latency };
 	}
 
 	private async runGemini(prompt: string, systemPrompt?: string) {

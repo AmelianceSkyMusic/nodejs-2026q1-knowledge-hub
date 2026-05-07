@@ -18,6 +18,9 @@ export class AiRepository {
 	protected statsByEndpoint = new Map<string, { requests: number; tokens: number }>();
 	protected totalRequests = 0;
 	protected totalTokens = 0;
+	protected totalLatency = 0;
+	protected cacheHits = 0;
+	protected cacheMisses = 0;
 
 	createByUser(userId: Id) {
 		const chatSession: ChatSession = {
@@ -43,7 +46,7 @@ export class AiRepository {
 		return this.chatSessions.get(userId);
 	}
 
-	updateStats(endpoint: string, tokens: number = 0) {
+	updateStats(endpoint: string, tokens: number = 0, latency: number = 0) {
 		const current = this.statsByEndpoint.get(endpoint) || { requests: 0, tokens: 0 };
 		this.statsByEndpoint.set(endpoint, {
 			requests: current.requests + 1,
@@ -51,12 +54,33 @@ export class AiRepository {
 		});
 		this.totalRequests = this.totalRequests + 1;
 		this.totalTokens = this.totalTokens + tokens;
+		this.totalLatency = this.totalLatency + latency;
+	}
+
+	recordCacheHit() {
+		this.cacheHits++;
+	}
+
+	recordCacheMiss() {
+		this.cacheMisses++;
 	}
 
 	getStatistics() {
+		const cacheHitRatio =
+			this.cacheHits + this.cacheMisses > 0
+				? (this.cacheHits / (this.cacheHits + this.cacheMisses)).toFixed(2)
+				: '0.00';
+
+		const avgLatency =
+			this.totalRequests > 0 ? (this.totalLatency / this.totalRequests).toFixed(2) : '0';
+
 		return {
 			totalRequests: this.totalRequests,
 			totalTokens: this.totalTokens,
+			avgLatencyMs: avgLatency,
+			cacheHits: this.cacheHits,
+			cacheMisses: this.cacheMisses,
+			cacheHitRatio,
 			endpoints: Object.fromEntries(this.statsByEndpoint),
 		};
 	}
