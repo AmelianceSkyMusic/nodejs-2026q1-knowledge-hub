@@ -74,8 +74,7 @@ export class GeminiService implements OnModuleInit {
 		if (!aiConfig) throw new InternalServerError('AI config missing');
 		const { baseUrl, model, apiKey } = aiConfig;
 
-		const geminiModel = model || MODELS.GEMINI['gemma-3-27b-it'].model;
-		const promptContent = this.prepareContent(content, geminiModel);
+		const geminiModel = model || MODELS.GEMINI['gemini-3.1-flash-lite'].model;
 		const url = `${baseUrl}/v1beta/models/${geminiModel}:generateContent`;
 
 		const headers = {
@@ -88,7 +87,7 @@ export class GeminiService implements OnModuleInit {
 
 		const { data } = await firstValueFrom(
 			this.httpService
-				.post<GeminiResponse | GeminiErrorResponse>(url, promptContent, {
+				.post<GeminiResponse | GeminiErrorResponse>(url, content, {
 					headers,
 				})
 				.pipe(
@@ -156,25 +155,6 @@ export class GeminiService implements OnModuleInit {
 		}
 
 		return data;
-	}
-
-	private prepareContent(content: GeminiRequest, model: string) {
-		if (!model.startsWith('gemma')) return content;
-
-		const lastContent = content.contents[content.contents.length - 1];
-		const lastPart = lastContent?.parts?.[0];
-		const lastMessage = lastPart && 'text' in lastPart ? lastPart.text : '';
-
-		const systemPart = content?.systemInstruction?.parts?.[0];
-		const systemInstruction = systemPart && 'text' in systemPart ? systemPart.text : '';
-		const messageWithInstructions = `# System Instruction:\n${systemInstruction}\n\n# Message:\n${lastMessage}`;
-		const messagesWithoutLast = content.contents.slice(0, content.contents.length - 1);
-		return {
-			contents: [
-				...messagesWithoutLast,
-				{ ...lastContent, parts: [{ text: messageWithInstructions }] },
-			],
-		};
 	}
 
 	private async listModels() {
