@@ -44,6 +44,7 @@ describe('GeminiService', () => {
 					provide: HttpService,
 					useValue: {
 						post: vi.fn(),
+						get: vi.fn(),
 					},
 				},
 				{
@@ -95,7 +96,7 @@ describe('GeminiService', () => {
 
 			const result = await service.sendMessage(mockRequest);
 
-			expect(result).toEqual(mockResponse.data.candidates[0].content);
+			expect(result).toEqual(mockResponse.data);
 			expect(httpService.post).toHaveBeenCalledWith(
 				expect.stringContaining(MOCK.AI.MODEL),
 				mockRequest,
@@ -108,40 +109,47 @@ describe('GeminiService', () => {
 			);
 		});
 
-		it('should prepare content for gemma models', async () => {
-			const gemmaRequest = {
-				contents: [{ role: 'user' as const, parts: [{ text: 'Hello' }] as [{ text: string }] }],
-				systemInstruction: { parts: [{ text: 'Be helpful' }] as [{ text: string }] },
-			};
-
-			vi.spyOn(configService, 'get').mockImplementation((key: string) => {
-				if (key === 'ai') return { ...mockAiConfig, model: 'gemma-2b' };
-				return false;
-			});
-			vi.spyOn(httpService, 'post').mockReturnValue(of(mockResponse as any));
-
-			await service.sendMessage(gemmaRequest);
-
-			const expectedContent = {
-				contents: [
-					{
-						role: 'user',
-						parts: [{ text: '# System Instruction:\nBe helpful\n\n# Message:\nHello' }],
-					},
-				],
-			};
-
-			expect(httpService.post).toHaveBeenCalledWith(
-				expect.stringContaining('gemma-2b'),
-				expectedContent,
-				expect.anything(),
-			);
-		});
-
 		it('should throw InternalServerError if AI config is missing', async () => {
 			vi.spyOn(configService, 'get').mockReturnValue(null);
 
 			await expect(service.sendMessage(mockRequest)).rejects.toThrow(InternalServerError);
+		});
+
+		it('should use default model if model is missing in config', async () => {
+			vi.spyOn(configService, 'get').mockImplementation((key: string) => {
+				if (key === 'ai') return { baseUrl: mockAiConfig.baseUrl, apiKey: mockAiConfig.apiKey };
+				if (key === 'isProduction') return false;
+				return null;
+			});
+			vi.spyOn(httpService, 'post').mockReturnValue(of(mockResponse as any));
+
+			await service.sendMessage(mockRequest);
+
+			expect(httpService.post).toHaveBeenCalledWith(
+				expect.stringContaining('gemini-3.1-flash-lite'),
+				expect.anything(),
+				expect.anything(),
+			);
+		});
+
+		it('should not log debug error message in production environment', async () => {
+			vi.spyOn(configService, 'get').mockImplementation((key: string) => {
+				if (key === 'isProduction') return true;
+				if (key === 'ai') return mockAiConfig;
+				return null;
+			});
+			const errorResponse = {
+				response: {
+					status: 400,
+					data: { error: { message: 'Invalid request' } },
+				},
+			};
+			vi.spyOn(httpService, 'post').mockReturnValue(throwError(() => errorResponse));
+			const loggerSpy = vi.spyOn((service as any).logger, 'debug');
+
+			await expect(service.sendMessage(mockRequest)).rejects.toThrow();
+
+			expect(loggerSpy).not.toHaveBeenCalled();
 		});
 
 		it('should throw ServiceUnavailableError if response is blocked', async () => {
@@ -159,7 +167,8 @@ describe('GeminiService', () => {
 			const emptyResponse = { data: {} };
 			vi.spyOn(httpService, 'post').mockReturnValue(of(emptyResponse as any));
 
-			await expect(service.sendMessage(mockRequest)).rejects.toThrow(ServiceUnavailableError);
+			const result = await service.sendMessage(mockRequest);
+			expect(result).toEqual({});
 		});
 
 		it('should handle 400 Bad Request', async () => {
@@ -227,6 +236,83 @@ describe('GeminiService', () => {
 			vi.spyOn(httpService, 'post').mockReturnValue(throwError(() => errorResponse));
 
 			await expect(service.sendMessage(mockRequest)).rejects.toThrow(ServiceUnavailableError);
+		});
+	});
+
+	describe('onModuleInit', () => {
+		const mockModelsResponse = {
+			data: {
+				models: [
+					{
+						name: 'models/gemini-2.5-flash',
+						inputTokenLimit: 30000,
+						outputTokenLimit: 2048,
+					},
+					{
+						name: 'models/gemini-ultra',
+						inputTokenLimit: 1000000,
+						outputTokenLimit: 4096,
+					},
+					{
+						name: 'models/small-model',
+						inputTokenLimit: 500,
+					},
+					{
+						name: 'models/gemma-4-31b-it',
+						inputTokenLimit: 1000000,
+					},
+					{
+						name: 'models/no-limits',
+					},
+				],
+			},
+		};
+
+		it('should log available models in non-production environment', async () => {
+			vi.spyOn(httpService, 'get').mockReturnValue(of(mockModelsResponse as any));
+			const loggerSpy = vi.spyOn((service as any).logger, 'debug');
+
+			await service.onModuleInit();
+
+			expect(httpService.get).toHaveBeenCalled();
+			expect(loggerSpy).toHaveBeenCalledWith(expect.stringContaining('gemini-2.5-flash'));
+			expect(loggerSpy).toHaveBeenCalledWith(expect.stringContaining('30K'));
+			expect(loggerSpy).toHaveBeenCalledWith(expect.stringContaining('1M'));
+		});
+
+		it('should do nothing in production environment', async () => {
+			vi.spyOn(configService, 'get').mockImplementation((key: string) => {
+				if (key === 'isProduction') return true;
+				if (key === 'ai') return mockAiConfig;
+				return null;
+			});
+
+			await service.onModuleInit();
+
+			expect(httpService.get).not.toHaveBeenCalled();
+		});
+
+		it('should handle error when listing models fails', async () => {
+			vi.spyOn(httpService, 'get').mockReturnValue(throwError(() => new Error('Failed')));
+			const loggerSpy = vi.spyOn((service as any).logger, 'error');
+
+			await service.onModuleInit();
+
+			expect(loggerSpy).toHaveBeenCalledWith('Failed to list Gemini models', expect.any(Error));
+		});
+
+		it('should throw InternalServerError if AI config is missing during listModels', async () => {
+			vi.spyOn(configService, 'get').mockReturnValue(null);
+
+			await expect((service as any).listModels()).rejects.toThrow(InternalServerError);
+		});
+
+		it('should return empty array if models property is missing in response', async () => {
+			vi.spyOn(httpService, 'get').mockReturnValue(of({ data: {} } as any));
+
+			const result = await (service as any).listModels();
+
+			expect(result).toEqual([]);
 		});
 	});
 });
