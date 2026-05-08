@@ -6,6 +6,8 @@ export class LoggerMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(LoggerMiddleware.name);
 
 	use(req: Request, res: Response, next: NextFunction) {
+		if (req.originalUrl === '/favicon.ico') return next();
+
 		const start = performance.now();
 		const requestId =
 			(req.headers['x-request-id'] as string) ||
