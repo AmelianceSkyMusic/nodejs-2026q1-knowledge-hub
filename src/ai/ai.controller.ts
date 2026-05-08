@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
 	ApiNotFoundResponse,
@@ -47,6 +47,7 @@ export class AiController {
 		description: 'Article id',
 		format: SWAGGER.FORMAT.ID,
 	})
+	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: ArticleSummaryDto })
 	async summarizeArticle(
 		@Param() { id: articleId }: IdParamDto,
@@ -69,6 +70,7 @@ export class AiController {
 		description: 'Article id',
 		format: SWAGGER.FORMAT.ID,
 	})
+	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: ArticleTranslationDto })
 	async translateArticle(
 		@Param() { id: articleId }: IdParamDto,
@@ -90,6 +92,7 @@ export class AiController {
 		description: 'Article id',
 		format: SWAGGER.FORMAT.ID,
 	})
+	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: ArticleAnalysisDto })
 	async analyzeArticle(
 		@Param() { id: articleId }: IdParamDto,
@@ -104,6 +107,7 @@ export class AiController {
 		summary: 'Generate message',
 		description: 'Generates a message',
 	})
+	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: MessageDto })
 	async generateMessage(
 		@CurrentUser() { userId }: JwtUserDto,
@@ -117,6 +121,7 @@ export class AiController {
 		summary: 'Get AI usage statistics',
 		description: 'Returns statistics for AI requests',
 	})
+	@HttpCode(HttpStatus.OK)
 	async getStatistics() {
 		return await this.aiService.getStatistics();
 	}
