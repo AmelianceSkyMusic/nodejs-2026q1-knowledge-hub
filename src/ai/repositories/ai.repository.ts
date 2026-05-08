@@ -1,15 +1,11 @@
+import { InternalServerError } from 'src/common/errors/internal-server.error';
+
+import type { Content } from '@google/genai';
 import type { Id } from 'shared/common/schemas/id.schema';
-
-export type MessageRole = 'user' | 'model';
-
-export type ChatMessage = {
-	role: MessageRole;
-	parts: [{ text: string }];
-};
 
 export type ChatSession = {
 	id: string;
-	messages: ChatMessage[];
+	messages: Content[];
 	createdAt: Date;
 };
 
@@ -32,8 +28,10 @@ export class AiRepository {
 		return chatSession;
 	}
 
-	addMessageByUserId(userId: Id, chatMessage: ChatMessage) {
+	addMessageByUserId(userId: Id, chatMessage: Content) {
 		const userChatSession = this.chatSessions.get(userId);
+		if (!userChatSession) throw new InternalServerError('Chat session not found');
+
 		const updatedChatSession = {
 			...userChatSession,
 			messages: [...userChatSession.messages, chatMessage],

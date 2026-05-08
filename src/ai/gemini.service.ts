@@ -1,17 +1,19 @@
-import { HttpService } from '@nestjs/axios';
-import { Injectable, Logger } from '@nestjs/common';
-import { OnModuleInit } from '@nestjs/common';
+import {
+	ApiError,
+	GenerateContentParameters,
+	GenerateContentResponse,
+	GoogleGenAI,
+	setDefaultBaseUrls,
+} from '@google/genai';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { catchError, firstValueFrom, retry, timer } from 'rxjs';
 import { BadRequestError } from 'src/common/errors/bad-request.error';
 import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { ServiceUnavailableError } from 'src/common/errors/service-unavailable.error';
 
-import { GeminiErrorResponse } from './types/gemini/error.types';
-import { GeminiRequest } from './types/gemini/request.types';
-import { GeminiResponse } from './types/gemini/response.types';
-
 import { MODELS } from './constants/models';
+
+import type { GeminiModels } from './constants/models';
 
 type GeminiModel = {
 	name: string;
@@ -19,17 +21,22 @@ type GeminiModel = {
 	outputTokenLimit?: number;
 };
 
-type GeminiListModelsResponse = {
-	models: GeminiModel[];
-};
+export type GeminiRequest = Omit<GenerateContentParameters, 'model'>;
 
 @Injectable()
 export class GeminiService implements OnModuleInit {
 	private readonly logger = new Logger(GeminiService.name);
-	constructor(
-		private readonly httpService: HttpService,
-		private readonly configService: ConfigService,
-	) {}
+	private client: GoogleGenAI;
+
+	constructor(private readonly configService: ConfigService) {
+		const aiConfig = this.configService.get('ai');
+		if (!aiConfig) throw new InternalServerError('AI config missing');
+		const { apiKey, baseUrl } = aiConfig;
+
+		if (baseUrl) setDefaultBaseUrls({ geminiUrl: baseUrl });
+
+		this.client = new GoogleGenAI({ apiKey });
+	}
 
 	async onModuleInit() {
 		const isProduction = this.configService.get<boolean>('isProduction');
@@ -46,9 +53,8 @@ export class GeminiService implements OnModuleInit {
 							? this.formatTokens(model.outputTokenLimit)
 							: '?';
 
-						const localConfig = (MODELS.GEMINI as Record<string, unknown>)[name] as
-							| { rpm: number; tpm: number; rpd: number }
-							| undefined;
+						const localConfig =
+							name in MODELS.GEMINI ? MODELS.GEMINI[name as GeminiModels] : undefined;
 						let quotaInfo = '';
 						if (localConfig) {
 							const rpm = localConfig.rpm;
@@ -68,112 +74,124 @@ export class GeminiService implements OnModuleInit {
 		}
 	}
 
-	async sendMessage(content: GeminiRequest) {
+	async sendMessage(content: GeminiRequest): Promise<GenerateContentResponse> {
 		const isProduction = this.configService.get<boolean>('isProduction');
 		const aiConfig = this.configService.get('ai');
-		if (!aiConfig) throw new InternalServerError('AI config missing');
-		const { baseUrl, model, apiKey } = aiConfig;
-
-		const geminiModel = model || MODELS.GEMINI['gemini-3.1-flash-lite'].model;
-		const url = `${baseUrl}/v1beta/models/${geminiModel}:generateContent`;
-
-		const headers = {
-			'x-goog-api-key': apiKey,
-			'Content-Type': 'application/json',
-		};
+		const geminiModel = aiConfig?.model || MODELS.GEMINI['gemma-4-26b-a4b-it'].model;
 
 		const retryableStatuses = [429, 500, 503, 504];
 		const maxRetries = 3;
+		let lastError: unknown;
 
-		const { data } = await firstValueFrom(
-			this.httpService
-				.post<GeminiResponse | GeminiErrorResponse>(url, content, {
-					headers,
-				})
-				.pipe(
-					retry({
-						count: maxRetries,
-						delay: (error, retryCount) => {
-							if (retryableStatuses.includes(error?.response?.status)) {
-								const delay = Math.pow(2, retryCount) * 1000;
-								const attempt = retryCount + 1;
-								this.logger.warn(
-									`Gemini retry attempt ${attempt}/${maxRetries} (status: ${error?.response?.status}) in ${delay / 1000}s`,
-								);
-								return timer(delay);
-							}
-							throw error;
-						},
-					}),
-					catchError((error) => {
-						const status = error?.response?.status;
-						const data = error.response?.data?.error;
-						const errorMessage = data?.message || error.message;
+		for (let attempt = 0; attempt <= maxRetries; attempt++) {
+			try {
+				const response = await this.client.models.generateContent({
+					model: geminiModel,
+					...content,
+				});
 
-						if (!isProduction) {
-							this.logger.debug(`Gemini error message: ${errorMessage}`);
-						}
+				if ('promptFeedback' in response && response.promptFeedback?.blockReason) {
+					this.logger.warn(`AI blocked response: ${response.promptFeedback.blockReason}`);
+					throw new ServiceUnavailableError('AI Service is currently busy. Try again later');
+				}
 
-						const errorData = JSON.stringify(
-							{
-								status,
-								reason: error.response?.data?.error?.status,
-								model: geminiModel,
-							},
-							null,
-							3,
+				return response;
+			} catch (error) {
+				lastError = error;
+
+				if (error instanceof ServiceUnavailableError && error.message.includes('busy')) {
+					throw error;
+				}
+
+				if (error instanceof ApiError) {
+					const status = error.status;
+
+					if (attempt < maxRetries && status && retryableStatuses.includes(status)) {
+						const delay = Math.pow(2, attempt + 1) * 1000;
+						this.logger.warn(
+							`Gemini retry attempt ${attempt + 1}/${maxRetries} (status: ${status}) in ${delay / 1000}s`,
 						);
+						await this.sleep(delay);
+						continue;
+					}
 
-						if (!status) {
-							this.logger.error(`Network error calling Gemini ${errorData}`);
-							throw new ServiceUnavailableError('AI service unavailable');
-						} else if (retryableStatuses.includes(status)) {
-							this.logger.warn(`Gemini API Transient Issue: ${errorData}`);
-							throw new ServiceUnavailableError(
-								'AI Service is currently busy. Try again later',
-							);
-						} else if (status === 400) {
-							this.logger.error(`Gemini API Critical Failure: ${errorData}`);
-							throw new BadRequestError('Invalid AI request');
-						} else if (status === 403) {
-							this.logger.error(`Gemini API Critical Failure: ${errorData}`);
-							throw new InternalServerError('AI configuration error');
-						} else if (status === 404) {
-							this.logger.error(`Gemini API Critical Failure: ${errorData}`);
-							throw new InternalServerError('AI resource not found');
-						}
+					if (!isProduction) {
+						let errorMessage = error.message;
+						try {
+							const parsed = JSON.parse(error.message);
+							errorMessage = parsed.error?.message || error.message;
+							this.logger.debug(`Gemini error message: ${errorMessage}`);
+						} catch {}
+					}
 
-						this.logger.error(`Unexpected Gemini error: ${errorData}`);
-						throw new InternalServerError('Unexpected AI error');
-					}),
-				),
-		);
+					const errorData = JSON.stringify(
+						{
+							status,
+							model: geminiModel,
+						},
+						null,
+						3,
+					);
 
-		if ('promptFeedback' in data && data.promptFeedback?.blockReason) {
-			this.logger.warn(`AI blocked response: ${data.promptFeedback.blockReason}`);
-			throw new ServiceUnavailableError('AI Service is currently busy. Try again later');
+					if (status === 429 || (status && status >= 500)) {
+						this.logger.warn(`Gemini API Transient Issue: ${errorData}`);
+						throw new ServiceUnavailableError(
+							'AI Service is currently busy. Try again later',
+						);
+					} else if (status === 400) {
+						this.logger.error(`Gemini API Critical Failure: ${errorData}`);
+						throw new BadRequestError('Invalid AI request');
+					} else if (status === 403) {
+						this.logger.error(`Gemini API Critical Failure: ${errorData}`);
+						throw new InternalServerError('AI configuration error');
+					} else if (status === 404) {
+						this.logger.error(`Gemini API Critical Failure: ${errorData}`);
+						throw new InternalServerError('AI resource not found');
+					}
+
+					this.logger.error(`Unexpected Gemini error: ${errorData}`);
+					throw new InternalServerError('Unexpected AI error');
+				}
+
+				if (attempt < maxRetries) {
+					const delay = Math.pow(2, attempt + 1) * 1000;
+					this.logger.warn(
+						`Gemini network error, retry attempt ${attempt + 1}/${maxRetries} in ${delay / 1000}s`,
+					);
+					await this.sleep(delay);
+					continue;
+				}
+
+				this.logger.error(`Network error calling Gemini: ${error.message}`);
+				throw new ServiceUnavailableError('AI service unavailable');
+			}
 		}
 
-		return data;
+		throw lastError;
 	}
 
-	private async listModels() {
-		const aiConfig = this.configService.get('ai');
-		if (!aiConfig) throw new InternalServerError('AI config missing');
-		const { baseUrl, apiKey } = aiConfig;
+	private sleep(ms: number): Promise<void> {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
 
-		const url = `${baseUrl}/v1beta/models?key=${apiKey}`;
+	private async listModels(): Promise<GeminiModel[]> {
+		try {
+			const models: GeminiModel[] = [];
+			const pager = await this.client.models.list();
 
-		const { data } = await firstValueFrom(
-			this.httpService.get<GeminiListModelsResponse>(url).pipe(
-				catchError((error) => {
-					this.logger.error(`Failed to list models: ${error.message}`);
-					throw error;
-				}),
-			),
-		);
+			for await (const model of pager) {
+				models.push({
+					name: model.name,
+					inputTokenLimit: model.inputTokenLimit,
+					outputTokenLimit: model.outputTokenLimit,
+				});
+			}
 
-		return data.models || [];
+			return models;
+		} catch (error) {
+			this.logger.error(`Failed to list models: ${error.message}`);
+			throw error;
+		}
 	}
 
 	private formatTokens(n: number): string {

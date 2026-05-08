@@ -9,16 +9,10 @@ export function parseAiResponse<T>(schema: z.ZodSchema<T>, raw: string): T {
 	const jsonMatch = sanitized.match(/\{[\s\S]*\}/);
 	const jsonString = jsonMatch ? jsonMatch[0] : sanitized;
 
-	let parsed: unknown;
 	try {
-		parsed = JSON.parse(jsonString);
-	} catch {
-		throw new ServiceUnavailableError('AI response format error');
-	}
-
-	try {
+		const parsed = JSON.parse(jsonString);
 		return schema.parse(parsed);
 	} catch {
-		return parsed as T;
+		throw new ServiceUnavailableError('AI response format error');
 	}
 }

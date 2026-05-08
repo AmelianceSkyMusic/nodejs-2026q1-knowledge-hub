@@ -1,4 +1,3 @@
-import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ArticlesModule } from 'src/articles/articles.module';
 import { AiThrottlerGuard } from 'src/common/guards/ai-throttler.guard';
@@ -10,7 +9,7 @@ import { GeminiService } from './gemini.service';
 import { AiRepository } from './repositories/ai.repository';
 
 @Module({
-	imports: [HttpModule, ArticlesModule],
+	imports: [ArticlesModule],
 	controllers: [AiController],
 	providers: [AiService, GeminiService, AiRepository, AiThrottlerGuard, AiCacheService],
 })
