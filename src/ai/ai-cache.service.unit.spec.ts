@@ -1,13 +1,22 @@
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AiCacheService } from './ai-cache.service';
 
 describe('AiCacheService', () => {
 	let service: AiCacheService;
+	let cacheManager: any;
 
 	beforeEach(async () => {
+		cacheManager = {
+			get: vi.fn(),
+			set: vi.fn(),
+			del: vi.fn(),
+			clear: vi.fn(),
+		};
+
 		const module = await Test.createTestingModule({
 			providers: [
 				AiCacheService,
@@ -17,61 +26,54 @@ describe('AiCacheService', () => {
 						get: vi.fn().mockReturnValue(300),
 					},
 				},
+				{
+					provide: CACHE_MANAGER,
+					useValue: cacheManager,
+				},
 			],
 		}).compile();
 
 		service = module.get<AiCacheService>(AiCacheService);
 	});
 
-	afterEach(() => {
-		service.onModuleDestroy();
-	});
-
 	it('should be defined', () => {
 		expect(service).toBeDefined();
 	});
 
-	it('should set and get cache', () => {
-		service.setCache('key', 'value');
-		expect(service.getCache('key')).toBe('value');
+	it('should set cache with TTL', async () => {
+		await service.setCache('key', 'value');
+		expect(cacheManager.set).toHaveBeenCalledWith('key', 'value', 300 * 1000);
 	});
 
-	it('should return null for non-existent key', () => {
-		expect(service.getCache('non-existent')).toBeNull();
+	it('should get cache', async () => {
+		cacheManager.get.mockResolvedValue('value');
+		const result = await service.getCache('key');
+		expect(result).toBe('value');
+		expect(cacheManager.get).toHaveBeenCalledWith('key');
 	});
 
-	it('should expire cache after TTL', () => {
-		vi.useFakeTimers();
-		service.setCache('key', 'value');
-
-		vi.advanceTimersByTime(301 * 1000);
-
-		expect(service.getCache('key')).toBeNull();
-		vi.useRealTimers();
+	it('should return null for non-existent key', async () => {
+		cacheManager.get.mockResolvedValue(null);
+		expect(await service.getCache('non-existent')).toBeNull();
 	});
 
-	it('should identify existing cache', () => {
-		service.setCache('key', 'value');
-		expect(service.hasCache('key')).toBe(true);
+	it('should identify existing cache', async () => {
+		cacheManager.get.mockResolvedValue('value');
+		expect(await service.hasCache('key')).toBe(true);
 	});
 
-	it('should identify non-existing cache', () => {
-		expect(service.hasCache('key')).toBe(false);
+	it('should identify non-existing cache', async () => {
+		cacheManager.get.mockResolvedValue(null);
+		expect(await service.hasCache('key')).toBe(false);
 	});
 
-	it('should prune expired entries via interval and keep non-expired', () => {
-		vi.useFakeTimers();
-		service.setCache('expired', 'value1');
+	it('should delete cache', async () => {
+		await service.deleteCache('key');
+		expect(cacheManager.del).toHaveBeenCalledWith('key');
+	});
 
-		vi.advanceTimersByTime(100 * 1000);
-		service.setCache('valid', 'value2');
-
-		vi.advanceTimersByTime(250 * 1000);
-
-		service['pruneExpired']();
-
-		expect(service.getCache('expired')).toBeNull();
-		expect(service.getCache('valid')).toBe('value2');
-		vi.useRealTimers();
+	it('should clear cache', async () => {
+		await service.clearCache();
+		expect(cacheManager.clear).toHaveBeenCalled();
 	});
 });

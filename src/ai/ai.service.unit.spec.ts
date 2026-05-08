@@ -79,7 +79,7 @@ describe('AiService', () => {
 		it('should return cached summary if available', async () => {
 			const cachedResponse = { articleId: MOCK.COMMON.ID, summary: 'Cached' };
 			vi.spyOn(articlesService, 'findOne').mockResolvedValue(mockArticle as any);
-			vi.spyOn(aiCacheService, 'getCache').mockReturnValue(cachedResponse);
+			vi.spyOn(aiCacheService, 'getCache').mockResolvedValue(cachedResponse);
 
 			const result = await service.summarizeArticle(MOCK.COMMON.ID, { maxLength: 'short' });
 
@@ -90,10 +90,11 @@ describe('AiService', () => {
 		it('should generate and cache summary if not cached', async () => {
 			const aiResponse = {
 				candidates: [{ content: { parts: [{ text: 'Generated summary' }] } }],
+				text: 'Generated summary',
 				usageMetadata: { totalTokenCount: 10 },
 			};
 			vi.spyOn(articlesService, 'findOne').mockResolvedValue(mockArticle as any);
-			vi.spyOn(aiCacheService, 'getCache').mockReturnValue(null);
+			vi.spyOn(aiCacheService, 'getCache').mockResolvedValue(null);
 			vi.spyOn(geminiService, 'sendMessage').mockResolvedValue(aiResponse as any);
 
 			const result = await service.summarizeArticle(MOCK.COMMON.ID, { maxLength: 'short' });
@@ -117,7 +118,7 @@ describe('AiService', () => {
 				detectedLanguage: 'en',
 			};
 			vi.spyOn(articlesService, 'findOne').mockResolvedValue(mockArticle as any);
-			vi.spyOn(aiCacheService, 'getCache').mockReturnValue(cachedResponse);
+			vi.spyOn(aiCacheService, 'getCache').mockResolvedValue(cachedResponse);
 
 			const result = await service.translateArticle(MOCK.COMMON.ID, {
 				targetLanguage: 'uk',
@@ -130,24 +131,14 @@ describe('AiService', () => {
 
 		it('should translate article', async () => {
 			const aiResponse = {
-				candidates: [
-					{
-						content: {
-							parts: [
-								{
-									text: JSON.stringify({
-										translatedText: 'Translated content',
-										detectedLanguage: 'en',
-									}),
-								},
-							],
-						},
-					},
-				],
 				usageMetadata: { totalTokenCount: 20 },
+				text: JSON.stringify({
+					translatedText: 'Translated content',
+					detectedLanguage: 'en',
+				}),
 			};
 			vi.spyOn(articlesService, 'findOne').mockResolvedValue(mockArticle as any);
-			vi.spyOn(aiCacheService, 'getCache').mockReturnValue(null);
+			vi.spyOn(aiCacheService, 'getCache').mockResolvedValue(null);
 			vi.spyOn(geminiService, 'sendMessage').mockResolvedValue(aiResponse as any);
 
 			const result = await service.translateArticle(MOCK.COMMON.ID, { targetLanguage: 'uk' });
@@ -164,22 +155,12 @@ describe('AiService', () => {
 	describe('analyzeArticle', () => {
 		it('should analyze article', async () => {
 			const aiResponse = {
-				candidates: [
-					{
-						content: {
-							parts: [
-								{
-									text: JSON.stringify({
-										analysis: 'Good article',
-										suggestions: ['Add more examples'],
-										severity: 'info',
-									}),
-								},
-							],
-						},
-					},
-				],
 				usageMetadata: { totalTokenCount: 30 },
+				text: JSON.stringify({
+					analysis: 'Good article',
+					suggestions: ['Add more examples'],
+					severity: 'info',
+				}),
 			};
 			vi.spyOn(articlesService, 'findOne').mockResolvedValue(mockArticle as any);
 			vi.spyOn(geminiService, 'sendMessage').mockResolvedValue(aiResponse as any);
@@ -199,6 +180,7 @@ describe('AiService', () => {
 		it('should create session if it does not exist', async () => {
 			const aiResponse = {
 				candidates: [{ content: { parts: [{ text: 'AI response' }] } }],
+				text: 'AI response',
 				usageMetadata: { totalTokenCount: 5 },
 			};
 			vi.spyOn(aiRepository, 'getByUserId').mockReturnValue(null);
@@ -213,6 +195,7 @@ describe('AiService', () => {
 		it('should reuse existing session', async () => {
 			const aiResponse = {
 				candidates: [{ content: { parts: [{ text: 'AI response' }] } }],
+				text: 'AI response',
 				usageMetadata: { totalTokenCount: 5 },
 			};
 			vi.spyOn(aiRepository, 'getByUserId').mockReturnValue({ messages: [] } as any);
@@ -227,6 +210,7 @@ describe('AiService', () => {
 		it('should generate a chat response', async () => {
 			const aiResponse = {
 				candidates: [{ content: { parts: [{ text: 'AI response' }] } }],
+				text: 'AI response',
 				usageMetadata: { totalTokenCount: 5 },
 			};
 			vi.spyOn(aiRepository, 'getByUserId').mockReturnValue({ messages: [] } as any);
@@ -247,7 +231,7 @@ describe('AiService', () => {
 	describe('sendGeminiMessage errors and branches', () => {
 		it('should throw ServiceUnavailableError if Gemini returns error', async () => {
 			vi.spyOn(articlesService, 'findOne').mockResolvedValue(mockArticle as any);
-			vi.spyOn(geminiService, 'sendMessage').mockResolvedValue({ error: 'fail' } as any);
+			vi.spyOn(geminiService, 'sendMessage').mockRejectedValue(new Error('fail'));
 
 			await expect(
 				service.summarizeArticle(MOCK.COMMON.ID, { maxLength: 'short' }),

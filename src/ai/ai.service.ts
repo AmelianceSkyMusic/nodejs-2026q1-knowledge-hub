@@ -36,7 +36,7 @@ export class AiService {
 	async summarizeArticle(articleId: Id, summarizeArticleDto: SummarizeArticleDto) {
 		const article = await this.articlesService.findOne(articleId);
 		const cacheKey = `ai/summarize/${articleId}-${summarizeArticleDto.maxLength}-${article.updatedAt.getTime()}`;
-		const cached = this.aiCacheService.getCache<{
+		const cached = await this.aiCacheService.getCache<{
 			articleId: Id;
 			summary: string;
 			originalLength: number;
@@ -69,7 +69,7 @@ export class AiService {
 			originalLength: article.content.length,
 			summaryLength: cleanSummary.length,
 		};
-		this.aiCacheService.setCache(cacheKey, response);
+		await this.aiCacheService.setCache(cacheKey, response);
 
 		return response;
 	}
@@ -78,7 +78,7 @@ export class AiService {
 		const article = await this.articlesService.findOne(articleId);
 		const source = translateArticleDto.sourceLanguage || 'auto';
 		const cacheKey = `ai/translate/${articleId}-${source}-${translateArticleDto.targetLanguage}-${article.updatedAt.getTime()}`;
-		const cached = this.aiCacheService.getCache<{
+		const cached = await this.aiCacheService.getCache<{
 			articleId: Id;
 			translatedText: string;
 			detectedLanguage: string;
@@ -115,7 +115,7 @@ export class AiService {
 			translatedText: translatedArticle.translatedText,
 			detectedLanguage: translatedArticle.detectedLanguage,
 		};
-		this.aiCacheService.setCache(cacheKey, response);
+		await this.aiCacheService.setCache(cacheKey, response);
 
 		return response;
 	}
