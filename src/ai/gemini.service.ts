@@ -87,7 +87,8 @@ export class GeminiService implements OnModuleInit {
 			try {
 				const response = await this.client.models.generateContent({
 					model: geminiModel,
-					...content,
+					contents: content.contents,
+					config: content.config || {},
 				});
 
 				if ('promptFeedback' in response && response.promptFeedback?.blockReason) {

@@ -135,7 +135,7 @@ describe('GeminiService', () => {
 
 			expect(mockGenerateContent).toHaveBeenCalledWith(
 				expect.objectContaining({
-					model: 'gemini-3.1-flash-lite',
+					model: 'gemma-4-26b-a4b-it',
 				}),
 			);
 		});
