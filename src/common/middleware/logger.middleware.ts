@@ -10,8 +10,12 @@ export class LoggerMiddleware implements NestMiddleware {
 
 		const start = performance.now();
 		const requestId =
-			(req.headers['x-request-id'] as string) ||
-			(req.headers['x-correlation-id'] as string) ||
+			(typeof req.headers['x-request-id'] === 'string'
+				? req.headers['x-request-id']
+				: undefined) ||
+			(typeof req.headers['x-correlation-id'] === 'string'
+				? req.headers['x-correlation-id']
+				: undefined) ||
 			crypto.randomUUID();
 
 		req['id'] = requestId;
