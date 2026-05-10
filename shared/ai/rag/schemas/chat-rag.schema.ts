@@ -1,11 +1,9 @@
 import { z } from 'zod';
 
-import { zUuid } from '../../../common/utils/zod/z-uuid.util';
-
 /** Request schema without defaults for frontend */
 export const ChatRagRequestSchema = z.object({
 	question: z.string(),
-	conversationId: zUuid().optional(),
+	conversationId: z.string().optional(),
 });
 
 /** Validated schema with defaults for backend */

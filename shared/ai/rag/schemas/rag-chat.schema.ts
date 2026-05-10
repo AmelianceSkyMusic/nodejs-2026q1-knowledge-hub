@@ -13,7 +13,7 @@ export type RagChatSources = z.infer<typeof RagChatSourcesSchema>;
 export const RagChatSchema = z.object({
 	answer: z.string(),
 	sources: z.array(RagChatSourcesSchema),
-	conversationId: zUuid(),
+	conversationId: z.string(),
 });
 
 export type RagChat = z.infer<typeof RagChatSchema>;
