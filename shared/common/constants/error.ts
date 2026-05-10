@@ -60,5 +60,7 @@ export const ERROR = {
 	},
 	RAG: {
 		VECTOR_DB_UNAVAILABLE: 'Vector database is currently unavailable',
+		ARTICLE_NOT_FOUND: 'Article not found',
+		CHAT_NOT_FOUND: 'Chat not found',
 	},
 } as const;

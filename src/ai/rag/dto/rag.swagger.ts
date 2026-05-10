@@ -94,4 +94,15 @@ export const RAG_SWAGGER = {
 			},
 		],
 	},
+	MESSAGES: {
+		description: 'The array of conversation messages',
+	},
+	MESSAGE_ROLE: {
+		description: 'The role of the message sender (user or model)',
+		example: 'user',
+	},
+	MESSAGE_PARTS: {
+		description: 'The parts of the message content',
+		example: [{ text: 'How to index articles?' }],
+	},
 };

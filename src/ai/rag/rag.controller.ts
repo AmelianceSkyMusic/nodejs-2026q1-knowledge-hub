@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
 	ApiNoContentResponse,
@@ -13,6 +13,9 @@ import { AiThrottle } from 'src/common/decorators/ai-throttle.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { IdParamDto } from 'src/common/dto/id-param.dto';
 
+import { ChatRagDto } from './dto/chat-rag.dto';
+import { RagChatHistoryDto } from './dto/rag-chat-history.dto';
+import { RagChatDto } from './dto/rag-chat.dto';
 import { RagSearchDto } from './dto/rag-search.dto';
 import { ReindexStatsDto } from './dto/reindex-stats.dto';
 import { ReindexDto } from './dto/reindex.dto';
@@ -56,6 +59,20 @@ export class RagController {
 		return await this.ragService.search(searchRagDto);
 	}
 
+	@Post('chat')
+	@ApiOperation({
+		summary: 'Chat with Knowledge Hub RAG',
+		description:
+			'Performs semantic search in Knowledge Hub using articles from Knowledge Hub DB.',
+	})
+	@ApiOkResponse({ description: 'Successful operation', type: RagChatDto })
+	@ApiBadRequestResponse({ description: 'Question is missing or invalid' })
+	@HttpCode(HttpStatus.OK)
+	@ZodResponse({ type: RagChatDto })
+	async chat(@Body() chatRagDto: ChatRagDto) {
+		return await this.ragService.chat(chatRagDto);
+	}
+
 	@Delete('index/articles/:id')
 	@ApiOperation({
 		summary: 'Delete article from index',
@@ -73,5 +90,23 @@ export class RagController {
 	@HttpCode(HttpStatus.NO_CONTENT)
 	async remove(@Param() { id: articleId }: IdParamDto) {
 		return await this.ragService.remove(articleId);
+	}
+
+	@ApiOperation({
+		summary: 'Get chat history',
+		description: 'Returns conversation history',
+	})
+	@ApiParam({
+		name: 'id',
+		required: true,
+		description: 'Conversation ID',
+		format: SWAGGER.FORMAT.ID,
+	})
+	@ApiOkResponse({ description: 'Successful operation', type: RagChatHistoryDto })
+	@HttpCode(HttpStatus.OK)
+	@ZodResponse({ type: RagChatHistoryDto })
+	@Get('chat/:id/history')
+	async getChatHistory(@Param() { id: conversationId }: IdParamDto) {
+		return await this.ragService.getChatHistory(conversationId);
 	}
 }

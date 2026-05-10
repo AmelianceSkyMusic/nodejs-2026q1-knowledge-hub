@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { InternalServerError } from 'src/common/errors/internal-server.error';
 
 import type { Content } from '@google/genai';
@@ -9,6 +10,7 @@ export type ChatSession = {
 	createdAt: Date;
 };
 
+@Injectable()
 export class AiRepository {
 	protected chatSessions = new Map<string, ChatSession>();
 	protected statsByEndpoint = new Map<string, { requests: number; tokens: number }>();
