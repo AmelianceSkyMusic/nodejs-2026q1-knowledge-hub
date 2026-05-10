@@ -65,14 +65,14 @@ export class RagRepository implements OnModuleInit {
 				filter: {
 					must: [
 						{
-							key: 'articleId',
+							key: 'metadata.articleId',
 							match: { value: articleId },
 						},
 					],
 				},
 			});
 		} catch (error) {
-			this.logger.error(`Qdrant delete article ${articleId} failed: ${error.message}`);
+			this.logger.error(`Qdrant delete failed: ${error.message}`);
 			throw new ServiceUnavailableError(ERROR.RAG.VECTOR_DB_UNAVAILABLE);
 		}
 	}
