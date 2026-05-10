@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 
 import { AiCacheService } from './ai-cache.service';
 import { AiService } from './ai.service';
-import { GeminiService } from './gemini.service';
+import { GeminiService } from './gemini/gemini.service';
 import { AiRepository } from './repositories/ai.repository';
 
 import { MOCK } from 'src/common/constants/mock';

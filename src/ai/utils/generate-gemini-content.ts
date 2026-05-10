@@ -1,11 +1,11 @@
 import type { GenerateContentConfig } from '@google/genai';
-import type { GeminiRequest } from 'src/ai/gemini.service';
+import type { SendMessage } from 'src/ai/gemini/gemini.service';
 
 export function generateGeminiContent(
 	prompt: string,
 	systemPrompt: string,
 	config?: GenerateContentConfig,
-): GeminiRequest {
+): SendMessage {
 	const { systemInstruction, ...restConfig } = config;
 
 	const baseInstruction =

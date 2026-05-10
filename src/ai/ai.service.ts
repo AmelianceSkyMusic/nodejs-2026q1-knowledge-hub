@@ -10,7 +10,7 @@ import { AnalyzeArticleDto } from './dto/analyze-article.dto';
 import { GenerateMessageDto } from './dto/generate-message.dto';
 import { SummarizeArticleDto } from './dto/summarize-article.dto';
 import { TranslateArticleDto } from './dto/translate-article.dto';
-import { GeminiRequest, GeminiService } from './gemini.service';
+import { GeminiService } from './gemini/gemini.service';
 import { chatPrompt } from './prompts/chat.prompt';
 import { getAnalyzeArticlePrompt } from './prompts/get-analyze-article-prompt';
 import { generateArticlePrompt } from './prompts/get-article.prompt';
@@ -23,6 +23,8 @@ import { parseAiResponse } from './utils/parse-ai-response';
 import { prepareAiResponse } from './utils/prepare-ai-response';
 
 import { GEMINI_CONFIGS } from './constants/gemini-configs';
+
+import type { SendMessage } from './gemini/gemini.service';
 
 @Injectable()
 export class AiService {
@@ -160,7 +162,7 @@ export class AiService {
 			parts: [{ text: message }],
 		});
 
-		const content: GeminiRequest = {
+		const content: SendMessage = {
 			contents: messages,
 			config: {
 				...GEMINI_CONFIGS.CHAT,
@@ -186,7 +188,7 @@ export class AiService {
 		return this.aiRepository.getStatistics();
 	}
 
-	private async sendGeminiMessage(content: GeminiRequest) {
+	private async sendGeminiMessage(content: SendMessage) {
 		const start = performance.now();
 		const geminiResponse = await this.geminiService.sendMessage(content);
 		const latency = performance.now() - start;

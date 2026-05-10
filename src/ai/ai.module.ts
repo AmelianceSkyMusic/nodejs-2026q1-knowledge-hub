@@ -6,12 +6,12 @@ import { AiThrottlerGuard } from 'src/common/guards/ai-throttler.guard';
 import { AiCacheService } from './ai-cache.service';
 import { AiController } from './ai.controller';
 import { AiService } from './ai.service';
-import { GeminiService } from './gemini.service';
+import { GeminiModule } from './gemini/gemini.module';
 import { AiRepository } from './repositories/ai.repository';
 
 @Module({
-	imports: [ArticlesModule, CacheModule.register()],
+	imports: [ArticlesModule, GeminiModule, CacheModule.register()],
 	controllers: [AiController],
-	providers: [AiService, GeminiService, AiRepository, AiThrottlerGuard, AiCacheService],
+	providers: [AiService, AiRepository, AiThrottlerGuard, AiCacheService],
 })
 export class AiModule {}

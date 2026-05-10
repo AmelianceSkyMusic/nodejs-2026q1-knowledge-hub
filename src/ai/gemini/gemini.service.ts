@@ -11,9 +11,9 @@ import { BadRequestError } from 'src/common/errors/bad-request.error';
 import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { ServiceUnavailableError } from 'src/common/errors/service-unavailable.error';
 
-import { MODELS } from './constants/models';
+import { MODELS } from '../constants/models';
 
-import type { GeminiModels } from './constants/models';
+import type { GeminiModels } from '../constants/models';
 
 type GeminiModel = {
 	name: string;
@@ -21,7 +21,7 @@ type GeminiModel = {
 	outputTokenLimit?: number;
 };
 
-export type GeminiRequest = Omit<GenerateContentParameters, 'model'>;
+export type SendMessage = Omit<GenerateContentParameters, 'model'>;
 
 @Injectable()
 export class GeminiService implements OnModuleInit {
@@ -74,10 +74,45 @@ export class GeminiService implements OnModuleInit {
 		}
 	}
 
-	async sendMessage(content: GeminiRequest): Promise<GenerateContentResponse> {
-		const isProduction = this.configService.get<boolean>('isProduction');
+	async sendMessage({ contents, config = {} }: SendMessage): Promise<GenerateContentResponse> {
 		const aiConfig = this.configService.get('ai');
 		const geminiModel = aiConfig?.model || MODELS.GEMINI['gemma-4-26b-a4b-it'].model;
+
+		const sendMessageCallback = async () =>
+			await this.client.models.generateContent({
+				model: geminiModel,
+				contents,
+				config,
+			});
+
+		const response = await this.fetchGemini(sendMessageCallback, geminiModel);
+		if ('promptFeedback' in response && response.promptFeedback?.blockReason) {
+			this.logger.warn(`AI blocked response: ${response.promptFeedback.blockReason}`);
+			throw new ServiceUnavailableError('AI Service is currently busy. Try again later');
+		}
+
+		return response;
+	}
+
+	async getEmbedding(texts: string[]) {
+		const { dimensions, geminiEmbeddingModel } = this.configService.get('rag');
+
+		const sendMessageCallback = async () =>
+			await this.client.models.embedContent({
+				model: geminiEmbeddingModel,
+				contents: texts.map((text) => ({ parts: [{ text }] })),
+				config: { outputDimensionality: dimensions },
+			});
+
+		const response = await this.fetchGemini(sendMessageCallback, geminiEmbeddingModel);
+		if ('embeddings' in response && response.embeddings) {
+			return response.embeddings.map((embedding) => embedding.values);
+		}
+		throw new InternalServerError('Failed to get batch embeddings');
+	}
+
+	private async fetchGemini<T>(fetchCallback: () => Promise<T>, model: string): Promise<T> {
+		const isProduction = this.configService.get<boolean>('isProduction');
 
 		const retryableStatuses = [429, 500, 503, 504];
 		const maxRetries = 3;
@@ -85,18 +120,7 @@ export class GeminiService implements OnModuleInit {
 
 		for (let attempt = 0; attempt <= maxRetries; attempt++) {
 			try {
-				const response = await this.client.models.generateContent({
-					model: geminiModel,
-					contents: content.contents,
-					config: content.config || {},
-				});
-
-				if ('promptFeedback' in response && response.promptFeedback?.blockReason) {
-					this.logger.warn(`AI blocked response: ${response.promptFeedback.blockReason}`);
-					throw new ServiceUnavailableError('AI Service is currently busy. Try again later');
-				}
-
-				return response;
+				return await fetchCallback();
 			} catch (error) {
 				lastError = error;
 
@@ -128,7 +152,7 @@ export class GeminiService implements OnModuleInit {
 					const errorData = JSON.stringify(
 						{
 							status,
-							model: geminiModel,
+							model,
 						},
 						null,
 						3,
