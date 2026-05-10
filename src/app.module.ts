@@ -21,6 +21,7 @@ import { CustomZodValidationPipe } from './common/pipes/custom-zod-validation.pi
 import { DrizzleModule } from './drizzle/drizzle.module';
 import { HealthModule } from './health/health.module';
 import { QdrantModule } from './qdrant/qdrant.module';
+import { RagModule } from './rag/rag.module';
 import { TokensModule } from './tokens/tokens.module';
 import { UsersModule } from './users/users.module';
 
@@ -33,7 +34,7 @@ import { UsersModule } from './users/users.module';
 				{
 					name: 'short',
 					ttl: 1000,
-					limit: 3,
+					limit: 15,
 				},
 				{
 					name: 'medium',
@@ -66,6 +67,7 @@ import { UsersModule } from './users/users.module';
 		TokensModule,
 		AiModule,
 		QdrantModule,
+		RagModule,
 	],
 	providers: [
 		{

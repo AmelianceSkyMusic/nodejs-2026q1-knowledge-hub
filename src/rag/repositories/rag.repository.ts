@@ -81,17 +81,3 @@ export class RagRepository implements OnModuleInit {
 		return this.collectionName;
 	}
 }
-
-// async search(vector: number[], filter?: any, limit: number = 5) {
-// 	try {
-// 		return await this.qdrantClient.search(this.collectionName, {
-// 			vector,
-// 			filter,
-// 			limit,
-// 			with_payload: true,
-// 		});
-// 	} catch (error) {
-// 		this.logger.error(`Qdrant search failed: ${error.message}`);
-// 		throw new ServiceUnavailableError(ERROR.RAG.VECTOR_DB_UNAVAILABLE);
-// 	}
-// }

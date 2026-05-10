@@ -58,4 +58,7 @@ export const ERROR = {
 	ACCESS: {
 		ROLE: 'Access denied. Insufficient role',
 	},
+	RAG: {
+		VECTOR_DB_UNAVAILABLE: 'Vector database is currently unavailable',
+	},
 } as const;
