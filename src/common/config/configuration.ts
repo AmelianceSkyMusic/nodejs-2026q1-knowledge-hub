@@ -35,6 +35,10 @@ export default () => {
 			geminiEmbeddingModel: process.env.GEMINI_EMBEDDING_MODEL,
 			provider: process.env.RAG_VECTOR_DB_PROVIDER || 'qdrant',
 			url: process.env.RAG_VECTOR_DB_URL || 'http://localhost:6333',
+			collection: process.env.RAG_VECTOR_COLLECTION || 'knowledge_hub_articles',
+			chunkSize: Number(process.env.RAG_CHUNK_SIZE) || 800,
+			chunkOverlap: Number(process.env.RAG_CHUNK_OVERLAP) || 200,
+			maxMessages: Number(process.env.RAG_CONVERSATION_MAX_MESSAGES) || 20,
 			dimensions: 768,
 		},
 	};
