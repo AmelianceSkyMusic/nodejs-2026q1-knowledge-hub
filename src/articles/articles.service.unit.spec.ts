@@ -34,10 +34,24 @@ describe('ArticlesService', () => {
 	const article = {
 		id: MOCKED_ARTICLE_ID,
 		title: MOCKED_TITLE,
+		content: MOCKED_CONTENT,
 		authorId: MOCKED_USER_ID,
+		categoryId: MOCKED_CATEGORY_ID,
 		status: MOCKED_ARTICLE_STATUS,
+		tags: MOCKED_TAGS.map((name) => ({ id: MOCK.COMMON.ID, name })),
+		createdAt: new Date(),
+		updatedAt: new Date(),
 	};
+
+	const expectedArticle = {
+		...article,
+		tags: MOCKED_TAGS,
+		createdAt: article.createdAt.getTime(),
+		updatedAt: article.updatedAt.getTime(),
+	};
+
 	const articles = [article];
+	const expectedArticles = [expectedArticle];
 
 	const jwtUser: JwtUser = {
 		userId: MOCKED_USER_ID,
@@ -102,7 +116,7 @@ describe('ArticlesService', () => {
 
 			const result = await service.findAll(query);
 
-			expect(result).toEqual(articles);
+			expect(result).toEqual(expectedArticles);
 			expect(mockArticlesRepository.findAll).toHaveBeenCalledWith(query);
 		});
 	});
@@ -113,7 +127,7 @@ describe('ArticlesService', () => {
 
 			const result = await service.findOne(article.id);
 
-			expect(result).toEqual(article);
+			expect(result).toEqual(expectedArticle);
 			expect(mockArticlesRepository.findOne).toHaveBeenCalledWith(article.id);
 		});
 
@@ -130,7 +144,7 @@ describe('ArticlesService', () => {
 
 			const result = await service.create(createArticleDto, jwtUser);
 
-			expect(result).toEqual(article);
+			expect(result).toEqual(expectedArticle);
 
 			expect(mockArticlesRepository.create).toHaveBeenCalledWith({
 				...createArticleDto,
@@ -160,7 +174,7 @@ describe('ArticlesService', () => {
 
 			const result = await service.update(article.id, updateArticleDto, jwtUser);
 
-			expect(result).toEqual(article);
+			expect(result).toEqual(expectedArticle);
 			expect(mockArticlesRepository.update).toHaveBeenCalledWith(article.id, updateArticleDto);
 		});
 
@@ -170,7 +184,7 @@ describe('ArticlesService', () => {
 
 			const result = await service.update(article.id, updateArticleDto, adminUser);
 
-			expect(result).toEqual(article);
+			expect(result).toEqual(expectedArticle);
 		});
 
 		it('should throw ForbiddenError if user is not owner and not admin', async () => {
@@ -199,7 +213,9 @@ describe('ArticlesService', () => {
 			mockArticlesRepository.update.mockResolvedValue(article);
 
 			const updateDto = { status: ARTICLE_STATUS.PUBLISHED } as UpdateArticleDto;
-			await service.update(article.id, updateDto, adminUser);
+			const result = await service.update(article.id, updateDto, adminUser);
+
+			expect(result).toEqual(expectedArticle);
 
 			expect(mockArticlesRepository.update).toHaveBeenCalledWith(article.id, updateDto);
 		});
@@ -224,7 +240,7 @@ describe('ArticlesService', () => {
 
 			const result = await service.remove(article.id, jwtUser);
 
-			expect(result).toEqual(article);
+			expect(result).toEqual(expectedArticle);
 			expect(mockArticlesRepository.remove).toHaveBeenCalledWith(article.id);
 		});
 

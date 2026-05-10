@@ -9,6 +9,7 @@ import { pgError } from 'src/common/utils/pg-error';
 
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { GetCommentsWithPaginationQueryDto } from './dto/get-comment-with-pagination-query.dto';
+import { CommentMapper } from './mappers/comment.mapper';
 import { CommentsRepository } from './repositories/comments.repository';
 
 import { ERROR } from 'shared/common/constants/error';
@@ -19,13 +20,17 @@ export class CommentsService {
 	constructor(private readonly commentsRepository: CommentsRepository) {}
 
 	async findAllForArticle(getCommentsWithPaginationQueryDto: GetCommentsWithPaginationQueryDto) {
-		return await this.commentsRepository.findAll(getCommentsWithPaginationQueryDto);
+		const result = await this.commentsRepository.findAll(getCommentsWithPaginationQueryDto);
+		if ('data' in result) {
+			return { ...result, data: CommentMapper.toComments(result.data) };
+		}
+		return CommentMapper.toComments(result);
 	}
 
 	async findById(id: Id) {
 		const comment = await this.commentsRepository.findOne(id);
 		if (!comment) throw new NotFoundError(ERROR.COMMENT.NOT_FOUND);
-		return comment;
+		return CommentMapper.toComment(comment);
 	}
 
 	async create(createCommentDto: CreateCommentDto, user: JwtUserDto) {
@@ -34,7 +39,7 @@ export class CommentsService {
 		try {
 			const result = await this.commentsRepository.create({ ...createCommentDto, authorId });
 			if (!result) throw new InternalServerError(ERROR.COMMENT.CREATE_FAILED);
-			return result;
+			return CommentMapper.toComment(result);
 		} catch (error) {
 			const dbError = pgError(error);
 
@@ -55,6 +60,6 @@ export class CommentsService {
 		}
 		const result = await this.commentsRepository.remove(id);
 		if (!result) throw new NotFoundError(ERROR.COMMENT.NOT_FOUND);
-		return result;
+		return CommentMapper.toComment(result);
 	}
 }

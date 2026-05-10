@@ -10,6 +10,7 @@ import { pgError } from 'src/common/utils/pg-error';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { GetArticlesWithPaginationQueryDto } from './dto/get-articles-with-pagination.query.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
+import { ArticleMapper } from './mappers/article.mapper';
 import { ArticlesRepository } from './repositories/articles.repository';
 
 import { ARTICLE_STATUS_TRANSITIONS } from 'shared/articles/constants/article-status-transitions';
@@ -21,13 +22,17 @@ export class ArticlesService {
 	constructor(private readonly articlesRepository: ArticlesRepository) {}
 
 	async findAll(getArticlesWithPaginationQueryDto: GetArticlesWithPaginationQueryDto) {
-		return await this.articlesRepository.findAll(getArticlesWithPaginationQueryDto);
+		const result = await this.articlesRepository.findAll(getArticlesWithPaginationQueryDto);
+		if ('data' in result) {
+			return { ...result, data: ArticleMapper.toArticles(result.data) };
+		}
+		return ArticleMapper.toArticles(result);
 	}
 
 	async findOne(id: Id) {
 		const result = await this.articlesRepository.findOne(id);
 		if (!result) throw new NotFoundError(ERROR.ARTICLE.NOT_FOUND);
-		return result;
+		return ArticleMapper.toArticle(result);
 	}
 
 	async create(createArticleDto: CreateArticleDto, user: JwtUser) {
@@ -36,7 +41,7 @@ export class ArticlesService {
 		try {
 			const result = await this.articlesRepository.create({ ...createArticleDto, authorId });
 			if (!result) throw new InternalServerError(ERROR.ARTICLE.CREATE_FAILED);
-			return result;
+			return ArticleMapper.toArticle(result);
 		} catch (error) {
 			if (pgError(error).isForeignKeyViolation) {
 				throw new NotFoundError(ERROR.CATEGORY.NOT_FOUND);
@@ -63,7 +68,7 @@ export class ArticlesService {
 
 		const result = await this.articlesRepository.update(id, updateArticleDto);
 		if (!result) throw new NotFoundError(ERROR.ARTICLE.NOT_FOUND);
-		return result;
+		return ArticleMapper.toArticle(result);
 	}
 
 	async remove(id: Id, user: JwtUser) {
@@ -75,6 +80,6 @@ export class ArticlesService {
 
 		const result = await this.articlesRepository.remove(id);
 		if (!result) throw new NotFoundError(ERROR.ARTICLE.NOT_FOUND);
-		return result;
+		return ArticleMapper.toArticle(result);
 	}
 }

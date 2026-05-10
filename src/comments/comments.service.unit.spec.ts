@@ -31,8 +31,16 @@ describe('CommentsService', () => {
 		content: MOCKED_CONTENT,
 		authorId: MOCKED_USER_ID,
 		articleId: MOCKED_ARTICLE_ID,
+		createdAt: new Date(),
 	};
+
+	const expectedComment = {
+		...comment,
+		createdAt: comment.createdAt.getTime(),
+	};
+
 	const comments = [comment];
+	const expectedComments = [expectedComment];
 
 	const jwtUser: JwtUserDto = {
 		userId: MOCKED_USER_ID,
@@ -89,7 +97,7 @@ describe('CommentsService', () => {
 
 			const result = await service.findAllForArticle(query);
 
-			expect(result).toEqual(comments);
+			expect(result).toEqual(expectedComments);
 			expect(mockCommentsRepository.findAll).toHaveBeenCalledWith(query);
 		});
 	});
@@ -100,7 +108,7 @@ describe('CommentsService', () => {
 
 			const result = await service.findById(comment.id);
 
-			expect(result).toEqual(comment);
+			expect(result).toEqual(expectedComment);
 			expect(mockCommentsRepository.findOne).toHaveBeenCalledWith(comment.id);
 		});
 
@@ -117,7 +125,7 @@ describe('CommentsService', () => {
 
 			const result = await service.create(createCommentDto, jwtUser);
 
-			expect(result).toEqual(comment);
+			expect(result).toEqual(expectedComment);
 			expect(mockCommentsRepository.create).toHaveBeenCalledWith({
 				...createCommentDto,
 				authorId: jwtUser.userId,
@@ -148,7 +156,7 @@ describe('CommentsService', () => {
 
 			const result = await service.remove(comment.id, jwtUser);
 
-			expect(result).toEqual(comment);
+			expect(result).toEqual(expectedComment);
 
 			expect(mockCommentsRepository.findOne).toHaveBeenCalledWith(comment.id);
 			expect(mockCommentsRepository.remove).toHaveBeenCalledWith(comment.id);
@@ -159,7 +167,7 @@ describe('CommentsService', () => {
 
 			const result = await service.remove(comment.id, adminUser);
 
-			expect(result).toEqual(comment);
+			expect(result).toEqual(expectedComment);
 
 			expect(mockCommentsRepository.findOne).not.toHaveBeenCalled();
 			expect(mockCommentsRepository.remove).toHaveBeenCalledWith(comment.id);

@@ -42,9 +42,21 @@ describe('UsersService', () => {
 		id: MOCKED_USER_ID,
 		login: MOCKED_LOGIN,
 		password: MOCKED_PASSWORD,
+		role: MOCKED_ROLE,
+		createdAt: new Date(),
+		updatedAt: new Date(),
 	} as UserEntity;
 
+	const expectedUser = {
+		id: user.id,
+		login: user.login,
+		role: user.role,
+		createdAt: user.createdAt.getTime(),
+		updatedAt: user.updatedAt.getTime(),
+	};
+
 	const users = [user];
+	const expectedUsers = [expectedUser];
 
 	const createUserDto: CreateUserDto = {
 		login: MOCKED_LOGIN,
@@ -118,7 +130,7 @@ describe('UsersService', () => {
 
 			const result = await service.findAll(query);
 
-			expect(result).toEqual(users);
+			expect(result).toEqual(expectedUsers);
 
 			expect(mockUsersRepository.findAll).toHaveBeenCalled();
 			expect(mockUsersRepository.findAll).toHaveBeenCalledTimes(1);
@@ -135,7 +147,7 @@ describe('UsersService', () => {
 
 			const result = await service.findOne(user.id);
 
-			expect(result).toEqual(user);
+			expect(result).toEqual(expectedUser);
 
 			expect(mockUsersRepository.findOne).toHaveBeenCalled();
 			expect(mockUsersRepository.findOne).toHaveBeenCalledTimes(1);
@@ -181,7 +193,7 @@ describe('UsersService', () => {
 
 			const result = await service.create(createUserDto);
 
-			expect(result).toEqual(user);
+			expect(result).toEqual(expectedUser);
 
 			expect(mockUsersRepository.create).toHaveBeenCalled();
 			expect(mockUsersRepository.create).toHaveBeenCalledTimes(1);
@@ -225,7 +237,7 @@ describe('UsersService', () => {
 
 			const result = await service.updatePassword(user.id, updatePassword);
 
-			expect(result).toEqual(user);
+			expect(result).toEqual(expectedUser);
 
 			expect(mockUsersRepository.findWithPassword).toHaveBeenCalled();
 			expect(mockUsersRepository.findWithPassword).toHaveBeenCalledTimes(1);
@@ -294,7 +306,7 @@ describe('UsersService', () => {
 
 			const result = await service.remove(user.id);
 
-			expect(result).toEqual(user);
+			expect(result).toEqual(expectedUser);
 
 			expect(mockUsersRepository.remove).toHaveBeenCalled();
 			expect(mockUsersRepository.remove).toHaveBeenCalledTimes(1);
@@ -324,7 +336,7 @@ describe('UsersService', () => {
 
 			const result = await service.createWithSignup(createUserDto);
 
-			expect(result).toEqual(user);
+			expect(result).toEqual(expectedUser);
 
 			expect(mockUsersRepository.create).toHaveBeenCalled();
 			expect(mockUsersRepository.create).toHaveBeenCalledTimes(1);

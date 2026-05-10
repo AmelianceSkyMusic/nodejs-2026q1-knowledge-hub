@@ -11,6 +11,7 @@ import { pgError } from 'src/common/utils/pg-error';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetUsersWithPaginationQueryDto } from './dto/get-user-with-pagination-query.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UserMapper } from './mappers/user.mapper';
 import { UsersRepository } from './repository/users.repository';
 
 import { ERROR } from 'shared/common/constants/error';
@@ -23,14 +24,18 @@ export class UsersService {
 	) {}
 
 	async findAll(getUsersWithPaginationQueryDto: GetUsersWithPaginationQueryDto) {
-		return await this.usersRepository.findAll(getUsersWithPaginationQueryDto);
+		const result = await this.usersRepository.findAll(getUsersWithPaginationQueryDto);
+		if ('data' in result) {
+			return { ...result, data: UserMapper.toUsers(result.data) };
+		}
+		return UserMapper.toUsers(result);
 	}
 
 	async findOne(userId: Id) {
 		const user = await this.usersRepository.findOne(userId);
 		if (!user) throw new NotFoundError(ERROR.USER.NOT_FOUND);
 
-		return user;
+		return UserMapper.toUser(user);
 	}
 
 	async findOneByLoginWithPassword(login: string) {
@@ -47,7 +52,7 @@ export class UsersService {
 				password: hashedPassword,
 			});
 			if (!result) throw new InternalServerError(ERROR.USER.CREATE_FAILED);
-			return result;
+			return UserMapper.toUser(result);
 		} catch (error) {
 			if (pgError(error).isUniqueViolation) {
 				throw new ConflictError(ERROR.USER.ALREADY_EXISTS);
@@ -70,13 +75,13 @@ export class UsersService {
 			password: hashedPassword,
 		});
 		if (!result) throw new NotFoundError(ERROR.USER.NOT_FOUND);
-		return result;
+		return UserMapper.toUser(result);
 	}
 
 	async remove(userId: Id) {
 		const result = await this.usersRepository.remove(userId);
 		if (!result) throw new NotFoundError(ERROR.USER.NOT_FOUND);
-		return result;
+		return UserMapper.toUser(result);
 	}
 
 	async createWithSignup(createUserDto: CreateUserDto) {
@@ -89,7 +94,7 @@ export class UsersService {
 				password: hashedPassword,
 			});
 			if (!result) throw new InternalServerError(ERROR.USER.CREATE_FAILED);
-			return result;
+			return UserMapper.toUser(result);
 		} catch (error) {
 			if (pgError(error).isUniqueViolation) {
 				throw new ConflictError(ERROR.USER.LOGIN_ALREADY_TAKEN);
