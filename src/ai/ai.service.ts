@@ -1,15 +1,15 @@
 import { GenerateContentConfig } from '@google/genai';
 import { Injectable } from '@nestjs/common';
+import { AnalyzeArticle } from 'shared/ai/schemas/analyze-article.schema';
 import { ArticleAnalysisSchema } from 'shared/ai/schemas/article-analysis.schema';
 import { ArticleTranslationSchema } from 'shared/ai/schemas/article-translation.schema';
+import { GenerateMessage } from 'shared/ai/schemas/generate-message.schema';
+import { SummarizeArticle } from 'shared/ai/schemas/summarize-article.schema';
+import { TranslateArticle } from 'shared/ai/schemas/translate-article.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 import { ArticlesService } from 'src/articles/articles.service';
 
 import { AiCacheService } from './ai-cache.service';
-import { AnalyzeArticleDto } from './dto/analyze-article.dto';
-import { GenerateMessageDto } from './dto/generate-message.dto';
-import { SummarizeArticleDto } from './dto/summarize-article.dto';
-import { TranslateArticleDto } from './dto/translate-article.dto';
 import { GeminiService } from './gemini/gemini.service';
 import { chatPrompt } from './prompts/chat.prompt';
 import { getAnalyzeArticlePrompt } from './prompts/get-analyze-article-prompt';
@@ -35,9 +35,9 @@ export class AiService {
 		private readonly aiCacheService: AiCacheService,
 	) {}
 
-	async summarizeArticle(articleId: Id, summarizeArticleDto: SummarizeArticleDto) {
+	async summarizeArticle(articleId: Id, summarizeArticle: SummarizeArticle) {
 		const article = await this.articlesService.findOne(articleId);
-		const cacheKey = `ai/summarize/${articleId}-${summarizeArticleDto.maxLength}-${article.updatedAt}`;
+		const cacheKey = `ai/summarize/${articleId}-${summarizeArticle.maxLength}-${article.updatedAt}`;
 		const cached = await this.aiCacheService.getCache<{
 			articleId: Id;
 			summary: string;
@@ -52,7 +52,7 @@ export class AiService {
 
 		const articleContent = generateArticlePrompt(article);
 
-		const maxLengthPrompt = getSummarizeArticleMaxLengthPrompt(summarizeArticleDto.maxLength);
+		const maxLengthPrompt = getSummarizeArticleMaxLengthPrompt(summarizeArticle.maxLength);
 		const systemInstruction = `${masterPrompt}\n${maxLengthPrompt}`;
 
 		const { messageText, tokens, latency } = await this.runGemini(
@@ -76,10 +76,10 @@ export class AiService {
 		return response;
 	}
 
-	async translateArticle(articleId: Id, translateArticleDto: TranslateArticleDto) {
+	async translateArticle(articleId: Id, translateArticle: TranslateArticle) {
 		const article = await this.articlesService.findOne(articleId);
-		const source = translateArticleDto.sourceLanguage || 'auto';
-		const cacheKey = `ai/translate/${articleId}-${source}-${translateArticleDto.targetLanguage}-${article.updatedAt}`;
+		const source = translateArticle.sourceLanguage || 'auto';
+		const cacheKey = `ai/translate/${articleId}-${source}-${translateArticle.targetLanguage}-${article.updatedAt}`;
 		const cached = await this.aiCacheService.getCache<{
 			articleId: Id;
 			translatedText: string;
@@ -94,8 +94,8 @@ export class AiService {
 		const articleContent = generateArticlePrompt(article);
 
 		const translationPrompt = getTranslateArticlePrompt(
-			translateArticleDto.sourceLanguage,
-			translateArticleDto.targetLanguage,
+			translateArticle.sourceLanguage,
+			translateArticle.targetLanguage,
 		);
 		const systemInstruction = `${masterPrompt}\n${translationPrompt}`;
 
@@ -122,12 +122,12 @@ export class AiService {
 		return response;
 	}
 
-	async analyzeArticle(articleId: Id, analyzeArticleDto: AnalyzeArticleDto) {
+	async analyzeArticle(articleId: Id, analyzeArticle: AnalyzeArticle) {
 		const article = await this.articlesService.findOne(articleId);
 
 		const articleContent = generateArticlePrompt(article);
 
-		const analyzeArticlePrompt = getAnalyzeArticlePrompt(analyzeArticleDto.task);
+		const analyzeArticlePrompt = getAnalyzeArticlePrompt(analyzeArticle.task);
 		const systemInstruction = `${masterPrompt}\n${analyzeArticlePrompt}`;
 
 		const { messageText, tokens, latency } = await this.runGemini(
@@ -151,8 +151,8 @@ export class AiService {
 		};
 	}
 
-	async generateMessage(userId: Id, generateMessageDto: GenerateMessageDto) {
-		const { message } = generateMessageDto;
+	async generateMessage(userId: Id, generateMessage: GenerateMessage) {
+		const { message } = generateMessage;
 
 		let chatSession = this.aiRepository.getByUserId(userId);
 		if (!chatSession) chatSession = this.aiRepository.createByUser(userId);

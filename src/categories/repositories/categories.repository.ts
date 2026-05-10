@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
+import { CreateCategory } from 'shared/categories/schemas/create-category.schema';
+import { GetCategoriesWithPaginationQuery } from 'shared/categories/schemas/get-categories-with-pagination-query.schema';
+import { UpdateCategory } from 'shared/categories/schemas/update-category.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 import { InjectDrizzle } from 'src/drizzle/decorators/drizzle.decorator';
 import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
 import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
 import * as schema from '../../drizzle/db/schema';
-import { CreateCategoryDto } from '../dto/create-category.dto';
-import { GetCategoriesWithPaginationQueryDto } from '../dto/get-categories-with-pagination-query.dto';
-import { UpdateCategoryDto } from '../dto/update-category.dto';
 
 @Injectable()
 export class CategoriesRepository {
 	constructor(@InjectDrizzle() private readonly db: DrizzleDb) {}
 
-	async findAll(getCategoriesWithPaginationQueryDto: GetCategoriesWithPaginationQueryDto) {
-		const { page, limit, sortBy, order } = getCategoriesWithPaginationQueryDto;
+	async findAll(getCategoriesWithPaginationQuery: GetCategoriesWithPaginationQuery) {
+		const { page, limit, sortBy, order } = getCategoriesWithPaginationQuery;
 
 		const orderBy = { [sortBy]: order };
 
@@ -43,18 +43,15 @@ export class CategoriesRepository {
 		});
 	}
 
-	async create(createCategoryDto: CreateCategoryDto) {
-		const [result] = await this.db
-			.insert(schema.categories)
-			.values(createCategoryDto)
-			.returning();
+	async create(createCategory: CreateCategory) {
+		const [result] = await this.db.insert(schema.categories).values(createCategory).returning();
 		return result;
 	}
 
-	async update(id: Id, updateCategoryDto: UpdateCategoryDto) {
+	async update(id: Id, updateCategory: UpdateCategory) {
 		const [result] = await this.db
 			.update(schema.categories)
-			.set(updateCategoryDto)
+			.set(updateCategory)
 			.where(eq(schema.categories.id, id))
 			.returning();
 		return result;

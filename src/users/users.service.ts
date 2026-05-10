@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { compare, hash } from 'bcrypt';
 import { Id } from 'shared/common/schemas/id.schema';
+import { CreateUser } from 'shared/users/schemas/create-user.schema';
+import { GetUsersWithPaginationQuery } from 'shared/users/schemas/get-user-with-pagination-query.schema';
+import { UpdatePassword } from 'shared/users/schemas/update-password.schema';
 import { ConflictError } from 'src/common/errors/conflict.error';
 import { ForbiddenError } from 'src/common/errors/forbidden.error';
 import { InternalServerError } from 'src/common/errors/internal-server.error';
 import { NotFoundError } from 'src/common/errors/not-found.error';
 import { pgError } from 'src/common/utils/pg-error';
 
-import { CreateUserDto } from './dto/create-user.dto';
-import { GetUsersWithPaginationQueryDto } from './dto/get-user-with-pagination-query.dto';
-import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UserMapper } from './mappers/user.mapper';
 import { UsersRepository } from './repository/users.repository';
 
@@ -23,8 +23,8 @@ export class UsersService {
 		private readonly usersRepository: UsersRepository,
 	) {}
 
-	async findAll(getUsersWithPaginationQueryDto: GetUsersWithPaginationQueryDto) {
-		const result = await this.usersRepository.findAll(getUsersWithPaginationQueryDto);
+	async findAll(getUsersWithPaginationQuery: GetUsersWithPaginationQuery) {
+		const result = await this.usersRepository.findAll(getUsersWithPaginationQuery);
 		if ('data' in result) {
 			return { ...result, data: UserMapper.toUsers(result.data) };
 		}
@@ -42,8 +42,8 @@ export class UsersService {
 		return await this.usersRepository.findOneByLoginWithPassword(login);
 	}
 
-	async create(createUserDto: CreateUserDto) {
-		const { password, ...restCreateUser } = createUserDto;
+	async create(createUser: CreateUser) {
+		const { password, ...restCreateUser } = createUser;
 		const salt = this.configService.get<number>('cryptSalt');
 		const hashedPassword = await hash(password, salt);
 		try {
@@ -61,16 +61,16 @@ export class UsersService {
 		}
 	}
 
-	async updatePassword(userId: Id, updatePasswordDto: UpdatePasswordDto) {
+	async updatePassword(userId: Id, updatePassword: UpdatePassword) {
 		const user = await this.usersRepository.findWithPassword(userId);
 		if (!user) throw new NotFoundError(ERROR.USER.NOT_FOUND);
 
-		if (!(await compare(updatePasswordDto.oldPassword, user.password))) {
+		if (!(await compare(updatePassword.oldPassword, user.password))) {
 			throw new ForbiddenError(ERROR.PASSWORD.INVALID);
 		}
 
 		const salt = this.configService.get<number>('cryptSalt');
-		const hashedPassword = await hash(updatePasswordDto.newPassword, salt);
+		const hashedPassword = await hash(updatePassword.newPassword, salt);
 		const result = await this.usersRepository.update(userId, {
 			password: hashedPassword,
 		});
@@ -84,8 +84,8 @@ export class UsersService {
 		return UserMapper.toUser(result);
 	}
 
-	async createWithSignup(createUserDto: CreateUserDto) {
-		const { password, ...restCreateUser } = createUserDto;
+	async createWithSignup(createUser: CreateUser) {
+		const { password, ...restCreateUser } = createUser;
 		const salt = this.configService.get<number>('cryptSalt');
 		const hashedPassword = await hash(password, salt);
 		try {

@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { compare } from 'bcrypt';
+import { Login } from 'shared/auth/schemas/login.schema';
+import { Refresh } from 'shared/auth/schemas/refresh.schema';
+import { Signup } from 'shared/auth/schemas/signup.schema';
 import { ForbiddenError } from 'src/common/errors/forbidden.error';
 import { UnauthorizedError } from 'src/common/errors/unauthorized.error';
 import { TokensService } from 'src/tokens/tokens.service';
 import { UsersService } from 'src/users/users.service';
-
-import { LoginDto } from './dto/login.dto';
-import { RefreshDto } from './dto/refresh.dto';
-import { SignupDto } from './dto/signup.dto';
 
 import { ERROR } from 'shared/common/constants/error';
 import { USER_ROLES } from 'shared/users/constants/user-role';
@@ -19,13 +18,13 @@ export class AuthService {
 		private readonly tokensService: TokensService,
 	) {}
 
-	async signup(signupDto: SignupDto) {
-		return await this.usersService.createWithSignup({ ...signupDto, role: USER_ROLES.VIEWER });
+	async signup(signup: Signup) {
+		return await this.usersService.createWithSignup({ ...signup, role: USER_ROLES.VIEWER });
 	}
 
-	async login(loginDto: LoginDto) {
-		const user = await this.usersService.findOneByLoginWithPassword(loginDto.login);
-		if (!user || !(await compare(loginDto.password, user.password))) {
+	async login(login: Login) {
+		const user = await this.usersService.findOneByLoginWithPassword(login.login);
+		if (!user || !(await compare(login.password, user.password))) {
 			throw new ForbiddenError(ERROR.AUTH.INVALID_LOGIN_OR_PASSWORD);
 		}
 
@@ -36,15 +35,15 @@ export class AuthService {
 		});
 	}
 
-	async refresh(refreshDto: RefreshDto) {
-		if (!refreshDto.refreshToken) throw new UnauthorizedError(ERROR.TOKEN.EMPTY);
+	async refresh(refresh: Refresh) {
+		if (!refresh.refreshToken) throw new UnauthorizedError(ERROR.TOKEN.EMPTY);
 
-		const payload = this.tokensService.verifyRefreshToken(refreshDto.refreshToken);
+		const payload = this.tokensService.verifyRefreshToken(refresh.refreshToken);
 		if (!payload) throw new ForbiddenError(ERROR.TOKEN.INVALID);
 
 		const isValid = await this.tokensService.validateRefreshToken(
 			payload.userId,
-			refreshDto.refreshToken,
+			refresh.refreshToken,
 		);
 		if (!isValid) throw new ForbiddenError(ERROR.TOKEN.INVALID);
 
@@ -58,12 +57,12 @@ export class AuthService {
 		});
 	}
 
-	async logout(refreshDto: RefreshDto) {
-		if (!refreshDto.refreshToken) throw new UnauthorizedError(ERROR.TOKEN.EMPTY);
+	async logout(refresh: Refresh) {
+		if (!refresh.refreshToken) throw new UnauthorizedError(ERROR.TOKEN.EMPTY);
 
-		const payload = this.tokensService.verifyRefreshToken(refreshDto.refreshToken);
+		const payload = this.tokensService.verifyRefreshToken(refresh.refreshToken);
 		if (!payload) throw new ForbiddenError(ERROR.TOKEN.INVALID);
 
-		await this.tokensService.removeRefreshToken(payload.userId, refreshDto.refreshToken);
+		await this.tokensService.removeRefreshToken(payload.userId, refresh.refreshToken);
 	}
 }

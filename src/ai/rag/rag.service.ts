@@ -1,12 +1,12 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ReindexStats } from 'shared/ai/rag/schemas/reindex-stats.schema';
+import { Reindex } from 'shared/ai/rag/schemas/reindex.schema';
 import { ArticleWithRelations } from 'shared/articles/schemas/article-with-relations.schema';
 import { GeminiService } from 'src/ai/gemini/gemini.service';
 import { ArticlesService } from 'src/articles/articles.service';
 import { v4 as uuidV4 } from 'uuid';
 
-import { ReindexStatsDto } from './dto/reindex-stats.dto';
-import { ReindexDto } from './dto/reindex.dto';
 import { RagRepository } from './repositories/rag.repository';
 
 import { ARTICLE_STATUS } from 'shared/articles/constants/article-status';
@@ -22,10 +22,10 @@ export class RagService implements OnModuleInit {
 
 	async onModuleInit() {}
 
-	async index(reindexDto: ReindexDto): Promise<ReindexStatsDto> {
-		const status = reindexDto?.onlyPublished ? { status: ARTICLE_STATUS.PUBLISHED } : {};
+	async index(reindex: Reindex): Promise<ReindexStats> {
+		const status = reindex?.onlyPublished ? { status: ARTICLE_STATUS.PUBLISHED } : {};
 		const articles = await this.articlesService.findManyWithRelations({
-			ids: reindexDto.articleIds,
+			ids: reindex.articleIds,
 			...status,
 		});
 
