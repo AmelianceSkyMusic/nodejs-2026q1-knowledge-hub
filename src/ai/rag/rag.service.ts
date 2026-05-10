@@ -8,12 +8,14 @@ import { ArticleWithRelations } from 'shared/articles/schemas/article-with-relat
 import { GeminiService } from 'src/ai/gemini/gemini.service';
 import { ArticlesService } from 'src/articles/articles.service';
 import { CategoriesService } from 'src/categories/categories.service';
+import { NotFoundError } from 'src/common/errors/not-found.error';
 import { v4 as uuidV4 } from 'uuid';
 
 import { RagRepository } from './repositories/rag.repository';
 import { RagPayloadSchema } from './schemas/rag-payload.schema';
 
 import { ARTICLE_STATUS } from 'shared/articles/constants/article-status';
+import { ERROR } from 'shared/common/constants/error';
 
 @Injectable()
 export class RagService implements OnModuleInit {
@@ -82,6 +84,12 @@ export class RagService implements OnModuleInit {
 				};
 			}),
 		};
+	}
+
+	async remove(articleId: string) {
+		const count = await this.ragRepository.countPointsByArticleId(articleId);
+		if (count === 0) throw new NotFoundError(ERROR.ARTICLE.NOT_FOUND);
+		return await this.ragRepository.deleteByArticleId(articleId);
 	}
 
 	private splitArticleToChunks(articles: ArticleWithRelations[]) {

@@ -1,8 +1,17 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import {
+	ApiBadRequestResponse,
+	ApiNoContentResponse,
+	ApiNotFoundResponse,
+	ApiOkResponse,
+	ApiOperation,
+	ApiParam,
+	ApiTags,
+} from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 import { AiThrottle } from 'src/common/decorators/ai-throttle.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { IdParamDto } from 'src/common/dto/id-param.dto';
 
 import { RagSearchDto } from './dto/rag-search.dto';
 import { ReindexStatsDto } from './dto/reindex-stats.dto';
@@ -11,6 +20,7 @@ import { SearchRagDto } from './dto/search-rag.dto';
 import { RagService } from './rag.service';
 
 import { USER_ROLES } from 'shared/users/constants/user-role';
+import { SWAGGER } from 'src/common/constants/swagger';
 
 @ApiTags('RAG')
 @Roles(USER_ROLES.EDITOR, USER_ROLES.VIEWER)
@@ -43,8 +53,25 @@ export class RagController {
 	@HttpCode(HttpStatus.OK)
 	@ZodResponse({ type: RagSearchDto })
 	async search(@Body() searchRagDto: SearchRagDto) {
-		const result = await this.ragService.search(searchRagDto);
-		console.log(JSON.stringify(result, null, 2));
-		return result;
+		return await this.ragService.search(searchRagDto);
+	}
+
+	@Delete('index/articles/:id')
+	@ApiOperation({
+		summary: 'Delete article from index',
+		description: 'Removes all vector entries linked to article.',
+	})
+	@ApiNoContentResponse({ description: 'Vectors were removed' })
+	@ApiNotFoundResponse({ description: 'Article or index entries not found' })
+	@ApiBadRequestResponse({ description: 'Query is missing or invalid' })
+	@ApiParam({
+		name: 'id',
+		required: true,
+		description: 'Article ID',
+		format: SWAGGER.FORMAT.ID,
+	})
+	@HttpCode(HttpStatus.NO_CONTENT)
+	async remove(@Param() { id: articleId }: IdParamDto) {
+		return await this.ragService.remove(articleId);
 	}
 }

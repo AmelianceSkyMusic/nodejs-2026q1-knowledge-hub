@@ -90,6 +90,26 @@ export class RagRepository implements OnModuleInit {
 		}
 	}
 
+	async countPointsByArticleId(articleId: Id): Promise<number> {
+		try {
+			const response = await this.qdrantClient.count(this.collectionName, {
+				filter: {
+					must: [
+						{
+							key: 'metadata.articleId',
+							match: { value: articleId },
+						},
+					],
+				},
+				exact: true,
+			});
+			return response.count;
+		} catch (error) {
+			this.logger.error(`Qdrant count failed: ${error.message}`);
+			throw new ServiceUnavailableError(ERROR.RAG.VECTOR_DB_UNAVAILABLE);
+		}
+	}
+
 	async deleteByArticleId(articleId: Id) {
 		try {
 			return await this.qdrantClient.delete(this.collectionName, {
