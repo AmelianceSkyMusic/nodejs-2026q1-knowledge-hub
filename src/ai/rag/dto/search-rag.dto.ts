@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { SearchRag, SearchRagSchema } from 'shared/rag/schemas/search-rag.schema';
+import { SearchRag, SearchRagSchema } from 'shared/ai/rag/schemas/search-rag.schema';
 
 import { RAG_SWAGGER } from './rag.swagger';
 

@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { ReindexStatsSchema } from 'shared/rag/schemas/reindex-stats.schema';
+import { ReindexStatsSchema } from 'shared/ai/rag/schemas/reindex-stats.schema';
 
 import { RAG_SWAGGER } from './rag.swagger';
 
-import type { ReindexStats } from 'shared/rag/schemas/reindex-stats.schema';
+import type { ReindexStats } from 'shared/ai/rag/schemas/reindex-stats.schema';
 
 export class ReindexStatsDto extends createZodDto(ReindexStatsSchema) {
 	@ApiProperty(RAG_SWAGGER.INDEXED_ARTICLES)

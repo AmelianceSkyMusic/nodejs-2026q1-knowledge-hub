@@ -1,5 +1,6 @@
-import { zUuid } from 'shared/common/utils/zod/z-uuid.util';
 import { z } from 'zod';
+
+import { zUuid } from '../../../common/utils/zod/z-uuid.util';
 
 import { RAG_DEFAULTS } from '../constants/rag-defaults';
 

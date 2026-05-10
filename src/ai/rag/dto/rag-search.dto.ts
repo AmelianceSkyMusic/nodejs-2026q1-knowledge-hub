@@ -4,7 +4,7 @@ import {
 	RagSearchElement,
 	RagSearchElementSchema,
 	RagSearchSchema,
-} from 'shared/rag/schemas/rag-search.schema';
+} from 'shared/ai/rag/schemas/rag-search.schema';
 
 import { RAG_SWAGGER } from './rag.swagger';
 

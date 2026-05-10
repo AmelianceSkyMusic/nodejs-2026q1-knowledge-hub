@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { ChatRagRequest, ChatRagSchema } from 'shared/rag/schemas/chat-rag.schema';
+import { ChatRagRequest, ChatRagSchema } from 'shared/ai/rag/schemas/chat-rag.schema';
 
 import { RAG_SWAGGER } from './rag.swagger';
 

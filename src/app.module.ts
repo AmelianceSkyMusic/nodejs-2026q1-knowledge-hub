@@ -5,6 +5,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { ZodSerializerInterceptor } from 'nestjs-zod';
 
 import { AiModule } from './ai/ai.module';
+import { RagModule } from './ai/rag/rag.module';
 import { ArticlesModule } from './articles/articles.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
@@ -21,7 +22,6 @@ import { CustomZodValidationPipe } from './common/pipes/custom-zod-validation.pi
 import { DrizzleModule } from './drizzle/drizzle.module';
 import { HealthModule } from './health/health.module';
 import { QdrantModule } from './qdrant/qdrant.module';
-import { RagModule } from './rag/rag.module';
 import { TokensModule } from './tokens/tokens.module';
 import { UsersModule } from './users/users.module';
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { zUuid } from '../../common/utils/zod/z-uuid.util';
+import { zUuid } from '../../../common/utils/zod/z-uuid.util';
 
 export const RagChatSourcesSchema = z.object({
 	articleId: zUuid(),

@@ -1,9 +1,10 @@
-import { zUuid } from 'shared/common/utils/zod/z-uuid.util';
 import { z } from 'zod';
 
+import { zUuid } from '../../../common/utils/zod/z-uuid.util';
+
+import { ARTICLE_STATUS } from '../../../articles/constants/article-status';
+import { ERROR_WITH_PARAMS } from '../../../common/constants/error-with-params';
 import { RAG_DEFAULTS } from '../constants/rag-defaults';
-import { ARTICLE_STATUS } from 'shared/articles/constants/article-status';
-import { ERROR_WITH_PARAMS } from 'shared/common/constants/error-with-params';
 
 /** Request schema without defaults for frontend */
 export const SearchRagRequestSchema = z.object({

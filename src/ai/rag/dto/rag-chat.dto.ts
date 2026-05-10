@@ -5,7 +5,7 @@ import {
 	RagChatSchema,
 	RagChatSources,
 	RagChatSourcesSchema,
-} from 'shared/rag/schemas/rag-chat.schema';
+} from 'shared/ai/rag/schemas/rag-chat.schema';
 
 import { RAG_SWAGGER } from './rag.swagger';
 

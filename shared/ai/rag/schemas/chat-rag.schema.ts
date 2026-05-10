@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { zUuid } from '../../common/utils/zod/z-uuid.util';
+import { zUuid } from '../../../common/utils/zod/z-uuid.util';
 
 /** Request schema without defaults for frontend */
 export const ChatRagRequestSchema = z.object({
