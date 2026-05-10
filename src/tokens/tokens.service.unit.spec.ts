@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
+import { compare, hash } from 'bcrypt';
 import { sign, verify } from 'jsonwebtoken';
 import { InternalServerError } from 'src/common/errors/internal-server.error';
 
@@ -13,6 +14,11 @@ import type { TestingModule } from '@nestjs/testing';
 vi.mock('jsonwebtoken', () => ({
 	sign: vi.fn().mockReturnValue('mocked-token'),
 	verify: vi.fn(),
+}));
+
+vi.mock('bcrypt', () => ({
+	hash: vi.fn().mockResolvedValue('hashed-token'),
+	compare: vi.fn().mockResolvedValue(true),
 }));
 
 describe('TokensService', () => {
@@ -36,7 +42,7 @@ describe('TokensService', () => {
 	const mockTokensRepository = {
 		create: vi.fn(),
 		deleteByUserId: vi.fn(),
-		validate: vi.fn(),
+		findByUserId: vi.fn(),
 	};
 
 	beforeEach(async () => {
@@ -82,7 +88,8 @@ describe('TokensService', () => {
 				refreshToken: MOCKED_TOKEN,
 			});
 
-			expect(mockTokensRepository.create).toHaveBeenCalledWith(MOCKED_USER_ID, MOCKED_TOKEN);
+			expect(hash).toHaveBeenCalledWith(MOCKED_TOKEN, 10);
+			expect(mockTokensRepository.create).toHaveBeenCalledWith(MOCKED_USER_ID, 'hashed-token');
 			expect(sign).toHaveBeenCalledTimes(2);
 		});
 
@@ -146,27 +153,47 @@ describe('TokensService', () => {
 	});
 
 	describe('removeRefreshToken', () => {
-		it('should call .removeRefreshToken() and return repository result', async () => {
-			mockTokensRepository.deleteByUserId.mockResolvedValue(true);
+		it('should call .removeRefreshToken() and return true if valid', async () => {
+			mockTokensRepository.findByUserId.mockResolvedValue({ token: 'hashed-token' });
+			mockTokensRepository.deleteByUserId.mockResolvedValue(undefined);
 
 			const result = await service.removeRefreshToken(MOCKED_USER_ID, MOCKED_TOKEN);
 
 			expect(result).toBe(true);
-			expect(mockTokensRepository.deleteByUserId).toHaveBeenCalledWith(
-				MOCKED_USER_ID,
-				MOCKED_TOKEN,
-			);
+			expect(mockTokensRepository.findByUserId).toHaveBeenCalledWith(MOCKED_USER_ID);
+			expect(compare).toHaveBeenCalledWith(MOCKED_TOKEN, 'hashed-token');
+			expect(mockTokensRepository.deleteByUserId).toHaveBeenCalledWith(MOCKED_USER_ID);
+		});
+
+		it('should return false if token is invalid', async () => {
+			mockTokensRepository.findByUserId.mockResolvedValue({ token: 'wrong-hash' });
+			(compare as any).mockResolvedValue(false);
+
+			const result = await service.removeRefreshToken(MOCKED_USER_ID, MOCKED_TOKEN);
+
+			expect(result).toBe(false);
+			expect(mockTokensRepository.deleteByUserId).not.toHaveBeenCalled();
 		});
 	});
 
 	describe('validateRefreshToken', () => {
-		it('should call .validateRefreshToken() and return repository result', async () => {
-			mockTokensRepository.validate.mockResolvedValue(true);
+		it('should return true if token is valid', async () => {
+			mockTokensRepository.findByUserId.mockResolvedValue({ token: 'hashed-token' });
+			(compare as any).mockResolvedValue(true);
 
 			const result = await service.validateRefreshToken(MOCKED_USER_ID, MOCKED_TOKEN);
 
 			expect(result).toBe(true);
-			expect(mockTokensRepository.validate).toHaveBeenCalledWith(MOCKED_USER_ID, MOCKED_TOKEN);
+			expect(mockTokensRepository.findByUserId).toHaveBeenCalledWith(MOCKED_USER_ID);
+			expect(compare).toHaveBeenCalledWith(MOCKED_TOKEN, 'hashed-token');
+		});
+
+		it('should return false if session token not found', async () => {
+			mockTokensRepository.findByUserId.mockResolvedValue(null);
+
+			const result = await service.validateRefreshToken(MOCKED_USER_ID, MOCKED_TOKEN);
+
+			expect(result).toBe(false);
 		});
 	});
 });

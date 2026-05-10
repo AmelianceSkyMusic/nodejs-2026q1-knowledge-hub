@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { compare, hash } from 'bcrypt';
 import { sign, SignOptions, verify } from 'jsonwebtoken';
 import { JwtUser } from 'shared/auth/schemas/jwt-user.schema';
 import { Id } from 'shared/common/schemas/id.schema';
@@ -21,7 +22,8 @@ export class TokensService {
 		const accessToken = this.generateAccessToken(payload);
 		const refreshToken = this.generateRefreshToken(payload);
 
-		await this.tokensRepository.create(payload.userId, refreshToken);
+		const hashedRefreshToken = await hash(refreshToken, 10);
+		await this.tokensRepository.create(payload.userId, hashedRefreshToken);
 
 		return { accessToken, refreshToken };
 	}
@@ -37,11 +39,18 @@ export class TokensService {
 	}
 
 	async removeRefreshToken(userId: Id, token: string) {
-		return await this.tokensRepository.deleteByUserId(userId, token);
+		const isValid = await this.validateRefreshToken(userId, token);
+		if (!isValid) return false;
+
+		await this.tokensRepository.deleteByUserId(userId);
+		return true;
 	}
 
 	async validateRefreshToken(userId: Id, token: string) {
-		return await this.tokensRepository.validate(userId, token);
+		const sessionToken = await this.tokensRepository.findByUserId(userId);
+		if (!sessionToken) return false;
+
+		return await compare(token, sessionToken.token);
 	}
 
 	private generateAccessToken(payload: { userId: Id; login: string; role: UserRole }) {
