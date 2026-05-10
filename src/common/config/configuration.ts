@@ -31,5 +31,9 @@ export default () => {
 			rateLimit: Number(process.env.AI_RATE_LIMIT_RPM) || 20,
 			cacheTtlSec: Number(process.env.AI_CACHE_TTL_SEC) || 300,
 		},
+		rag: {
+			provider: process.env.RAG_VECTOR_DB_PROVIDER || 'qdrant',
+			url: process.env.RAG_VECTOR_DB_URL || 'http://localhost:6333',
+		},
 	};
 };

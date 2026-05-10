@@ -20,6 +20,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { CustomZodValidationPipe } from './common/pipes/custom-zod-validation.pipe';
 import { DrizzleModule } from './drizzle/drizzle.module';
 import { HealthModule } from './health/health.module';
+import { QdrantModule } from './qdrant/qdrant.module';
 import { TokensModule } from './tokens/tokens.module';
 import { UsersModule } from './users/users.module';
 
@@ -64,6 +65,7 @@ import { UsersModule } from './users/users.module';
 		AuthModule,
 		TokensModule,
 		AiModule,
+		QdrantModule,
 	],
 	providers: [
 		{
