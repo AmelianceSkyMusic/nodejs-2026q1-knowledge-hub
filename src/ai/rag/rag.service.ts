@@ -1,13 +1,17 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { RagSearch } from 'shared/ai/rag/schemas/rag-search.schema';
 import { ReindexStats } from 'shared/ai/rag/schemas/reindex-stats.schema';
 import { Reindex } from 'shared/ai/rag/schemas/reindex.schema';
+import { SearchRag } from 'shared/ai/rag/schemas/search-rag.schema';
 import { ArticleWithRelations } from 'shared/articles/schemas/article-with-relations.schema';
 import { GeminiService } from 'src/ai/gemini/gemini.service';
 import { ArticlesService } from 'src/articles/articles.service';
+import { CategoriesService } from 'src/categories/categories.service';
 import { v4 as uuidV4 } from 'uuid';
 
 import { RagRepository } from './repositories/rag.repository';
+import { RagPayloadSchema } from './schemas/rag-payload.schema';
 
 import { ARTICLE_STATUS } from 'shared/articles/constants/article-status';
 
@@ -16,6 +20,7 @@ export class RagService implements OnModuleInit {
 	constructor(
 		private readonly configService: ConfigService,
 		private readonly articlesService: ArticlesService,
+		private readonly categoryService: CategoriesService,
 		private readonly geminiService: GeminiService,
 		private readonly ragRepository: RagRepository,
 	) {}
@@ -56,6 +61,29 @@ export class RagService implements OnModuleInit {
 		};
 	}
 
+	async search(searchRag: SearchRag): Promise<RagSearch> {
+		const category = searchRag.categoryId
+			? await this.categoryService.findOne(searchRag.categoryId)
+			: null;
+		const embedding = await this.geminiService.getEmbedding([searchRag.query]);
+		const result = await this.ragRepository.search(embedding[0], searchRag.limit, {
+			articleStatus: searchRag.articleStatus,
+			category: category?.name,
+			tags: searchRag.tags,
+		});
+		return {
+			results: result.map((point) => {
+				const payload = RagPayloadSchema.parse(point.payload);
+				return {
+					articleId: payload.metadata.articleId,
+					articleTitle: payload.metadata.title,
+					chunk: payload.text,
+					similarity: point.score,
+				};
+			}),
+		};
+	}
+
 	private splitArticleToChunks(articles: ArticleWithRelations[]) {
 		const { chunkSize, chunkOverlap } = this.configService.get('rag');
 		return articles.flatMap((article) => {
@@ -66,12 +94,14 @@ export class RagService implements OnModuleInit {
 				metadata: {
 					articleId: article.id,
 					title: article.title,
-					category: article.category?.name,
+					category: article.category.name,
+					articleStatus: article.status,
 					tags: article.tags,
 				},
 			}));
 		});
 	}
+
 	private splitToChunks(text: string, size: number, overlap: number) {
 		let start = 0;
 		const chunks = [];

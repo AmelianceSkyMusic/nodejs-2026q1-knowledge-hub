@@ -59,6 +59,37 @@ export class RagRepository implements OnModuleInit {
 		}
 	}
 
+	async search(
+		vector: number[],
+		limit: number,
+		filter: { articleStatus?: string; category?: string; tags?: string[] },
+	) {
+		const must = [];
+		if (filter.articleStatus) {
+			must.push({ key: 'metadata.articleStatus', match: { value: filter.articleStatus } });
+		}
+		if (filter.category) {
+			must.push({ key: 'metadata.category', match: { value: filter.category } });
+		}
+		if (filter.tags && filter.tags.length > 0) {
+			must.push({ key: 'metadata.tags', match: { any: filter.tags } });
+		}
+
+		const searchParams = {
+			vector,
+			limit,
+			with_payload: true,
+			...(must.length > 0 ? { filter: { must } } : {}),
+		};
+
+		try {
+			return await this.qdrantClient.search(this.collectionName, searchParams);
+		} catch (error) {
+			this.logger.error(`Qdrant search failed: ${error.message}`);
+			throw new ServiceUnavailableError(ERROR.RAG.VECTOR_DB_UNAVAILABLE);
+		}
+	}
+
 	async deleteByArticleId(articleId: Id) {
 		try {
 			return await this.qdrantClient.delete(this.collectionName, {
