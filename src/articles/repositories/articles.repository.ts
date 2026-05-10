@@ -9,6 +9,7 @@ import * as schema from '../../drizzle/db/schema';
 import { CreateArticleDto } from '../dto/create-article.dto';
 import { GetArticlesWithPaginationQueryDto } from '../dto/get-articles-with-pagination.query.dto';
 import { UpdateArticleDto } from '../dto/update-article.dto';
+import { FindMany } from '../types/find-many';
 
 @Injectable()
 export class ArticlesRepository {
@@ -81,6 +82,21 @@ export class ArticlesRepository {
 
 			return { total, page: currentPage, limit, data: result };
 		});
+	}
+
+	async findMany(findManyArgs: FindMany) {
+		const { ids, status, categoryId, tag: tags, sortBy, order } = findManyArgs;
+		const baseQuery = {
+			where: {
+				...(ids && { id: { in: ids } }),
+				...(status && { status }),
+				...(categoryId !== undefined && { categoryId }),
+				...(tags?.length && { tags: { name: { in: tags } } }),
+			},
+			...(sortBy && order && { orderBy: { [sortBy]: order } }),
+			with: { author: true, category: true, tags: true },
+		};
+		return await this.db.query.articles.findMany(baseQuery);
 	}
 
 	async findOne(id: Id) {

@@ -12,6 +12,7 @@ import { GetArticlesWithPaginationQueryDto } from './dto/get-articles-with-pagin
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleMapper } from './mappers/article.mapper';
 import { ArticlesRepository } from './repositories/articles.repository';
+import { FindMany } from './types/find-many';
 
 import { ARTICLE_STATUS_TRANSITIONS } from 'shared/articles/constants/article-status-transitions';
 import { ERROR } from 'shared/common/constants/error';
@@ -27,6 +28,11 @@ export class ArticlesService {
 			return { ...result, data: ArticleMapper.toArticles(result.data) };
 		}
 		return ArticleMapper.toArticles(result);
+	}
+
+	async findManyWithRelations(findManyArgs: FindMany) {
+		const result = await this.articlesRepository.findMany(findManyArgs);
+		return ArticleMapper.toArticlesWithRelations(result);
 	}
 
 	async findOne(id: Id) {
