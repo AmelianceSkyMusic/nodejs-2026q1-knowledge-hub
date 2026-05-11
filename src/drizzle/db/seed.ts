@@ -259,6 +259,48 @@ In conclusion, the modern frontend is about more than just pixels on a screen. I
 			categoryId: frontend.id,
 			tags: ['frontend', 'react', 'ui'],
 		},
+		{
+			title: 'Retrieval-Augmented Generation (RAG): A Deep Dive',
+			status: ARTICLE_STATUS.PUBLISHED,
+			content: `Retrieval-Augmented Generation (RAG) is a technique used to give LLMs access to specific, up-to-date data without retraining the model. It works by retrieving relevant documents from a vector database and injecting them into the prompt. 
+
+The process starts with embedding: transforming text into numerical vectors. These vectors are stored in a database like Qdrant. When a user asks a question, the system searches for the most similar vectors to find the relevant context.
+
+One of the biggest challenges in RAG is 'Chunking Strategy'. If chunks are too small, they lack context. If they are too large, they include noise. Using overlapping chunks helps maintain continuity between fragments.
+
+Semantic search is the core of RAG. Unlike keyword search, it understands meaning. For example, a search for 'storage' might find results about 'databases' even if the word 'storage' isn't present. This is possible thanks to the high-dimensional space of embeddings.`,
+			authorId: admin.id,
+			categoryId: databases.id,
+			tags: ['db', 'performance', 'scaling'],
+		},
+		{
+			title: 'Vector Databases: Why Qdrant?',
+			status: ARTICLE_STATUS.PUBLISHED,
+			content: `Qdrant is a powerful vector database written in Rust that provides ultra-fast similarity search. It is perfectly suited for modern AI applications as it supports metadata filtering and complex queries.
+
+In the context of RAG, Qdrant allows storing not only embeddings but also payload—such as the article text, its ID, and category. This enables the system to quickly return answers along with links to the original sources.
+
+Using the HNSW (Hierarchical Navigable Small World) graph makes searching in Qdrant very efficient even with millions of records. This is critical for systems operating in real-time.`,
+			authorId: editor.id,
+			categoryId: databases.id,
+			tags: ['db', 'scaling', 'performance'],
+		},
+		{
+			title: 'Advanced TypeScript Patterns: Beyond the Basics',
+			status: ARTICLE_STATUS.DRAFT,
+			content: `TypeScript has transformed the JavaScript ecosystem by bringing type safety to the web. For senior developers, mastering advanced patterns like Conditional Types, Mapped Types, and Template Literal Types is essential for building robust libraries and applications.
+
+Conditional types allow us to create types that depend on other types, using a syntax similar to ternary operators. This is particularly useful for creating generic functions that adapt their return type based on the input.
+
+Mapped types let us transform existing types into new ones. For example, we can make all properties of a type optional or read-only with a single declaration. This promotes the 'Don't Repeat Yourself' principle at the type level.
+
+Template literal types, introduced in TypeScript 4.1, allow for sophisticated string manipulation within the type system. They enable us to define strict patterns for strings, such as CSS property names or internal routing paths.
+
+In conclusion, TypeScript is more than just a linter. It is a powerful tool for expressing complex relationships between data structures, ensuring that our code is self-documenting and less prone to runtime errors.`,
+			authorId: admin.id,
+			categoryId: nodeJs.id,
+			tags: ['typescript', 'clean-code'],
+		},
 	];
 
 	const articles: (typeof schema.articles.$inferSelect)[] = [];

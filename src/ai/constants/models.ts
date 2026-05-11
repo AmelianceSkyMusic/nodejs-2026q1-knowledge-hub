@@ -1,9 +1,8 @@
 //* https://aistudio.google.com/rate-limit
-//* Limits current as of 2026-05-01_13-14
-//* gemma-3-1b-it — dev, speed but simple (30 RPM, 15K TPM, 14.4K RPD)
-//* gemma-3-27b-it — dev, better result (30 RPM, 15K TPM, 14.4K RPD)
+//* Limits current as of 2026-05-07_19-29
 //* gemini-2.5-flash — stable prod (5 RPM, 250K TPM, 20 RPD)
-//* gemini-3-flash-preview — next gen, use instead gemini-2.5-flash after stable (5 RPM, 250K TPM, 20 RPD)
+//* gemini-3-flash-preview — next gen, use instead gemini-2.5-flash when it will be stable (5 RPM, 250K TPM, 20 RPD)
+//* gemini-3.1-flash-lite — rsschool, better results (15 RPM, 250K TPM, 500 RPD)
 //* gemini-3.1-flash-lite-preview — rsschool, better results (15 RPM, 250K TPM, 500 RPD)
 export const MODELS = {
 	GEMINI: {
@@ -95,6 +94,12 @@ export const MODELS = {
 		'gemini-3.1-flash-lite-preview': {
 			//* Use for prod for students
 			model: 'gemini-3.1-flash-lite-preview',
+			rpm: 15,
+			tpm: 250_000,
+			rpd: 500,
+		},
+		'gemini-3.1-flash-lite': {
+			model: 'gemini-3.1-flash-lite',
 			rpm: 15,
 			tpm: 250_000,
 			rpd: 500,
@@ -203,6 +208,12 @@ export const MODELS = {
 			tpm: 0,
 			rpd: 0,
 		},
+		'veo-3.1-lite-generate-preview': {
+			model: 'veo-3.1-lite-generate-preview',
+			rpm: 0,
+			tpm: 0,
+			rpd: 0,
+		},
 
 		//* Other models (Embedding, etc.)
 		'gemini-embedding-001': {
@@ -248,6 +259,32 @@ export const MODELS = {
 			rpd: 0,
 		},
 
+		//* Live API models
+		'gemini-2.5-flash-native-audio-latest': {
+			model: 'gemini-2.5-flash-native-audio-latest',
+			rpm: Infinity,
+			tpm: 1_000_000,
+			rpd: Infinity,
+		},
+		'gemini-2.5-flash-native-audio-preview-09-2025': {
+			model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+			rpm: 0,
+			tpm: 0,
+			rpd: 0,
+		},
+		'gemini-2.5-flash-native-audio-preview-12-2025': {
+			model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+			rpm: 0,
+			tpm: 0,
+			rpd: 0,
+		},
+		'gemini-3.1-flash-live-preview': {
+			model: 'gemini-3.1-flash-live-preview',
+			rpm: Infinity,
+			tpm: 65_000,
+			rpd: Infinity,
+		},
+
 		//* Agents
 		'deep-research-max-preview-04-2026': {
 			model: 'deep-research-max-preview-04-2026',
@@ -269,37 +306,37 @@ export const MODELS = {
 		},
 
 		//* Other models
-		'gemma-3-1b-it': {
+		'gemma-3-1b-it:unavailable': {
 			model: 'gemma-3-1b-it',
 			rpm: 30,
 			tpm: 15_000,
 			rpd: 14_400,
 		},
-		'gemma-3-4b-it': {
+		'gemma-3-4b-it:unavailable': {
 			model: 'gemma-3-4b-it',
 			rpm: 30,
 			tpm: 15_000,
 			rpd: 14_400,
 		},
-		'gemma-3-12b-it': {
+		'gemma-3-12b-it:unavailable': {
 			model: 'gemma-3-12b-it',
 			rpm: 30,
 			tpm: 15_000,
 			rpd: 14_400,
 		},
-		'gemma-3-27b-it': {
+		'gemma-3-27b-it:unavailable': {
 			model: 'gemma-3-27b-it',
 			rpm: 30,
 			tpm: 15_000,
 			rpd: 14_400,
 		},
-		'gemma-3n-e4b-it': {
+		'gemma-3n-e4b-it:unavailable': {
 			model: 'gemma-3n-e4b-it',
 			rpm: 0,
 			tpm: 0,
 			rpd: 0,
 		},
-		'gemma-3n-e2b-it': {
+		'gemma-3n-e2b-it:unavailable': {
 			model: 'gemma-3n-e2b-it',
 			rpm: 30,
 			tpm: 15_000,

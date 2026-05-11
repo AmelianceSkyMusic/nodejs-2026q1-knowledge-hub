@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, inArray, notExists, relationsFilterToSQL, sql } from 'drizzle-orm';
+import { CreateArticle } from 'shared/articles/schemas/create-article.schema';
+import { GetArticlesWithPaginationQuery } from 'shared/articles/schemas/get-articles-with-pagination.query.schema';
+import { UpdateArticle } from 'shared/articles/schemas/update-article.schema';
 import { Id } from 'shared/common/schemas/id.schema';
 import { InjectDrizzle } from 'src/drizzle/decorators/drizzle.decorator';
 import { DrizzleDb } from 'src/drizzle/types/drizzle-db';
 import { calculatePagination } from 'src/drizzle/utils/calculate-pagination';
 
 import * as schema from '../../drizzle/db/schema';
-import { CreateArticleDto } from '../dto/create-article.dto';
-import { GetArticlesWithPaginationQueryDto } from '../dto/get-articles-with-pagination.query.dto';
-import { UpdateArticleDto } from '../dto/update-article.dto';
+import { FindMany } from '../types/find-many';
 
 @Injectable()
 export class ArticlesRepository {
@@ -43,7 +44,7 @@ export class ArticlesRepository {
 		await tx.insert(schema.articleToTag).values(articleToTagValues).onConflictDoNothing();
 	}
 
-	async findAll(getArticlesWithPaginationQueryDto: GetArticlesWithPaginationQueryDto) {
+	async findAll(getArticlesWithPaginationQuery: GetArticlesWithPaginationQuery) {
 		const {
 			status,
 			categoryId,
@@ -52,7 +53,7 @@ export class ArticlesRepository {
 			limit,
 			sortBy,
 			order,
-		} = getArticlesWithPaginationQueryDto;
+		} = getArticlesWithPaginationQuery;
 
 		const baseQuery = {
 			where: {
@@ -83,18 +84,30 @@ export class ArticlesRepository {
 		});
 	}
 
+	async findMany(findManyArgs: FindMany) {
+		const { ids, status, categoryId, tag: tags, sortBy, order } = findManyArgs;
+		const baseQuery = {
+			where: {
+				...(ids && { id: { in: ids } }),
+				...(status && { status }),
+				...(categoryId !== undefined && { categoryId }),
+				...(tags?.length && { tags: { name: { in: tags } } }),
+			},
+			...(sortBy && order && { orderBy: { [sortBy]: order } }),
+			with: { author: true, category: true, tags: true },
+		};
+		return await this.db.query.articles.findMany(baseQuery);
+	}
+
 	async findOne(id: Id) {
 		return this.findOneWithTx(this.db, id);
 	}
 
-	async create(createArticleDto: CreateArticleDto) {
-		const { tags, ...restCreateArticleDto } = createArticleDto;
+	async create(createArticle: CreateArticle) {
+		const { tags, ...restCreateArticle } = createArticle;
 
 		return await this.db.transaction(async (tx) => {
-			const [article] = await tx
-				.insert(schema.articles)
-				.values(restCreateArticleDto)
-				.returning();
+			const [article] = await tx.insert(schema.articles).values(restCreateArticle).returning();
 			if (!article) return null;
 
 			if (tags?.length) await this.upsertTags(tx, article.id, tags);
@@ -103,13 +116,13 @@ export class ArticlesRepository {
 		});
 	}
 
-	async update(id: Id, updateArticleDto: UpdateArticleDto) {
-		const { tags, ...restUpdateArticleDto } = updateArticleDto;
+	async update(id: Id, updateArticle: UpdateArticle) {
+		const { tags, ...restUpdateArticle } = updateArticle;
 
 		return await this.db.transaction(async (tx) => {
 			const [article] = await tx
 				.update(schema.articles)
-				.set(restUpdateArticleDto)
+				.set(restUpdateArticle)
 				.where(eq(schema.articles.id, id))
 				.returning();
 

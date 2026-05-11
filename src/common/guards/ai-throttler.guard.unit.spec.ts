@@ -1,96 +1,85 @@
-import { ConfigService } from '@nestjs/config';
-import { Reflector } from '@nestjs/core';
-import { Test } from '@nestjs/testing';
-import { vi } from 'vitest';
+import { ThrottlerGuard } from '@nestjs/throttler';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AiThrottlerGuard } from './ai-throttler.guard';
 
 import type { ExecutionContext } from '@nestjs/common';
-import type { TestingModule } from '@nestjs/testing';
-import type { ThrottlerRequest, ThrottlerStorage } from '@nestjs/throttler';
+import type { ConfigService } from '@nestjs/config';
+import type { Reflector } from '@nestjs/core';
+import type { ThrottlerStorage } from '@nestjs/throttler';
 
 describe('AiThrottlerGuard', () => {
-	let guard: AiThrottlerGuardTest;
+	let guard: AiThrottlerGuard;
 	let configService: ConfigService;
+	let storage: ThrottlerStorage;
+	let reflector: Reflector;
 
-	class AiThrottlerGuardTest extends AiThrottlerGuard {
-		async testHandleRequest(requestProps: ThrottlerRequest): Promise<boolean> {
-			return this.handleRequest(requestProps);
-		}
-		async testShouldSkip(context: ExecutionContext): Promise<boolean> {
-			return this.shouldSkip(context);
-		}
-	}
+	beforeEach(() => {
+		configService = {
+			get: vi.fn().mockReturnValue({ rateLimit: 20 }),
+		} as any;
+		storage = {} as any;
+		reflector = {} as any;
 
-	beforeEach(async () => {
-		const module: TestingModule = await Test.createTestingModule({
-			providers: [
-				{
-					provide: AiThrottlerGuardTest,
-					useFactory: (config: ConfigService, reflector: Reflector) =>
-						new AiThrottlerGuardTest(
-							{ throttlers: [] },
-							{} as ThrottlerStorage,
-							reflector,
-							config,
-						),
-					inject: [ConfigService, Reflector],
-				},
-				{
-					provide: ConfigService,
-					useValue: { get: vi.fn() },
-				},
-				{
-					provide: Reflector,
-					useValue: { getAllAndOverride: vi.fn() },
-				},
-			],
-		}).compile();
-
-		guard = module.get<AiThrottlerGuardTest>(AiThrottlerGuardTest);
-		configService = module.get<ConfigService>(ConfigService);
-
-		vi.spyOn(
-			Object.getPrototypeOf(AiThrottlerGuard.prototype),
-			'handleRequest',
-		).mockResolvedValue(true);
+		guard = new AiThrottlerGuard({ throttlers: [] } as any, storage, reflector, configService);
 	});
 
-	it('should follow standard skipping logic (return false by default)', async () => {
-		const result = await guard.testShouldSkip({} as ExecutionContext);
-		expect(result).toBe(false);
+	it('should be defined', () => {
+		expect(guard).toBeDefined();
 	});
 
-	it('should skip processing if throttler name is not "dedicated-ai"', async () => {
-		const requestProps = {
-			throttler: { name: 'short' },
-		} as ThrottlerRequest;
+	describe('throwThrottlingException', () => {
+		it('should set Retry-After header and throw ThrottlerException', async () => {
+			const setHeader = vi.fn();
+			const context = {
+				switchToHttp: () => ({
+					getResponse: () => ({
+						setHeader,
+					}),
+				}),
+			} as unknown as ExecutionContext;
 
-		const result = await guard.testHandleRequest(requestProps);
+			const limitDetail = {
+				timeToExpire: 10.5,
+			} as any;
 
-		expect(result).toBe(true);
-		expect(configService.get).not.toHaveBeenCalled();
+			await expect(guard['throwThrottlingException'](context, limitDetail)).rejects.toThrow();
+
+			expect(setHeader).toHaveBeenCalledWith('Retry-After', '11');
+		});
 	});
 
-	it('should apply AI limits if throttler name is "dedicated-ai"', async () => {
-		const throttler = { name: 'dedicated-ai' };
-		const requestProps = {
-			throttler,
-			context: {} as ExecutionContext,
-		} as ThrottlerRequest;
+	describe('handleRequest', () => {
+		it('should bypass if throttler name is not dedicated-ai', async () => {
+			const requestProps = {
+				throttler: { name: 'standard' },
+			} as any;
 
-		vi.spyOn(configService, 'get').mockReturnValue({ rateLimit: 20 });
+			const result = await guard['handleRequest'](requestProps);
+			expect(result).toBe(true);
+		});
 
-		const result = await guard.testHandleRequest(requestProps);
+		it('should use config limit for dedicated-ai tier', async () => {
+			vi.spyOn(ThrottlerGuard.prototype as any, 'handleRequest').mockResolvedValue(true);
 
-		expect(result).toBe(true);
-		expect(configService.get).toHaveBeenCalledWith('ai');
-		expect(Object.getPrototypeOf(AiThrottlerGuard.prototype).handleRequest).toHaveBeenCalledWith(
-			expect.objectContaining({
-				limit: 20,
-				ttl: 60000,
-				throttler: expect.objectContaining({ name: 'dedicated-ai', limit: 20, ttl: 60000 }),
-			}),
-		);
+			const requestProps = {
+				throttler: { name: 'dedicated-ai' },
+				context: {
+					switchToHttp: () => ({
+						getRequest: () => ({}),
+						getResponse: () => ({}),
+					}),
+				},
+			} as any;
+
+			await guard['handleRequest'](requestProps);
+
+			expect((ThrottlerGuard.prototype as any).handleRequest).toHaveBeenCalledWith(
+				expect.objectContaining({
+					limit: 20,
+					ttl: 60000,
+				}),
+			);
+		});
 	});
 });

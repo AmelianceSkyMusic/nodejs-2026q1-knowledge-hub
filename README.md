@@ -150,6 +150,8 @@ For more information, visit: https://code.visualstudio.com/docs/editor/debugging
 
 ### Model Selection
 
+#### Text generation model
+
 In assignment is assumed that you will use stable model
 
 Since `gemini-2.0-flash` has no free-tier limits, you can use next generation `gemini-2.5-flash` as a production ready model with best price-performance ratio, but for checking you can try other models:
@@ -158,17 +160,23 @@ Since `gemini-2.0-flash` has no free-tier limits, you can use next generation `g
 
    _Limits: 5 RPM, 250K TPM, 20 RPD_
 
-- **`gemini-3.1-flash-lite-preview`**: Model with most generous free-tier limits, but not simple as gemma
+- **`gemini-3.1-flash-lite`**: Model with most generous free-tier limits, but not simple as gemma
 
    _Limits: 15 RPM, 250K TPM, 500 RPD_
 
-- **`gemma-3-27b-it`**: Simple alternative model with high-limit for test purposes, but it doesn't work with system prompts as excepted and may has some issues with output data
+- **`gemini-3.1-flash-lite-preview`**: Preview version of the lite model with same limits
 
-   _Limits: 30 RPM, 15K TPM, **14.4K RPD**_
+   _Limits: 15 RPM, 250K TPM, 500 RPD_
 
 - **`gemini-3-flash-preview`**: Next-gen model currently in preview (not yet production-ready)
 
    _Limits: 5 RPM, 250K TPM, 20 RPD_
+
+#### Embeddings model
+
+- **`gemini-embedding-2`**: Embeddings model
+
+   _Limits: 15 RPM, ∞ TPM, 1.5K RPD_
 
 ### Setup Guide
 
@@ -181,10 +189,10 @@ Follow these steps to get the project running locally:
    ```
 
 2. **Switch to Target Branch**:
-   For the AI Integration assignment, use:
+   For the RAG & Vector assignment, use:
 
    ```bash
-   git checkout kh-07-ai-llm-integration
+   git checkout kh-08-ai-rag-vectordb
    ```
 
 3. **Install Dependencies & environment**:
@@ -200,13 +208,31 @@ Follow these steps to get the project running locally:
    ```
 
 5. **Configure API Key**:
-   Open the `.env` file and replace `your-gemini-api-key` with your actual key
+   Open the `.env` file and replace `GEMINI_API_KEY` value with your actual key (e.g. AIzaSyB...)
 
-6. **Configure Model**:
-   Open the `.env` file and replace `gemini-2.0-flash` with your actual model
+6. **Configure Text Model**:
+   Open the `.env` file and replace `GEMINI_MODEL` value with your actual text generation model
 
-7. **Initialize Services**:
-   You can start everything (database reset, migrations, and studio) with one command:
+   ```
+   GEMINI_MODEL=gemini-2.5-flash
+   ```
+
+7. **Configure Embeddings Model**:
+   Open the `.env` file and replace `GEMINI_EMBEDDING_MODEL` value with your actual embeddings model
+
+   ```
+   GEMINI_EMBEDDING_MODEL=gemini-embedding-2
+   ```
+
+8. **Configure Vector Database**:
+   Open the `.env` file and replace `RAG_VECTOR_DB_URL` with path to your vector db
+
+   ```
+   RAG_VECTOR_DB_URL=http://localhost:6333
+   ```
+
+9. **Initialize Services**:
+   You can start everything (database reset, migrations, seed, and studio) with one command:
 
    ```bash
    npm run db:clean-start
@@ -216,25 +242,59 @@ Follow these steps to get the project running locally:
 
    ```bash
    docker compose down -v
-   docker compose up db -d
-   # Wait for DB to start
+   docker compose up db qdrant -d
+   # Wait for services to start
    npx drizzle-kit migrate
+   npm run db:seed
    npx drizzle-kit studio
    ```
 
-8. **Troubleshooting Docker**:
-   If Docker fails to start, try a full reset:
+   For stop and remove everything (including volumes):
 
    ```bash
-   docker stop postgres && docker rm postgres
-   docker compose down -v
+   npm run db:clean-stop
    ```
 
-   Ensure **Docker Desktop** is running
+10.   **Troubleshooting Docker**:
+      If Docker fails to start, try a full reset:
 
-9. **Launch the Application**:
+      ```bash
+      docker stop postgres qdrant && docker rm postgres qdrant
+      docker compose down -v
+      ```
+
+      Ensure **Docker Desktop** is running.
+
+11.   **Launch the Application**:
+      ```bash
+      npm run dev
+      ```
+
+### RAG Usage Guide
+
+Follow these steps to use the RAG system:
+
+1. **Build Vector Index**: Before searching or chatting, you must index your articles.
+
    ```bash
-   npm run dev
+   curl -X POST http://localhost:4000/ai/rag/index \
+     -H "Content-Type: application/json" \
+     -d '{"onlyPublished": true}'
+   ```
+
+2. **Sample Search Request**:
+
+   ```bash
+   curl -X POST http://localhost:4000/ai/rag/search \
+     -H "Content-Type: application/json" \
+     -d '{"query": "How to setup NestJS?", "limit": 3}'
+   ```
+
+3. **Sample Chat Request**:
+   ```bash
+   curl -X POST http://localhost:4000/ai/rag/chat \
+     -H "Content-Type: application/json" \
+     -d '{"question": "Tell me about project architecture"}'
    ```
 
 ### Test AI endpoints
@@ -258,16 +318,22 @@ Follow these steps to get the project running locally:
 
 ### Known limitations
 
-#### Model limitation
+#### Flash model limitation
 
-| Model                         | RPM | TPM  | RPD   |
-| ----------------------------- | --- | ---- | ----- |
-| gemini-3-flash-preview        | 5   | 250K | 20    |
-| gemini-2.5-flash              | 5   | 250K | 20    |
-| gemini-3.1-flash-lite-preview | 15  | 250K | 500   |
-| gemma-3-27b-it                | 30  | 15K  | 14.4K |
+| Model                         | RPM | TPM  | RPD |
+| ----------------------------- | --- | ---- | --- |
+| gemini-3-flash-preview        | 5   | 250K | 20  |
+| gemini-2.5-flash              | 5   | 250K | 20  |
+| gemini-3.1-flash-lite         | 15  | 250K | 500 |
+| gemini-3.1-flash-lite-preview | 15  | 250K | 500 |
 
-(Limits current as of 2026-05-01)
+#### Embedding model limitation
+
+| Model              | RPM | TPM | RPD  |
+| ------------------ | --- | --- | ---- |
+| gemini-embedding-2 | 15  | ∞   | 1.5K |
+
+(Limits current as of 2026-05-10)
 
 Full details available at: [Google AI Studio Rate Limits](https://aistudio.google.com/rate-limit)
 

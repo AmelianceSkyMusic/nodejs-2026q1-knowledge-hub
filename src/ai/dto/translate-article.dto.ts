@@ -11,5 +11,5 @@ export class TranslateArticleDto extends createZodDto(TranslateArticleSchema) {
 	targetLanguage: TranslateArticle['targetLanguage'];
 
 	@ApiProperty(AI_SWAGGER.SOURCE_LANGUAGE)
-	sourceLanguage: TranslateArticle['sourceLanguage'];
+	sourceLanguage?: TranslateArticle['sourceLanguage'];
 }

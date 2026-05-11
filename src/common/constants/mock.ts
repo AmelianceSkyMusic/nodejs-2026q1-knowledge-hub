@@ -53,4 +53,12 @@ export const MOCK = {
 		MODEL: 'gemini-2.5-flash',
 		MESSAGE: 'Mock AI response',
 	},
+	RAG: {
+		QUERY: 'What is RAG?',
+		QUESTION: 'Tell me about knowledge hub',
+		ANSWER: 'Knowledge hub is a platform...',
+		COLLECTION: 'knowledge-hub-articles',
+		CHUNK: 'Knowledge hub is a platform for sharing knowledge.',
+		SIMILARITY: 0.9,
+	},
 } as const;

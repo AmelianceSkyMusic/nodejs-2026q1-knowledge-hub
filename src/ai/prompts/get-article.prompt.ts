@@ -1,6 +1,6 @@
-import type { ArticleWithRelationsEntity } from 'src/drizzle/db/schema';
+import type { Article } from 'shared/articles/schemas/article.schema';
 
-export function generateArticlePrompt(article: ArticleWithRelationsEntity) {
+export function generateArticlePrompt(article: Article) {
 	return `# Article
 
 ## Title:
@@ -10,5 +10,5 @@ ${article.title}
 ${article.content}
 
 ## Tags:
-${article.tags.map((t) => t.name).join(', ')}`;
+${article.tags.join(', ')}`;
 }

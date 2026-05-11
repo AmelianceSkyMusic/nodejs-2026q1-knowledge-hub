@@ -12,12 +12,7 @@ export const ArticleSchema = z.object({
 	status: z.enum(ARTICLE_STATUS),
 	authorId: zUuid().nullable(),
 	categoryId: zUuid().nullable(),
-	tags: z.preprocess((val) => {
-		if (Array.isArray(val)) {
-			return val.map((t) => (typeof t === 'object' ? t.name : t));
-		}
-		return val;
-	}, z.array(z.string())),
+	tags: z.array(z.string()),
 	createdAt: zTimestamp(),
 	updatedAt: zTimestamp(),
 });
