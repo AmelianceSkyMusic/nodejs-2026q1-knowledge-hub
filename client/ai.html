@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="uk">
+<html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -23,10 +23,36 @@
 				--modal-bg: rgba(15, 23, 42, 0.95);
 			}
 
+			html {
+				font-size: 14px;
+			}
+
 			* {
 				box-sizing: border-box;
 				margin: 0;
 				padding: 0;
+			}
+
+			/* Custom Scrollbar Styles */
+			::-webkit-scrollbar {
+				width: 8px;
+				height: 8px;
+			}
+			::-webkit-scrollbar-track {
+				background: transparent;
+			}
+			::-webkit-scrollbar-thumb {
+				background: rgba(255, 255, 255, 0.1);
+				border-radius: 20px;
+				border: 2px solid transparent;
+				background-clip: content-box;
+			}
+			::-webkit-scrollbar-thumb:hover {
+				background: rgba(255, 255, 255, 0.2);
+				background-clip: content-box;
+			}
+			::-webkit-scrollbar-corner {
+				background: transparent;
 			}
 
 			body {
@@ -34,12 +60,11 @@
 				background-color: var(--bg);
 				color: var(--text);
 				line-height: 1.6;
-				min-height: 100vh;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				padding: 2rem;
-				zoom: 0.8;
+				height: 100vh;
+				width: 100%;
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
 			}
 
 			h1,
@@ -50,13 +75,12 @@
 
 			.container {
 				width: 100%;
-				max-width: 1000px;
-				background: var(--glass);
-				backdrop-filter: blur(12px);
-				border: 1px solid var(--border);
-				border-radius: 24px;
-				padding: 2rem;
-				box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+				height: 100vh;
+				display: flex;
+				flex-direction: column;
+				padding: 1rem 2rem 1.5rem 2rem;
+				gap: 0.75rem;
+				overflow: hidden;
 			}
 
 			.section-label,
@@ -70,17 +94,12 @@
 				margin-bottom: 0.15rem;
 			}
 
-			.section-label {
-				padding: 0 0.5rem;
-				margin-bottom: 0.3rem;
-			}
-
 			.settings {
 				display: flex;
 				flex-wrap: nowrap;
 				gap: 1rem;
-				margin-bottom: 1rem;
-				padding-bottom: 1rem;
+				margin-bottom: 0.5rem;
+				padding-bottom: 0.5rem;
 				border-bottom: 1px solid var(--border);
 				align-items: flex-end;
 			}
@@ -95,14 +114,6 @@
 				gap: 0.5rem;
 			}
 
-			label {
-				font-size: 0.75rem;
-				font-weight: 700;
-				color: var(--text-muted);
-				text-transform: uppercase;
-				letter-spacing: 0.05em;
-			}
-
 			input,
 			select,
 			textarea {
@@ -114,7 +125,6 @@
 				font-size: 1rem;
 				transition: all 0.2s;
 				width: 100%;
-				min-width: 0;
 			}
 
 			select {
@@ -135,44 +145,113 @@
 				box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 			}
 
-			.btn-refresh {
-				background: rgba(99, 102, 241, 0.1);
-				border: 1px solid rgba(99, 102, 241, 0.2);
-				color: var(--primary);
-				width: 42px;
-				height: 42px;
-				border-radius: 50%;
-				display: flex;
+
+			header {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 				align-items: center;
-				justify-content: center;
-				cursor: pointer;
-				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-			}
-			.btn-refresh:hover {
-				background: var(--primary);
-				color: white;
-				transform: scale(1.1);
-				box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+				gap: 1rem 2rem;
+				padding: 0.75rem 1.5rem;
+				background: transparent;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+				margin-bottom: 0.5rem;
+				width: 100%;
 			}
 
-			.btn-clear {
-				background: rgba(239, 68, 68, 0.1);
-				border: 1px solid rgba(239, 68, 68, 0.2);
-				color: var(--error);
-				width: 42px;
-				height: 42px;
-				border-radius: 50%;
+			.header-left {
+				grid-column: 1;
 				display: flex;
 				align-items: center;
-				justify-content: center;
-				cursor: pointer;
-				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 			}
-			.btn-clear:hover {
-				background: var(--error);
+
+			.app-modes {
+				grid-column: 2;
+				display: flex;
+				justify-content: center;
+				gap: 2rem;
+				position: relative;
+				padding-bottom: 0.5rem;
+			}
+
+			.header-right-group {
+				grid-column: 3;
+				display: flex;
+				align-items: center;
+				justify-content: flex-end;
+				gap: 1.5rem;
+			}
+
+			#statsBarContainer {
+				display: flex;
+				align-items: center;
+			}
+
+			.header-right {
+				display: flex;
+				align-items: center;
+				gap: 1.5rem;
+			}
+
+			@media (max-width: 1200px) {
+				header {
+					grid-template-rows: auto auto;
+				}
+				.app-modes {
+					grid-row: 2;
+					grid-column: 1 / 4;
+					width: 100% !important;
+					display: flex !important;
+					justify-content: center;
+					margin-top: 0.5rem;
+					padding-top: 0.5rem;
+					border-top: 1px solid rgba(255, 255, 255, 0.03);
+				}
+				#statsBarContainer {
+					/* Remains in the right-group on desktop/tablet */
+				}
+			}
+
+			@media (max-width: 900px) {
+				header {
+					grid-template-rows: auto auto auto;
+				}
+				.header-right {
+					grid-column: 3;
+					grid-row: 1;
+					justify-self: end;
+				}
+			}
+
+			.mode-indicator {
+				position: absolute;
+				bottom: -1px;
+				height: 3px;
+				background: linear-gradient(90deg, #6366f1, #a855f7);
+				border-radius: 10px;
+				transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+				z-index: 1;
+				box-shadow: 0 0 12px rgba(99, 102, 241, 0.8);
+			}
+			.mode-btn {
+				background: transparent;
+				border: none;
+				color: var(--text-muted);
+				padding: 0.5rem 0.5rem;
+				cursor: pointer;
+				font-weight: 700;
+				font-size: 0.9rem;
+				text-transform: uppercase;
+				transition: all 0.3s;
+				font-family: "Outfit";
+				letter-spacing: 0.05em;
+				z-index: 2;
+				white-space: nowrap;
+			}
+			.mode-btn.active {
 				color: white;
-				transform: scale(1.1);
-				box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+			}
+			.mode-btn:hover {
+				color: white;
 			}
 
 			.tabs {
@@ -185,17 +264,15 @@
 				border: 1px solid var(--border);
 				position: relative;
 			}
-
 			.tab-indicator {
 				position: absolute;
 				background: var(--primary);
 				border-radius: 10px;
 				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 				z-index: 0;
-				pointer-events: none;
-				box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+				height: calc(100% - 0.7rem);
+				top: 0.35rem;
 			}
-
 			.tab-btn {
 				flex: 1;
 				padding: 0.6rem 0.4rem;
@@ -211,11 +288,13 @@
 				align-items: center;
 				gap: 0.2rem;
 			}
+			.tab-btn.active {
+				color: white;
+			}
 			.tab-name {
 				font-weight: 800;
 				font-size: 0.75rem;
 				text-transform: uppercase;
-				letter-spacing: 0.05em;
 			}
 			.tab-stats {
 				font-size: 0.6rem;
@@ -224,69 +303,6 @@
 				font-family: "Outfit";
 				display: flex;
 				gap: 0.3rem;
-			}
-
-			.tab-btn.active {
-				color: white;
-			}
-
-			.tab-btn.active .tab-stats {
-				opacity: 1;
-			}
-			.tab-btn.active .tab-stats span {
-				color: white !important;
-			}
-			.tab-btn.active .tab-stats svg {
-				stroke: white !important;
-				opacity: 1 !important;
-			}
-
-			.tab-btn:hover:not(.active) {
-				color: white;
-			}
-
-			.tab-content {
-				display: none;
-				animation: fadeIn 0.4s ease;
-			}
-			.tab-content.active {
-				display: block;
-			}
-
-			@keyframes slideDown {
-				from {
-					opacity: 0;
-					transform: translate(-50%, -10px);
-				}
-				to {
-					opacity: 1;
-					transform: translate(-50%, 0);
-				}
-			}
-
-			.global-error {
-				display: none;
-				align-items: center;
-				justify-content: center;
-				gap: 0.35rem;
-				color: var(--error);
-				font-size: 0.75rem;
-				font-weight: 700;
-				animation: fadeIn 0.3s ease;
-				flex: 1;
-			}
-
-			.stats-mini-pill {
-				display: flex;
-				align-items: center;
-				gap: 0.35rem;
-				background: rgba(255, 255, 255, 0.05);
-				padding: 0.4rem 0.6rem;
-				border-radius: 10px;
-				border: 1px solid var(--border);
-				font-family: "Outfit";
-				height: 42px;
-				margin-top: auto;
 			}
 
 			.animated-title {
@@ -299,10 +315,20 @@
 				font-weight: 800;
 				letter-spacing: -0.02em;
 			}
+			@keyframes gradientFlow {
+				0% {
+					background-position: 0% 50%;
+				}
+				50% {
+					background-position: 100% 50%;
+				}
+				100% {
+					background-position: 0% 50%;
+				}
+			}
 
 			.action-form {
 				display: flex;
-				flex-wrap: nowrap;
 				gap: 0.75rem;
 				align-items: flex-end;
 				background: rgba(30, 41, 59, 0.3);
@@ -313,11 +339,6 @@
 			.full-width {
 				flex: 2;
 			}
-			.action-form .input-group {
-				flex: 1;
-				min-width: 0;
-			}
-
 			.btn-action {
 				background: var(--primary);
 				border: none;
@@ -331,53 +352,24 @@
 				justify-content: center;
 				cursor: pointer;
 				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-				box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 			}
-
 			.btn-action:hover {
 				background: var(--primary-hover);
-				transform: translateY(-2px) scale(1.05);
-				box-shadow: 0 8px 20px -5px rgba(99, 102, 241, 0.5);
-			}
-			.btn-action:active {
-				transform: translateY(0) scale(0.95);
-			}
-
-			.btn-submit {
-				background: rgba(99, 102, 241, 0.1);
-				border: 1px solid rgba(99, 102, 241, 0.2);
-				color: var(--primary);
-				padding: 0.6rem 1.2rem;
-				border-radius: 12px;
-				font-weight: 700;
-				cursor: pointer;
-				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-				text-transform: uppercase;
-				letter-spacing: 0.05em;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				gap: 0.5rem;
-				width: 100%;
-			}
-
-			.btn-submit:hover {
-				background: var(--primary);
-				color: white;
-				border-color: var(--primary);
 				transform: translateY(-2px);
-				box-shadow: 0 8px 20px -5px rgba(99, 102, 241, 0.5);
 			}
 
 			.result-container {
-				margin-top: 2rem;
-				background: #0f172a;
+				flex: 1;
+				margin-top: 1rem;
+				background: rgba(15, 23, 42, 0.4);
 				border-radius: 16px;
 				padding: 1.5rem;
 				border: 1px solid var(--border);
-				min-height: 100px;
+				overflow-y: auto;
+				min-height: 0;
+				display: flex;
+				flex-direction: column;
 			}
-
 			.result-grid,
 			.result-content {
 				display: grid;
@@ -389,18 +381,244 @@
 				border-radius: 12px;
 				border: 1px solid var(--border);
 			}
-			.result-label {
-				font-size: 0.7rem;
-				color: var(--text-muted);
-				text-transform: uppercase;
-				margin-bottom: 0.5rem;
-				display: block;
-				font-weight: 800;
+
+			/* RAG Specific */
+			.rag-result-card {
+				background: rgba(15, 23, 42, 0.4);
+				border: 1px solid var(--border);
+				border-radius: 12px;
+				padding: 1rem;
+				margin-bottom: 1rem;
+				transition: all 0.2s;
 			}
-			.result-value {
-				font-size: 1rem;
+			.rag-badge {
+				font-size: 0.6rem;
+				font-weight: 800;
+				padding: 0.2rem 0.5rem;
+				border-radius: 4px;
+				text-transform: uppercase;
+				background: var(--primary);
+				color: white;
+				margin-bottom: 0.5rem;
+				display: inline-block;
+			}
+			.similarity-meter {
+				height: 4px;
+				background: var(--border);
+				border-radius: 2px;
+				margin-top: 0.5rem;
+				overflow: hidden;
+			}
+			.similarity-fill {
+				height: 100%;
+				background: var(--success);
+				transition: width 1s ease-out;
+			}
+			.chat-source {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				background: rgba(255, 255, 255, 0.05);
+				padding: 0.5rem;
+				border-radius: 8px;
+				margin-top: 0.5rem;
+				border-left: 3px solid var(--primary);
+			}
+
+			.article-checklist {
+				background: #0f172a;
+				border: 1px solid var(--border);
+				border-radius: 12px;
+				max-height: 100px;
+				overflow-y: auto;
+				padding: 0.5rem;
+				display: grid;
+				gap: 0.5rem;
+				width: 100%;
+			}
+			.checklist-item {
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+				padding: 0.5rem;
+				border-radius: 8px;
+				transition: background 0.2s;
+				cursor: pointer;
+			}
+			.checklist-item:hover {
+				background: rgba(255, 255, 255, 0.05);
+			}
+			.checklist-item input {
+				width: 18px;
+				height: 18px;
+				cursor: pointer;
+			}
+			.checklist-item label {
+				cursor: pointer;
 				color: var(--text);
-				white-space: pre-wrap;
+				font-size: 0.75rem;
+				text-transform: none;
+				letter-spacing: normal;
+				pointer-events: none;
+			}
+
+			/* Kanban / Hub Specific */
+			.hub-board {
+				display: grid;
+				grid-template-columns: repeat(4, 1fr);
+				gap: 1.25rem;
+				width: 100%;
+				align-items: stretch;
+				flex: 1;
+				min-height: 0;
+			}
+			.hub-column {
+				display: flex;
+				flex-direction: column;
+				min-width: 320px;
+				background: transparent;
+			}
+			.hub-column-header {
+				padding: 0.85rem 1.25rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				background: rgba(30, 41, 59, 0.6);
+				border-radius: 16px;
+				border: 1px solid var(--border);
+				margin-bottom: 1rem;
+				backdrop-filter: blur(10px);
+			}
+			.hub-column-title {
+				font-family: "Outfit";
+				font-size: 0.9rem;
+				font-weight: 700;
+				color: white;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+			}
+			.hub-column-content {
+				padding: 0;
+				display: flex;
+				flex-direction: column;
+				justify-content: flex-start;
+				gap: 0.75rem;
+				flex: 1;
+				width: 100%;
+			}
+			.hub-card {
+				width: 100%;
+				background: var(--card-bg);
+				border: 1px solid var(--border);
+				border-radius: 14px;
+				padding: 1rem;
+				transition: all 0.2s;
+				position: relative;
+			}
+			.hub-card:hover {
+				transform: translateY(-2px);
+				border-color: var(--primary);
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+			}
+			.hub-card-title {
+				font-weight: 700;
+				font-size: 0.85rem;
+				margin-bottom: 0.35rem;
+				color: var(--text);
+			}
+			.hub-card-desc {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+			}
+			.hub-card-meta {
+				margin-top: 0.5rem;
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+				font-size: 0.65rem;
+				font-weight: 700;
+			}
+			.tag-badge {
+				background: rgba(99, 102, 241, 0.2);
+				color: var(--primary);
+				padding: 2px 6px;
+				border-radius: 4px;
+				font-size: 0.6rem;
+				margin-right: 4px;
+				border: 1px solid rgba(99, 102, 241, 0.3);
+			}
+			.hub-card-actions {
+				display: flex;
+				gap: 0.4rem;
+				border-top: 1px solid rgba(255,255,255,0.05);
+				padding-top: 0.5rem;
+			}
+			.card-id-container {
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+				background: rgba(0, 0, 0, 0.2);
+				padding: 0.2rem 0.5rem;
+				border-radius: 6px;
+				margin-bottom: 0.5rem;
+				width: fit-content;
+				border: 1px solid rgba(255, 255, 255, 0.05);
+			}
+			.card-id {
+				font-family: monospace;
+				font-size: 0.65rem;
+				color: var(--primary);
+				font-weight: 600;
+			}
+			.btn-copy-id {
+				background: transparent;
+				border: none;
+				color: var(--text-muted);
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 0;
+				transition: color 0.2s;
+			}
+			.btn-copy-id:hover {
+				color: white;
+			}
+
+			.btn-mini {
+				background: rgba(255,255,255,0.05);
+				border: 1px solid var(--border);
+				color: var(--text-muted);
+				padding: 0.25rem 0.5rem;
+				border-radius: 4px;
+				font-size: 0.65rem;
+				cursor: pointer;
+			}
+			.btn-mini:hover {
+				background: var(--primary);
+				color: white;
+			}
+
+			.btn-add-column {
+				background: var(--primary);
+				border: none;
+				color: white;
+				width: 24px;
+				height: 24px;
+				border-radius: 6px;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 1.1rem;
+				transition: all 0.2s;
+			}
+			.btn-add-column:hover {
+				transform: scale(1.1);
+				background: var(--primary-hover);
 			}
 
 			.loader {
@@ -418,6 +636,48 @@
 				}
 			}
 
+			/* Hide number input spinners */
+			input::-webkit-outer-spin-button,
+			input::-webkit-inner-spin-button {
+				-webkit-appearance: none;
+				margin: 0;
+			}
+			input[type="number"] {
+				-moz-appearance: textfield;
+			}
+
+			.user-badge {
+				display: none;
+				align-items: center;
+				gap: 0.5rem;
+				width: 100%;
+				background: rgba(30, 41, 59, 0.5);
+				padding: 0.4rem;
+				border-radius: 100px;
+				border: 1px solid var(--border);
+			}
+			.user-initials {
+				width: 32px;
+				height: 32px;
+				background: linear-gradient(135deg, var(--primary), #a855f7);
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: 700;
+				color: white;
+			}
+			.btn-logout {
+				background: rgba(239, 68, 68, 0.1);
+				border: 1px solid rgba(239, 68, 68, 0.2);
+				color: var(--error);
+				cursor: pointer;
+				font-size: 0.75rem;
+				font-weight: 700;
+				padding: 0.5rem 1rem;
+				border-radius: 100px;
+			}
+
 			.modal-overlay {
 				display: none;
 				position: fixed;
@@ -430,629 +690,1363 @@
 				z-index: 1000;
 				justify-content: center;
 				align-items: center;
-				animation: fadeIn 0.3s ease;
 			}
 			.modal-content {
 				background: var(--card-bg);
-				padding: 2.5rem;
+				padding: 2rem;
 				border-radius: 24px;
 				width: 100%;
 				max-width: 400px;
 				border: 1px solid var(--border);
-				box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 				position: relative;
 			}
-			.modal-close {
-				position: absolute;
-				top: 1rem;
-				right: 1rem;
-				background: transparent;
-				border: none;
-				color: var(--text-muted);
-				font-size: 1.5rem;
-				cursor: pointer;
-			}
-			.auth-toggle {
-				text-align: center;
-				margin-top: 1.5rem;
-				font-size: 0.9rem;
-				color: var(--text-muted);
-			}
-			.auth-toggle span {
-				color: var(--primary);
-				cursor: pointer;
-				font-weight: 600;
-			}
-			.auth-toggle span:hover {
-				text-decoration: underline;
-			}
-			.user-badge {
-				display: none;
-				align-items: center;
-				gap: 1rem;
-				width: 100%;
-				background: rgba(30, 41, 59, 0.5);
-				backdrop-filter: blur(8px);
-				padding: 0.4rem;
-				border-radius: 100px;
+			.btn-refresh,
+			.btn-clear {
+				background: rgba(99, 102, 241, 0.1);
 				border: 1px solid var(--border);
-				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-			}
-			.user-initials {
-				width: 32px;
-				height: 32px;
-				background: linear-gradient(135deg, var(--primary), #a855f7);
+				color: var(--primary);
+				width: 42px;
+				height: 42px;
+				min-width: 42px;
+				flex-shrink: 0;
 				border-radius: 50%;
+				cursor: pointer;
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				font-weight: 700;
-				font-size: 0.8rem;
-				color: white;
-				box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+				transition: all 0.3s;
 			}
-			.btn-logout {
-				background: rgba(239, 68, 68, 0.1);
-				border: 1px solid rgba(239, 68, 68, 0.2);
+			.btn-refresh:hover {
+				background: var(--primary);
+				color: white;
+			}
+			.btn-clear {
 				color: var(--error);
-				cursor: pointer;
+				background: rgba(239, 68, 68, 0.1);
+			}
+			.btn-clear:hover {
+				background: var(--error);
+				color: white;
+			}
+
+			.global-error {
+				display: none;
+				color: var(--error);
 				font-size: 0.75rem;
 				font-weight: 700;
-				padding: 0.5rem 1rem;
-				border-radius: 100px;
+				align-items: center;
+				gap: 0.5rem;
+				flex: 1;
+			}
+			.btn-submit {
+				background: var(--primary);
+				border: none;
+				color: white;
+				padding: 0.75rem 1.5rem;
+				border-radius: 12px;
+				font-weight: 700;
+				cursor: pointer;
+				text-transform: uppercase;
+				width: 100%;
+			}
+			.system-alert {
+				position: fixed;
+				top: 1rem;
+				left: 50%;
+				transform: translateX(-50%) translateY(-150%);
+				background: rgba(239, 68, 68, 0.95);
+				color: white;
+				padding: 0.75rem 1.5rem;
+				border-radius: 12px;
+				font-size: 0.85rem;
+				font-weight: 600;
+				z-index: 10000;
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+				backdrop-filter: blur(10px);
+				transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+				border: 1px solid rgba(255, 255, 255, 0.2);
+			}
+			.system-alert.active {
+				transform: translateX(-50%) translateY(0);
+			}
+			.btn-delete-rag {
+				background: transparent;
+				border: none;
+				color: var(--text-muted);
+				cursor: pointer;
+				padding: 6px;
+				border-radius: 8px;
 				transition: all 0.2s;
 				display: flex;
 				align-items: center;
-				gap: 0.4rem;
+				justify-content: center;
 				margin-left: auto;
 			}
-			.btn-logout:hover {
-				background: var(--error);
-				color: white;
-				border-color: var(--error);
-				box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+			.btn-delete-rag:hover {
+				background: rgba(239, 68, 68, 0.15);
+				color: var(--error);
+				transform: scale(1.1);
 			}
 		</style>
 	</head>
 	<body>
+		<div id="system-alert" class="system-alert">
+			<span style="font-size: 1.2rem">⚠️</span>
+			<span id="system-alert-text">System notification</span>
+		</div>
 		<div class="container">
-			<header style="margin-bottom: 1.5rem; text-align: center">
-				<h1 class="animated-title">AI Knowledge Hub</h1>
-				<div
-					style="
-						display: flex;
-						justify-content: stretch;
-						align-items: center;
-						width: 100%;
-						margin-top: 0.5rem;
-					"
-				>
-					<div id="userProfile" class="user-badge" style="margin-left: 0">
-						<div class="user-initials" id="userInitials">U</div>
-						<span
-							id="userName"
-							style="font-weight: 600; font-size: 0.9rem; color: white; margin-left: 0.25rem"
-							>User</span
-						>
-						<div class="global-error">
-							<svg
-								width="12"
-								height="12"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="3"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<circle cx="12" cy="12" r="10"></circle>
-								<line x1="12" y1="8" x2="12" y2="12"></line>
-								<line x1="12" y1="16" x2="12.01" y2="16"></line>
-							</svg>
-							<span class="error-text"></span>
-						</div>
-						<button class="btn-logout" onclick="handleLogout()">
-							<svg
-								width="14"
-								height="14"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="3"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-								<polyline points="16 17 21 12 16 7"></polyline>
-								<line x1="21" y1="12" x2="9" y2="12"></line>
-							</svg>
-							Logout
-						</button>
+			<header>
+				<div class="header-left">
+					<h1 class="animated-title" style="font-size: 1.8rem; margin: 0; min-width: 80px">Hub</h1>
+				</div>
+
+				<nav class="app-modes">
+					<div id="mode-indicator" class="mode-indicator"></div>
+					<button class="mode-btn active" id="btn-mode-ai" onclick="switchAppMode('ai')">AI Tools</button>
+					<button class="mode-btn" id="btn-mode-rag" onclick="switchAppMode('rag')">RAG Search</button>
+					<button class="mode-btn" id="btn-mode-hub" onclick="switchAppMode('hub')">Knowledge Hub</button>
+				</nav>
+
+				<div class="header-right-group">
+					<div id="statsBarContainer" style="display: none">
+						<div id="totalStatsBadge" style="display: flex; align-items: center; gap: 0.5rem; font-family: 'Outfit'"></div>
 					</div>
 
-					<div
-						id="guestProfile"
-						class="user-badge"
-						style="margin-left: 0; justify-content: center"
-					>
-						<div class="global-error">
-							<svg
-								width="12"
-								height="12"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="3"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<circle cx="12" cy="12" r="10"></circle>
-								<line x1="12" y1="8" x2="12" y2="12"></line>
-								<line x1="12" y1="16" x2="12.01" y2="16"></line>
-							</svg>
-							<span class="error-text"></span>
+					<div class="header-right">
+						<div id="userProfile" class="user-badge" style="width: auto; padding: 0.4rem 0.75rem 0.4rem 1rem">
+							<span id="userName" style="font-weight: 600; font-size: 0.9rem; color: white; margin-right: 0.5rem">User</span>
+							<button class="btn-mini" onclick="openSettingsModal()" style="padding: 0.4rem; display: flex; align-items: center; justify-content: center; border-radius: 50%">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+							</button>
+							<button class="btn-logout" onclick="handleLogout()" style="padding: 0.4rem 0.8rem; font-size: 0.7rem">Logout</button>
 						</div>
-						<button
-							id="loginBtn"
-							class="btn-submit"
-							style="grid-column: auto; padding: 0.6rem 1.2rem; width: auto; margin: 0"
-							onclick="openAuthModal()"
-						>
-							Login / Signup
-						</button>
+
+						<div id="guestProfile" class="user-badge" style="display: none; padding: 0.25rem">
+							<button class="btn-submit" style="padding: 0.5rem 1rem; font-size: 0.8rem" onclick="openAuthModal()">Login</button>
+						</div>
 					</div>
 				</div>
 			</header>
 
-			<section class="settings">
-				<div class="input-group">
-					<label>Base URL</label>
-					<div style="display: flex; gap: 0.5rem">
-						<input type="text" id="baseUrl" style="flex: 1" />
-						<button class="btn-clear" title="Clear Base URL" onclick="clearField('baseUrl')">
-							<svg
-								width="16"
-								height="16"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<polyline points="3 6 5 6 21 6"></polyline>
-								<path
-									d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-								></path>
-								<line x1="10" y1="11" x2="10" y2="17"></line>
-								<line x1="14" y1="11" x2="14" y2="17"></line>
-							</svg>
-						</button>
-					</div>
-				</div>
-				<div class="input-group">
-					<label>JWT Token</label>
-					<div style="display: flex; gap: 0.5rem">
-						<input
-							type="text"
-							id="authToken"
-							style="flex: 1"
-							placeholder="Access Token"
-							oninput="handleTokenInput(this.value)"
-						/>
-						<button class="btn-clear" title="Clear Token" onclick="clearField('authToken')">
-							<svg
-								width="16"
-								height="16"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<polyline points="3 6 5 6 21 6"></polyline>
-								<path
-									d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-								></path>
-								<line x1="10" y1="11" x2="10" y2="17"></line>
-								<line x1="14" y1="11" x2="14" y2="17"></line>
-							</svg>
-						</button>
-					</div>
-				</div>
-				<button class="btn-refresh" title="Refresh Data" onclick="refreshAll()">
-					<svg
-						width="16"
-						height="16"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					>
-						<polyline points="23 4 23 10 17 10"></polyline>
-						<polyline points="1 20 1 14 7 14"></polyline>
-						<path
-							d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
-						></path>
-					</svg>
-				</button>
-			</section>
 
-			<!-- Statistics Bar -->
-			<div
-				id="statsBarContainer"
-				style="display: none; margin-bottom: 1rem; animation: fadeIn 0.5s ease"
-			>
-				<div
-					style="
-						display: flex;
-						justify-content: space-between;
-						align-items: center;
-						margin-bottom: 0.25rem;
-						padding: 0 0.5rem;
-					"
-				>
-					<div style="display: flex; align-items: center; gap: 0.5rem">
-						<span class="section-label" style="margin-bottom: 0; padding: 0; opacity: 0.8"
-							>Total:</span
-						>
+
+			<div id="ai-view" style="display: flex; flex-direction: column; overflow: hidden; min-height: 0">
+				<div id="statsBarContainerMain" style="display: none; margin-bottom: 1rem">
+					<div
+						style="
+							display: flex;
+							justify-content: space-between;
+							align-items: center;
+							padding: 0 0.5rem;
+						"
+					>
 						<div
-							id="totalStatsBadge"
+							id="totalStatsBadgeMain"
 							style="
 								display: flex;
 								align-items: center;
 								gap: 0.5rem;
 								font-family: &quot;Outfit&quot;;
 							"
+						></div>
+						<button
+							class="btn-refresh"
+							style="width: 20px; height: 20px; border-radius: 4px"
+							onclick="fetchStatistics()"
 						>
-							<!-- Total stats injected here -->
+							↻
+						</button>
+					</div>
+				</div>
+
+				<nav class="tabs" id="ai-tabs">
+					<div class="tab-indicator" id="tab-indicator"></div>
+					<button class="tab-btn active" data-tab="summarize" onclick="showTab('summarize')">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+						<span class="tab-name">Summarize</span>
+						<div id="sum-tab-stats" class="tab-stats">...</div>
+					</button>
+					<button class="tab-btn" data-tab="translate" onclick="showTab('translate')">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+						<span class="tab-name">Translate</span>
+						<div id="trans-tab-stats" class="tab-stats">...</div>
+					</button>
+					<button class="tab-btn" data-tab="analyze" onclick="showTab('analyze')">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+						<span class="tab-name">Analyze</span>
+						<div id="analyze-tab-stats" class="tab-stats">...</div>
+					</button>
+					<button class="tab-btn" data-tab="chat" onclick="showTab('chat')">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path></svg>
+						<span class="tab-name">Chat</span>
+						<div id="chat-tab-stats" class="tab-stats">...</div>
+					</button>
+				</nav>
+
+				<div id="summarize" class="tab-content active">
+					<div class="action-form">
+						<div class="input-group full-width">
+							<label>Select Article</label>
+							<select class="article-select" id="sum-article"></select>
+						</div>
+						<div class="input-group">
+							<label>Length</label>
+							<select id="sum-length">
+								<option value="short">Short</option>
+								<option value="medium">Medium</option>
+								<option value="detailed">Detailed</option>
+							</select>
+						</div>
+						<button class="btn-action" onclick="apiCall('summarize')">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+						</button>
+					</div>
+				</div>
+
+				<div id="translate" class="tab-content" style="display: none">
+					<div class="action-form">
+						<div class="input-group full-width">
+							<label>Select Article</label>
+							<select class="article-select" id="trans-article"></select>
+						</div>
+						<div class="input-group">
+							<label>Target Language</label>
+							<input type="text" id="trans-target" value="Polish" />
+						</div>
+						<button class="btn-action" onclick="apiCall('translate')">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+						</button>
+					</div>
+				</div>
+
+				<div id="analyze" class="tab-content" style="display: none">
+					<div class="action-form">
+						<div class="input-group full-width">
+							<label>Select Article</label>
+							<select class="article-select" id="analyze-article"></select>
+						</div>
+						<div class="input-group">
+							<label>Task</label>
+							<select id="analyze-task">
+								<option value="review">Review</option>
+								<option value="optimize">Optimize</option>
+								<option value="explain">Explain</option>
+							</select>
+						</div>
+						<button class="btn-action" onclick="apiCall('analyze')">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path><path d="M11 8v6"></path><path d="M8 11h6"></path></svg>
+						</button>
+					</div>
+				</div>
+
+				<div id="chat" class="tab-content" style="display: none">
+					<div class="action-form">
+						<div class="input-group full-width">
+							<label>Message</label>
+							<input type="text" id="chat-msg" placeholder="Type message..." onkeydown="if(event.ctrlKey && event.key === 'Enter') apiCall('chat')" />
+						</div>
+						<button class="btn-action" onclick="apiCall('chat')">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<div id="rag-view" style="display: none; flex-direction: column; overflow: hidden; min-height: 0">
+				<nav class="tabs">
+					<div class="tab-indicator" id="rag-tab-indicator"></div>
+					<button class="tab-btn active" data-tab="rag-search" onclick="showRagTab('rag-search')">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+						<span class="tab-name">Search Hub</span>
+					</button>
+					<button class="tab-btn" data-tab="rag-chat" onclick="showRagTab('rag-chat')">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+						<span class="tab-name">RAG Chat</span>
+					</button>
+					<button class="tab-btn" data-tab="rag-index" onclick="showRagTab('rag-index')">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px"><path d="M12.2 2h-.4a2 2 0 0 0-1.8 2v16a2 2 0 0 0 1.8 2h.4a2 2 0 0 0 1.8-2V4a2 2 0 0 0-1.8-2z"></path><path d="M19 8h-2"></path><path d="M19 12h-2"></path><path d="M19 16h-2"></path><path d="M5 8h2"></path><path d="M5 12h2"></path><path d="M5 16h2"></path></svg>
+						<span class="tab-name">Index Control</span>
+					</button>
+				</nav>
+
+				<div id="rag-search" class="rag-tab-content">
+					<div class="action-form" style="flex-wrap: wrap; gap: 1rem">
+						<div class="input-group" style="flex: 2; min-width: 300px">
+							<label>Semantic Query</label>
+							<input type="text" id="rag-search-query" placeholder="Search knowledge..." />
+						</div>
+						<div class="input-group" style="flex: 1; min-width: 120px">
+							<label>Category</label>
+							<select id="rag-search-category">
+								<option value="">All Categories</option>
+							</select>
+						</div>
+						<div class="input-group" style="flex: 1; min-width: 120px">
+							<label>Status</label>
+							<select id="rag-search-status">
+								<option value="">Any Status</option>
+								<option value="published">Published</option>
+								<option value="draft">Draft</option>
+								<option value="archived">Archived</option>
+							</select>
+						</div>
+						<div class="input-group" style="flex: 1; min-width: 150px">
+							<label>Tags (comma separated)</label>
+							<input type="text" id="rag-search-tags" placeholder="node, nest" />
+						</div>
+						<div class="input-group" style="min-width: 60px; flex: 0 0 auto">
+							<label>Limit</label>
+							<input type="number" id="rag-search-limit" value="5" min="1" max="99" 
+								oninput="if(this.value.length > 2) this.value = this.value.slice(0, 2)"
+								style="padding: 0.75rem 0.2rem; text-align: center; font-weight: 700; font-size: 1.1rem" />
+						</div>
+						<div style="display: flex; align-items: flex-end; padding-bottom: 2px">
+							<button class="btn-action" onclick="ragSearch()">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+						</button>
 						</div>
 					</div>
-					<button
-						class="btn-refresh"
-						style="width: 20px; height: 20px; border-radius: 4px; margin-left: 0.25rem"
-						onclick="fetchStatistics()"
-						title="Refresh Statistics"
-					>
-						<svg
-							width="10"
-							height="10"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="3"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<polyline points="23 4 23 10 17 10"></polyline>
-							<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-						</svg>
-					</button>
 				</div>
-				<div id="statsBarGrid" style="display: none">
-					<!-- Removed in favor of tab-specific stats -->
+
+				<div id="rag-chat" class="rag-tab-content" style="display: none">
+					<div class="action-form" style="gap: 1rem">
+						<div class="input-group" style="flex: 2; min-width: 300px">
+							<label>Ask your Documents</label>
+							<input type="text" id="rag-chat-msg" placeholder="Ask anything..." onkeydown="if(event.ctrlKey && event.key === 'Enter') ragChat()" />
+						</div>
+						<div class="input-group" style="flex: 1; min-width: 150px">
+							<label>Conversation ID</label>
+							<div style="display: flex; gap: 0.5rem">
+								<input type="text" id="rag-conv-id" placeholder="New Session" style="font-family: monospace; font-size: 0.8rem" />
+								<button class="btn-clear" onclick="document.getElementById('rag-conv-id').value = ''; resultsCache['rag-chat'] = ''; document.getElementById('result-content').innerHTML = '';" title="Reset Conversation">
+									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+								</button>
+							</div>
+						</div>
+						<div style="display: flex; align-items: flex-end; padding-bottom: 2px">
+							<button class="btn-action" onclick="ragChat()">
+								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<div id="rag-index" class="rag-tab-content" style="display: none">
+					<div class="action-form" style="flex-direction: column; align-items: stretch">
+						<div class="input-group">
+							<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+								<label style="margin: 0">Select Articles to Reindex</label>
+								<button class="btn-mini" onclick="toggleAllArticlesToIndex()" id="btn-select-all">Select All</button>
+							</div>
+							<div id="rag-index-checklist" class="article-checklist">
+								<p style="color: var(--text-muted); padding: 1rem; text-align: center">
+									Loading articles...
+								</p>
+							</div>
+						</div>
+						<div
+							style="
+								display: flex;
+								justify-content: space-between;
+								align-items: center;
+								margin-top: 0.5rem;
+							"
+						>
+							<div
+								class="input-group"
+								style="flex-direction: row; align-items: center; gap: 0.5rem"
+							>
+								<input
+									type="checkbox"
+									id="rag-index-published"
+									checked
+									style="width: 20px; height: 20px"
+								/>
+								<label style="margin: 0">Only Published</label>
+							</div>
+							<button class="btn-submit" style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem" onclick="ragIndex()">
+								Reindex Selected
+							</button>
+						</div>
+					</div>
 				</div>
 			</div>
 
-			<nav class="tabs">
-				<div class="tab-indicator" id="tab-indicator"></div>
-				<button class="tab-btn active" data-tab="summarize" onclick="showTab('summarize')">
-					<span class="tab-name">Summarize</span>
-					<div id="sum-tab-stats" class="tab-stats">...</div>
-				</button>
-				<button class="tab-btn" data-tab="translate" onclick="showTab('translate')">
-					<span class="tab-name">Translate</span>
-					<div id="trans-tab-stats" class="tab-stats">...</div>
-				</button>
-				<button class="tab-btn" data-tab="analyze" onclick="showTab('analyze')">
-					<span class="tab-name">Analyze</span>
-					<div id="analyze-tab-stats" class="tab-stats">...</div>
-				</button>
-				<button class="tab-btn" data-tab="chat" onclick="showTab('chat')">
-					<span class="tab-name">Chat</span>
-					<div id="chat-tab-stats" class="tab-stats">...</div>
-				</button>
-			</nav>
-
-			<div id="summarize" class="tab-content active">
-				<div class="action-form">
-					<div class="input-group full-width">
-						<label>Select Article</label>
-						<select class="article-select" id="sum-article"></select>
+			<div id="hub-view" style="display: none; flex: 1; overflow-y: auto; padding-right: 0.5rem">
+				<div class="hub-board">
+					<div class="hub-column" id="col-articles">
+						<div class="hub-column-header">
+							<span class="hub-column-title">Articles</span>
+							<button class="btn-add-column" onclick="openHubModal('article')">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							</button>
+						</div>
+						<div class="hub-column-content" id="hub-articles-list"></div>
 					</div>
-					<div class="input-group">
-						<label>Length</label>
-						<select id="sum-length">
-							<option value="short">Short</option>
-							<option value="medium">Medium</option>
-							<option value="detailed">Detailed</option>
-						</select>
+					<div class="hub-column" id="col-categories">
+						<div class="hub-column-header">
+							<span class="hub-column-title">Categories</span>
+							<button class="btn-add-column" onclick="openHubModal('category')">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							</button>
+						</div>
+						<div class="hub-column-content" id="hub-categories-list"></div>
 					</div>
-					<button class="btn-action" onclick="apiCall('summarize')" title="Process Summary">
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<line x1="22" y1="2" x2="11" y2="13"></line>
-							<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-						</svg>
-					</button>
+					<div class="hub-column" id="col-comments">
+						<div class="hub-column-header">
+							<span class="hub-column-title">Comments</span>
+						</div>
+						<div class="hub-column-content" id="hub-comments-list"></div>
+					</div>
+					<div class="hub-column" id="col-users">
+						<div class="hub-column-header">
+							<span class="hub-column-title">Users</span>
+							<button class="btn-add-column" onclick="openHubModal('user')">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+							</button>
+						</div>
+						<div class="hub-column-content" id="hub-users-list"></div>
+					</div>
 				</div>
 			</div>
 
-			<div id="translate" class="tab-content">
-				<div class="action-form">
-					<div class="input-group full-width">
-						<label>Select Article</label>
-						<select class="article-select" id="trans-article"></select>
-					</div>
-					<div class="input-group">
-						<label>Source (Opt)</label>
-						<input type="text" id="trans-source" placeholder="Auto" />
-					</div>
-					<div class="input-group">
-						<label>Target Lang</label>
-						<input type="text" id="trans-target" value="Polish" />
-					</div>
-					<button class="btn-action" onclick="apiCall('translate')" title="Start Translation">
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<line x1="22" y1="2" x2="11" y2="13"></line>
-							<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-						</svg>
-					</button>
-				</div>
-			</div>
-
-			<div id="analyze" class="tab-content">
-				<div class="action-form">
-					<div class="input-group full-width">
-						<label>Select Article</label>
-						<select class="article-select" id="analyze-article"></select>
-					</div>
-					<div class="input-group">
-						<label>Task</label>
-						<select id="analyze-task">
-							<option value="review">Review</option>
-							<option value="bugs">Bugs</option>
-							<option value="optimize">Optimize</option>
-							<option value="explain">Explain</option>
-						</select>
-					</div>
-					<button class="btn-action" onclick="apiCall('analyze')" title="Run Analysis">
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<line x1="22" y1="2" x2="11" y2="13"></line>
-							<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-						</svg>
-					</button>
-				</div>
-			</div>
-
-			<div id="chat" class="tab-content">
-				<div class="action-form">
-					<div class="input-group full-width">
-						<label>Message</label>
-						<textarea
-							id="chat-msg"
-							rows="3"
-							style="resize: vertical; min-height: 42px"
-							placeholder="Type here... (Ctrl+Enter to send)"
-						></textarea>
-					</div>
-					<button class="btn-action" onclick="apiCall('chat')" title="Send Message">
-						<svg
-							width="20"
-							height="20"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						>
-							<line x1="22" y1="2" x2="11" y2="13"></line>
-							<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-						</svg>
-					</button>
-				</div>
-			</div>
-
-			<div class="result-container" id="result-container">
+			<!-- SHARED RESULTS CONTAINER -->
+			<div class="result-container">
 				<div
 					style="
 						display: flex;
 						justify-content: space-between;
 						align-items: center;
-						margin-bottom: 0.75rem;
+						margin-bottom: 1rem;
 					"
 				>
-					<span class="section-label" style="padding: 0; margin-bottom: 0">Action Result</span>
+					<span class="section-label">Result</span>
 					<div style="display: flex; align-items: center; gap: 1rem">
-						<span
-							id="resultTotal"
-							style="font-size: 0.8rem; font-weight: 800; color: var(--primary)"
-						></span>
+						<span id="resultTotal"></span>
 						<div class="loader" id="loader"></div>
 					</div>
 				</div>
 				<div id="result-content" class="result-content">
-					<p style="color: var(--text-muted)">Perform an action to see the result here...</p>
+					<p style="color: var(--text-muted); text-align: center">
+						Results will appear here...
+					</p>
 				</div>
+			</div>
+		</div>
+
+		<div id="settingsModal" class="modal-overlay">
+			<div class="modal-content">
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem">
+					<h2 style="margin: 0">Settings</h2>
+					<button class="btn-refresh" onclick="refreshAll()">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+					</button>
+				</div>
+				
+				<div class="input-group" style="margin-bottom: 1.25rem">
+					<label>Base URL</label>
+					<div style="display: flex; gap: 0.5rem">
+						<input type="text" id="baseUrl" value="http://localhost:4000" oninput="localStorage.setItem('ai_base_url', this.value)" />
+						<button class="btn-clear" onclick="clearField('baseUrl')">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+						</button>
+					</div>
+				</div>
+
+				<div class="input-group" style="margin-bottom: 1.5rem">
+					<label>JWT Token</label>
+					<div style="display: flex; gap: 0.5rem">
+						<input
+							type="text"
+							id="authToken"
+							placeholder="Access Token"
+							oninput="handleTokenInput(this.value)"
+						/>
+						<button class="btn-clear" onclick="clearField('authToken')">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+						</button>
+					</div>
+				</div>
+
+				<button class="btn-submit" onclick="closeSettingsModal()">Close</button>
 			</div>
 		</div>
 
 		<div id="authModal" class="modal-overlay">
 			<div class="modal-content">
-				<button class="modal-close" onclick="closeAuthModal()">&times;</button>
-				<h2 id="authTitle" style="margin-bottom: 1.5rem; text-align: center">Login</h2>
+				<h2 style="margin-bottom: 1rem">Authentication</h2>
 				<div
 					id="authStatus"
-					style="
-						display: none;
-						margin-bottom: 1rem;
-						padding: 0.75rem;
-						border-radius: 12px;
-						text-align: center;
-						font-size: 0.85rem;
-						font-weight: 600;
-					"
+					style="display: none; padding: 0.5rem; margin-bottom: 1rem; border-radius: 8px"
 				></div>
-				<div
-					class="action-form"
-					style="
-						display: flex;
-						flex-direction: column;
-						gap: 1.25rem;
-						background: transparent;
-						border: none;
-						padding: 0;
-						align-items: stretch;
-					"
+				<div class="input-group" style="margin-bottom: 1rem">
+					<label>Login</label>
+					<input type="text" id="authLogin" />
+				</div>
+				<div class="input-group" style="margin-bottom: 1.5rem">
+					<label>Password</label>
+					<input type="password" id="authPassword" />
+				</div>
+				<button class="btn-submit" onclick="handleAuthSubmit()">Login</button>
+				<button
+					class="mode-btn"
+					style="width: 100%; margin-top: 1rem"
+					onclick="closeAuthModal()"
 				>
+					Cancel
+				</button>
+			</div>
+		</div>
+
+		<div id="hubModal" class="modal-overlay">
+			<div class="modal-content" style="max-width: 600px">
+				<h2 id="hubModalTitle" style="margin-bottom: 1rem">Manage Entity</h2>
+				<input type="hidden" id="hub-entity-type" />
+				<input type="hidden" id="hub-entity-id" />
+				
+				<div id="hub-form-article" style="display: none; flex-direction: column; gap: 1.25rem; border: none; background: transparent">
+					<div class="input-group">
+						<label>Title</label>
+						<input type="text" id="edit-art-title" />
+					</div>
+					<div class="input-group">
+						<label>Category</label>
+						<select id="edit-art-category" class="article-select"></select>
+					</div>
+					<div class="input-group" style="flex-direction: column; align-items: stretch">
+						<label>Status</label>
+						<select id="edit-art-status">
+							<option value="draft">Draft</option>
+							<option value="published">Published</option>
+						</select>
+					</div>
+					<div class="input-group">
+						<label>Tags (comma separated)</label>
+						<input type="text" id="edit-art-tags" placeholder="node, nest, ai" />
+					</div>
+					<div class="input-group">
+						<label>Content</label>
+						<textarea id="edit-art-content" rows="10" style="resize: vertical"></textarea>
+					</div>
+				</div>
+
+				<div id="hub-form-category" style="display: none; flex-direction: column; gap: 1.25rem; border: none; background: transparent">
+					<div class="input-group">
+						<label>Name</label>
+						<input type="text" id="edit-cat-name" />
+					</div>
+					<div class="input-group">
+						<label>Description</label>
+						<textarea id="edit-cat-desc" rows="3"></textarea>
+					</div>
+				</div>
+
+				<div id="hub-form-tag" style="display: none; flex-direction: column; gap: 1.25rem; border: none; background: transparent">
+					<div class="input-group">
+						<label>Tag Name</label>
+						<input type="text" id="edit-tag-name" placeholder="e.g. typescript" />
+					</div>
+				</div>
+
+				<div id="hub-form-user" style="display: none; flex-direction: column; gap: 1.25rem; border: none; background: transparent">
 					<div class="input-group">
 						<label>Login</label>
-						<input type="text" id="authLogin" placeholder="Enter login" />
+						<input type="text" id="edit-user-login" />
 					</div>
 					<div class="input-group">
-						<label>Password</label>
-						<input type="password" id="authPassword" placeholder="Enter password" />
+						<label>Email</label>
+						<input type="email" id="edit-user-email" />
 					</div>
-					<button
-						id="authSubmit"
-						class="btn-submit"
-						style="margin-top: 1rem"
-						onclick="handleAuthSubmit()"
-					>
-						Access Hub
-					</button>
+					<div class="input-group">
+						<label>Role</label>
+						<select id="edit-user-role">
+							<option value="user">User</option>
+							<option value="admin">Admin</option>
+						</select>
+					</div>
+					<div class="input-group">
+						<label>Password (leave blank to keep current)</label>
+						<input type="password" id="edit-user-password" />
+					</div>
+				</div>
+
+				<div style="display: flex; gap: 1rem; margin-top: 1.5rem">
+					<button class="btn-submit" onclick="saveHubData()">Save Changes</button>
+					<button class="mode-btn" style="width: 100%" onclick="closeHubModal()">Cancel</button>
+				</div>
+			</div>
+		</div>
+
+		<div id="msgModal" class="modal-overlay">
+			<div class="modal-content" style="max-width: 400px; text-align: center">
+				<div id="msgModalIcon" style="font-size: 3rem; margin-bottom: 1rem; color: var(--primary)">
+					<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+				</div>
+				<h2 id="msgModalTitle" style="margin-bottom: 0.5rem">Message</h2>
+				<p id="msgModalText" style="color: var(--text-muted); margin-bottom: 1.5rem"></p>
+				<button class="btn-submit" onclick="closeMsgModal()">Got it</button>
+			</div>
+		</div>
+
+		<div id="confirmModal" class="modal-overlay">
+			<div class="modal-content" style="max-width: 350px; text-align: center">
+				<div style="font-size: 3.5rem; margin-bottom: 1rem; color: var(--warning)">
+					<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+				</div>
+				<h2 style="margin-bottom: 0.5rem">Are you sure?</h2>
+				<p id="confirmModalText" style="color: var(--text-muted); margin-bottom: 1.5rem"></p>
+				<div style="display: flex; gap: 1rem">
+					<button class="btn-clear" id="confirmCancel" style="flex: 1; border-radius: 12px; height: 45px">No</button>
+					<button class="btn-submit" id="confirmOk" style="flex: 1; border-radius: 12px; height: 45px">Yes, Delete</button>
 				</div>
 			</div>
 		</div>
 
 		<script>
+			function showMsg(text, type = 'info') {
+				const modal = document.getElementById("msgModal");
+				const title = document.getElementById("msgModalTitle");
+				const msg = document.getElementById("msgModalText");
+				const icon = document.getElementById("msgModalIcon");
+				
+				title.innerText = type === 'error' ? 'Error' : 'Notification';
+				title.style.color = type === 'error' ? 'var(--error)' : 'var(--primary)';
+				icon.innerHTML = type === 'error' 
+					? `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>` 
+					: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+				msg.innerText = text;
+				modal.style.display = 'flex';
+			}
+
+			function closeMsgModal() {
+				document.getElementById("msgModal").style.display = 'none';
+			}
+
+			function openSettingsModal() {
+				document.getElementById("settingsModal").style.display = 'flex';
+			}
+			function closeSettingsModal() {
+				document.getElementById("settingsModal").style.display = 'none';
+			}
+			function clearField(id) {
+				document.getElementById(id).value = '';
+				if (id === 'authToken') handleTokenInput('');
+				if (id === 'baseUrl') localStorage.setItem('ai_base_url', '');
+			}
+			async function refreshAll() {
+				await updateAuthUI();
+				const mode = localStorage.getItem("ai_app_mode") || "ai";
+				await switchAppMode(mode, true);
+			}
+
+			let alertTimeout;
+			function showSystemAlert(text, duration = 5000) {
+				const alert = document.getElementById("system-alert");
+				document.getElementById("system-alert-text").innerText = text;
+				alert.classList.add("active");
+				
+				clearTimeout(alertTimeout);
+				alertTimeout = setTimeout(() => {
+					alert.classList.remove("active");
+				}, duration);
+			}
+
+			function showConfirm(text) {
+				return new Promise((resolve) => {
+					const modal = document.getElementById("confirmModal");
+					document.getElementById("confirmModalText").innerText = text;
+					modal.style.display = 'flex';
+					
+					const onOk = () => {
+						modal.style.display = 'none';
+						cleanup();
+						resolve(true);
+					};
+					const onCancel = () => {
+						modal.style.display = 'none';
+						cleanup();
+						resolve(false);
+					};
+					const cleanup = () => {
+						document.getElementById("confirmOk").removeEventListener('click', onOk);
+						document.getElementById("confirmCancel").removeEventListener('click', onCancel);
+					};
+					
+					document.getElementById("confirmOk").addEventListener('click', onOk);
+					document.getElementById("confirmCancel").addEventListener('click', onCancel);
+				});
+			}
+
 			const STORAGE_KEYS = {
 				BASE_URL: "ai_base_url",
 				ACCESS_TOKEN: "ai_access_token",
 				REFRESH_TOKEN: "ai_refresh_token",
 				USER: "ai_user",
 			};
-
 			const resultsCache = {
 				summarize: null,
 				translate: null,
 				analyze: null,
 				chat: null,
-				statistics: null,
+				"rag-search": null,
+				"rag-chat": null,
+				"rag-index": null,
 			};
 
-			window.onload = () => {
+			let lastHubRefresh = 0;
+			let isRefreshingHub = false;
+			let hubCache = { articles: [], categories: [], users: [], comments: [], tags: [] };
+
+			window.onload = async () => {
 				const savedBaseUrl =
 					localStorage.getItem(STORAGE_KEYS.BASE_URL) || "http://localhost:4000";
 				const savedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || "";
 				document.getElementById("baseUrl").value = savedBaseUrl;
 				document.getElementById("authToken").value = savedToken;
-				updateAuthUI();
-				if (savedToken) fetchArticles();
-
-				const activeBtn = document.querySelector(".tab-btn.active");
-				if (activeBtn) updateTabIndicator(activeBtn);
+				
+				const lastMode = localStorage.getItem("ai_app_mode") || "ai";
+				await updateAuthUI();
+				
+				// Wait a bit for DOM and initial states
+				await new Promise(r => setTimeout(r, 100));
+				
+				// Initialize mode and data sequentially
+				await switchAppMode(lastMode, true);
 			};
 
-			document.getElementById("baseUrl").addEventListener("input", (e) => {
-				localStorage.setItem(STORAGE_KEYS.BASE_URL, e.target.value);
-			});
+			async function switchAppMode(mode, force = false) {
+				localStorage.setItem("ai_app_mode", mode);
+				document.getElementById("ai-view").style.display = mode === "ai" ? "block" : "none";
+				document.getElementById("rag-view").style.display = mode === "rag" ? "block" : "none";
+				document.getElementById("hub-view").style.display = mode === "hub" ? "block" : "none";
+				
+				// Hide shared result container and stats in Hub and RAG modes
+				document.querySelector(".result-container").style.display = mode === "hub" ? "none" : "block";
+				const stats = document.getElementById("statsBarContainer");
+				if (stats) stats.style.display = mode === "ai" ? "flex" : "none";
 
-			function handleTokenInput(token) {
-				localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+				document.getElementById("btn-mode-ai").classList.toggle("active", mode === "ai");
+				document.getElementById("btn-mode-rag").classList.toggle("active", mode === "rag");
+				document.getElementById("btn-mode-hub").classList.toggle("active", mode === "hub");
+				
+				if (mode === "rag") {
+					await fetchCategories();
+					await fetchArticles();
+				}
+				if (mode === "hub") await refreshHub(force);
+				
+				updateTabIndicator();
+				updateRagTabIndicator();
+				updateModeIndicator();
+			}
+
+			function updateModeIndicator() {
+				const active = document.querySelector(".mode-btn.active");
+				const ind = document.getElementById("mode-indicator");
+				if (active && ind) {
+					ind.style.width = active.offsetWidth + "px";
+					ind.style.left = active.offsetLeft + "px";
+				}
+			}
+
+			async function refreshHub(force = false) {
+				if (isRefreshingHub) return;
+				const now = Date.now();
+				if (!force && now - lastHubRefresh < 30000) return; 
+				
+				isRefreshingHub = true;
+				lastHubRefresh = now;
+
+				console.log("Starting sequential Hub refresh...");
+				
 				try {
-					const payload = JSON.parse(atob(token.split(".")[1]));
-					localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(payload));
+					// 1. Articles (Required for comments)
+					const articles = await fetchArticles(); 
+					console.log("Articles loaded:", articles?.length || 0);
+					await new Promise(r => setTimeout(r, 50));
+					
+					// 2. Categories
+					await fetchCategories();
+					console.log("Categories loaded");
+					await new Promise(r => setTimeout(r, 50));
+					
+					// 3. Users
+					await fetchUsers();
+					console.log("Users loaded");
+					await new Promise(r => setTimeout(r, 50));
+					
+					// 4. Comments
+					await fetchComments(articles);
+					console.log("Comments loaded");
+					
+				} catch (err) {
+					console.error("Sequential Hub refresh failed:", err);
+				} finally {
+					isRefreshingHub = false;
+					console.log("Hub refresh complete.");
+				}
+			}
+
+			async function fetchTags() {
+				const baseUrl = document.getElementById("baseUrl").value;
+				try {
+					const res = await smartFetch(`${baseUrl}/tag`);
+					const data = await res.json();
+					const tags = data.data || data;
+					hubCache.tags = tags;
+					const list = document.getElementById("hub-tags-list");
+					if (list) {
+						list.innerHTML = tags.map(t => `
+							<div class="hub-card">
+								<div class="card-id-container">
+									<span class="card-id">#${t.id}</span>
+									<button class="btn-copy-id" onclick="copyToClipboard('${t.id}', this)" title="Copy ID">
+										<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+									</button>
+								</div>
+								<div class="hub-card-title">#${t.name}</div>
+								<div class="hub-card-meta">
+									<div class="hub-card-actions">
+										<button class="btn-mini" onclick="openHubModal('tag', '${t.id}')">Edit</button>
+										<button class="btn-mini" onclick="hubDelete('tag', '${t.id}')">Delete</button>
+									</div>
+								</div>
+							</div>
+						`).join("");
+					}
+				} catch (e) {}
+			}
+
+			async function fetchComments(articles = null) {
+				const baseUrl = document.getElementById("baseUrl").value;
+				const list = document.getElementById("hub-comments-list");
+				if (!list) return;
+
+				if (!list.innerHTML || list.innerHTML.includes('No comments')) {
+					list.innerHTML = '<p id="comm-loader" style="color: var(--text-muted); font-size: 0.7rem; text-align: center">Fetching comments...</p>';
+				}
+				
+				try {
+					// Use passed articles or fetch if missing
+					if (!articles) {
+						const artRes = await smartFetch(`${baseUrl}/article`);
+						if (!artRes.ok) throw new Error("Articles fetch failed");
+						const artData = await artRes.json();
+						articles = artData.data || artData;
+					}
+
+					const topArticles = articles.slice(0, 10);
+					if (!topArticles || topArticles.length === 0) {
+						list.innerHTML = '<p style="color: var(--text-muted); font-size: 0.7rem; text-align: center">No articles found</p>';
+						return;
+					}
+
+					let allComments = [];
+					// Fetch in small batches
+					for (let i = 0; i < topArticles.length; i += 3) {
+						const batch = topArticles.slice(i, i + 3);
+						const batchResults = await Promise.all(batch.map(async (art) => {
+							try {
+								const cRes = await smartFetch(`${baseUrl}/comment?articleId=${art.id}`);
+								if (cRes.status === 429) return null; 
+								const cData = await cRes.json();
+								return cData.data || cData;
+							} catch (e) { return []; }
+						}));
+						allComments = [...allComments, ...batchResults.flat()];
+						if (i + 3 < topArticles.length) await new Promise(r => setTimeout(r, 100));
+					}
+					
+					allComments = allComments.filter(c => c && c.id);
+					
+					hubCache.comments = allComments;
+					list.innerHTML = allComments.length ? allComments.map(c => `
+						<div class="hub-card">
+							<div class="card-id-container">
+								<span class="card-id">#${c.id}</span>
+								<button class="btn-copy-id" onclick="copyToClipboard('${c.id}', this)" title="Copy ID">
+									<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+								</button>
+							</div>
+							<div class="hub-card-title">${c.author?.login || 'User'}</div>
+							<div class="hub-card-desc">${c.content}</div>
+							<div class="hub-card-meta">
+								<span style="font-size: 0.6rem; opacity: 0.6">Art: ${c.articleId ? c.articleId.substring(0, 8) : 'unknown'}...</span>
+								<div class="hub-card-actions">
+									<button class="btn-mini" onclick="hubDelete('comment', '${c.id}')">Delete</button>
+								</div>
+							</div>
+						</div>
+					`).join("") : '<p style="color: var(--text-muted); font-size: 0.7rem; text-align: center">No comments found in top articles</p>';
 				} catch (e) {
-					localStorage.removeItem(STORAGE_KEYS.USER);
-				}
-				updateAuthUI();
-			}
-
-			function refreshAll() {
-				fetchArticles();
-				if (document.getElementById("statistics").classList.contains("active")) {
-					fetchStatistics();
+					console.error("fetchComments fatal error:", e);
+					list.innerHTML = `<p style="color: var(--error); font-size: 0.7rem; text-align: center">Load error: ${e.message}</p>`;
 				}
 			}
 
-			function clearField(id) {
-				document.getElementById(id).value = "";
-				if (id === "baseUrl") {
-					localStorage.setItem(STORAGE_KEYS.BASE_URL, "");
-				} else if (id === "authToken") {
-					handleLogout();
+			async function fetchUsers() {
+				const baseUrl = document.getElementById("baseUrl").value;
+				try {
+					const res = await smartFetch(`${baseUrl}/user`);
+					const data = await res.json();
+					const users = data.data || data;
+					hubCache.users = users;
+					const list = document.getElementById("hub-users-list");
+					if (list) {
+						list.innerHTML = users.map(u => `
+							<div class="hub-card">
+								<div class="card-id-container">
+									<span class="card-id">#${u.id}</span>
+									<button class="btn-copy-id" onclick="copyToClipboard('${u.id}', this)" title="Copy ID">
+										<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+									</button>
+								</div>
+								<div class="hub-card-title">${u.login}</div>
+								<div class="hub-card-desc">${u.email || 'No email'}</div>
+								<div class="hub-card-meta">
+									<span class="tag-badge">${u.role}</span>
+									<div class="hub-card-actions">
+										<button class="btn-mini" onclick="openHubModal('user', '${u.id}')">Edit</button>
+										<button class="btn-mini" onclick="hubDelete('user', '${u.id}')">Delete</button>
+									</div>
+								</div>
+							</div>
+						`).join("");
+					}
+				} catch (e) {}
+			}
+
+			async function hubDelete(entity, id) {
+				if (!(await showConfirm(`Do you really want to delete this ${entity}?`))) return;
+				const baseUrl = document.getElementById("baseUrl").value;
+				try {
+					const res = await smartFetch(`${baseUrl}/${entity}/${id}`, { method: 'DELETE' });
+					if (res.ok) refreshHub();
+				} catch (e) { showMsg(e.message, 'error'); }
+			}
+
+			function openHubModal(entity, id = null) {
+				document.getElementById("hubModal").style.display = 'flex';
+				document.getElementById("hub-entity-type").value = entity;
+				document.getElementById("hub-entity-id").value = id || "";
+				document.getElementById("hubModalTitle").innerText = (id ? 'Edit ' : 'Add ') + entity.charAt(0).toUpperCase() + entity.slice(1);
+				
+				document.getElementById("hub-form-article").style.display = entity === 'article' ? 'flex' : 'none';
+				document.getElementById("hub-form-category").style.display = entity === 'category' ? 'flex' : 'none';
+				document.getElementById("hub-form-tag").style.display = entity === 'tag' ? 'flex' : 'none';
+				document.getElementById("hub-form-user").style.display = entity === 'user' ? 'flex' : 'none';
+
+				if (id) {
+					let item = null;
+					if (entity === 'article') item = hubCache.articles.find(a => a.id === id);
+					if (entity === 'category') item = hubCache.categories.find(c => c.id === id);
+					if (entity === 'tag') item = hubCache.tags.find(t => t.id === id);
+					if (entity === 'user') item = hubCache.users.find(u => u.id === id);
+
+					if (item) {
+						if (entity === 'article') {
+							document.getElementById("edit-art-title").value = item.title || "";
+							document.getElementById("edit-art-content").value = item.content || "";
+							document.getElementById("edit-art-tags").value = (item.tags || []).map(t => t.name || t).join(", ");
+							document.getElementById("edit-art-category").value = item.categoryId || "";
+							document.getElementById("edit-art-status").value = item.status || "draft";
+						} else if (entity === 'category') {
+							document.getElementById("edit-cat-name").value = item.name || "";
+							document.getElementById("edit-cat-desc").value = item.description || "";
+						} else if (entity === 'tag') {
+							document.getElementById("edit-tag-name").value = item.name || "";
+						} else if (entity === 'user') {
+							document.getElementById("edit-user-login").value = item.login || "";
+							document.getElementById("edit-user-email").value = item.email || "";
+							document.getElementById("edit-user-role").value = item.role || "user";
+							document.getElementById("edit-user-password").value = "";
+						}
+					}
+				} else {
+					if (entity === 'article') {
+						document.getElementById("edit-art-title").value = "";
+						document.getElementById("edit-art-content").value = "";
+						document.getElementById("edit-art-tags").value = "";
+						document.getElementById("edit-art-status").value = "draft";
+						if (hubCache.categories.length > 0) {
+							document.getElementById("edit-art-category").value = hubCache.categories[0].id;
+						}
+					} else if (entity === 'category') {
+						document.getElementById("edit-cat-name").value = "";
+						document.getElementById("edit-cat-desc").value = "";
+					} else if (entity === 'tag') {
+						document.getElementById("edit-tag-name").value = "";
+					} else if (entity === 'user') {
+						document.getElementById("edit-user-login").value = "";
+						document.getElementById("edit-user-email").value = "";
+						document.getElementById("edit-user-role").value = "user";
+						document.getElementById("edit-user-password").value = "";
+					}
 				}
 			}
 
-			document.getElementById("chat-msg").addEventListener("keydown", function (e) {
-				if (e.ctrlKey && e.key === "Enter") {
-					e.preventDefault();
-					apiCall("chat");
-				}
-			});
+			function closeHubModal() {
+				document.getElementById("hubModal").style.display = 'none';
+			}
 
-			function updateTabIndicator(btn) {
-				const indicator = document.getElementById("tab-indicator");
-				indicator.style.width = `${btn.offsetWidth}px`;
-				indicator.style.height = `${btn.offsetHeight}px`;
-				indicator.style.left = `${btn.offsetLeft}px`;
-				indicator.style.top = `${btn.offsetTop}px`;
+			async function saveHubData() {
+				const baseUrl = document.getElementById("baseUrl").value;
+				const type = document.getElementById("hub-entity-type").value;
+				const id = document.getElementById("hub-entity-id").value;
+				
+				let body = {};
+				if (type === 'article') {
+					const tagsStr = document.getElementById("edit-art-tags").value;
+					const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || '{}');
+					body = {
+						title: document.getElementById("edit-art-title").value,
+						content: document.getElementById("edit-art-content").value,
+						categoryId: document.getElementById("edit-art-category").value,
+						status: document.getElementById("edit-art-status").value,
+						tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [],
+						authorId: user.id || undefined 
+					};
+				} else if (type === 'category') {
+					body = {
+						name: document.getElementById("edit-cat-name").value,
+						description: document.getElementById("edit-cat-desc").value
+					};
+				} else if (type === 'tag') {
+					body = { name: document.getElementById("edit-tag-name").value };
+				} else if (type === 'user') {
+					body = {
+						login: document.getElementById("edit-user-login").value,
+						email: document.getElementById("edit-user-email").value,
+						role: document.getElementById("edit-user-role").value
+					};
+					const pass = document.getElementById("edit-user-password").value;
+					if (pass) body.password = pass;
+				}
+
+				try {
+					const url = id ? `${baseUrl}/${type}/${id}` : `${baseUrl}/${type}`;
+					const method = id ? 'PATCH' : 'POST';
+					
+					// Final validation and mapping
+					if (type === 'article' && !body.categoryId) {
+						showMsg('Please select a category', 'error');
+						return;
+					}
+
+					const res = await smartFetch(url, { method, body: JSON.stringify(body) });
+					if (res.ok) {
+						closeHubModal();
+						refreshHub(true);
+					} else {
+						const err = await res.json();
+						showMsg(err.message || 'Save failed', 'error');
+					}
+				} catch (e) { showMsg(e.message, 'error'); }
 			}
 
 			function showTab(tabId) {
-				const tabs = ["summarize", "translate", "analyze", "chat"];
-				tabs.forEach((id) => {
-					const el = document.getElementById(id);
-					if (el) el.style.display = id === tabId ? "block" : "none";
-				});
+				document
+					.querySelectorAll("#ai-view .tab-content")
+					.forEach((t) => (t.style.display = "none"));
+				document.getElementById(tabId).style.display = "block";
+				document
+					.querySelectorAll("#ai-view .tab-btn")
+					.forEach((b) => b.classList.toggle("active", b.dataset.tab === tabId));
+				document.getElementById("result-content").innerHTML =
+					resultsCache[tabId] ||
+					'<p style="color: var(--text-muted); text-align: center">Results will appear here...</p>';
+				updateTabIndicator();
+			}
 
-				const buttons = document.querySelectorAll(".tab-btn");
-				buttons.forEach((btn) => {
-					if (btn.getAttribute("data-tab") === tabId) {
-						btn.classList.add("active");
-						updateTabIndicator(btn);
-					} else {
-						btn.classList.remove("active");
-					}
-				});
+			function showRagTab(tabId) {
+				document
+					.querySelectorAll(".rag-tab-content")
+					.forEach((t) => (t.style.display = "none"));
+				document.getElementById(tabId).style.display = "block";
+				document
+					.querySelectorAll("#rag-view .tab-btn")
+					.forEach((b) => b.classList.toggle("active", b.dataset.tab === tabId));
+				document.getElementById("result-content").innerHTML =
+					resultsCache[tabId] ||
+					'<p style="color: var(--text-muted); text-align: center">Results will appear here...</p>';
+				updateRagTabIndicator();
+			}
 
-				const display = document.getElementById("result-content");
-				if (resultsCache[tabId]) {
-					display.innerHTML = resultsCache[tabId];
-				} else {
-					display.innerHTML = `<p style="color: var(--text-muted)">Perform an action to see the result here...</p>`;
+			function updateTabIndicator() {
+				const active = document.querySelector("#ai-view .tab-btn.active");
+				const ind = document.getElementById("tab-indicator");
+				if (active && ind) {
+					ind.style.width = active.offsetWidth + "px";
+					ind.style.left = active.offsetLeft + "px";
 				}
+			}
+
+			function updateRagTabIndicator() {
+				const active = document.querySelector("#rag-view .tab-btn.active");
+				const ind = document.getElementById("rag-tab-indicator");
+				if (active && ind) {
+					ind.style.width = active.offsetWidth + "px";
+					ind.style.left = active.offsetLeft + "px";
+				}
+			}
+
+
+			async function apiCall(type) {
+				const baseUrl = document.getElementById("baseUrl").value;
+				const loader = document.getElementById("loader");
+				const getArticleId = (id) => document.getElementById(id).value;
+
+				try {
+					loader.style.display = "block";
+					let url = "",
+						body = {};
+					if (type === "summarize") {
+						url = `${baseUrl}/ai/articles/${getArticleId("sum-article")}/summarize`;
+						body = { maxLength: document.getElementById("sum-length").value };
+					}
+					if (type === "translate") {
+						url = `${baseUrl}/ai/articles/${getArticleId("trans-article")}/translate`;
+						body = { targetLanguage: document.getElementById("trans-target").value };
+					}
+					if (type === "analyze") {
+						url = `${baseUrl}/ai/articles/${getArticleId("analyze-article")}/analyze`;
+						body = { task: document.getElementById("analyze-task").value };
+					}
+					if (type === "chat") {
+						url = `${baseUrl}/ai/generate`;
+						body = { message: document.getElementById("chat-msg").value };
+					}
+
+					const res = await smartFetch(url, { method: "POST", body: JSON.stringify(body) });
+					const data = await res.json();
+					renderResult(data, type);
+				} catch (e) {
+					console.error(e);
+				} finally {
+					loader.style.display = "none";
+				}
+			}
+
+			async function ragSearch() {
+				const baseUrl = document.getElementById("baseUrl").value;
+				const query = document.getElementById("rag-search-query").value;
+				if (!query) return;
+
+				const loader = document.getElementById("loader");
+				const categoryId = document.getElementById("rag-search-category").value;
+				const articleStatus = document.getElementById("rag-search-status").value;
+				const tagsStr = document.getElementById("rag-search-tags").value;
+				const limit = parseInt(document.getElementById("rag-search-limit").value) || 5;
+
+				const body = {
+					query,
+					limit,
+					categoryId: categoryId || undefined,
+					articleStatus: articleStatus || undefined,
+					tags: tagsStr ? tagsStr.split(",").map((t) => t.trim()).filter((t) => t) : undefined,
+				};
+
+				try {
+					loader.style.display = "block";
+					const res = await smartFetch(`${baseUrl}/ai/rag/search`, {
+						method: "POST",
+						body: JSON.stringify(body),
+					});
+					const data = await res.json();
+					renderRagResult(data, "rag-search");
+				} catch (e) {
+					console.error(e);
+				} finally {
+					loader.style.display = "none";
+				}
+			}
+
+			async function ragChat() {
+				const baseUrl = document.getElementById("baseUrl").value;
+				const question = document.getElementById("rag-chat-msg").value;
+				if (!question) return;
+
+				const loader = document.getElementById("loader");
+				const conversationId = document.getElementById("rag-conv-id").value;
+
+				try {
+					loader.style.display = "block";
+					const res = await smartFetch(`${baseUrl}/ai/rag/chat`, {
+						method: "POST",
+						body: JSON.stringify({ question, conversationId: conversationId || undefined }),
+					});
+					const data = await res.json();
+					if (data.conversationId)
+						document.getElementById("rag-conv-id").value = data.conversationId;
+					renderRagResult(data, "rag-chat");
+				} catch (e) {
+					console.error(e);
+				} finally {
+					loader.style.display = "none";
+				}
+			}
+
+			async function ragIndex() {
+				const baseUrl = document.getElementById("baseUrl").value;
+				const loader = document.getElementById("loader");
+
+				// Collect checked IDs
+				const checked = document.querySelectorAll("#rag-index-checklist input:checked");
+				const articleIds = Array.from(checked).map((i) => i.value);
+
+				const onlyPublished = document.getElementById("rag-index-published").checked;
+
+				try {
+					loader.style.display = "block";
+					const res = await smartFetch(`${baseUrl}/ai/rag/index`, {
+						method: "POST",
+						body: JSON.stringify({
+							onlyPublished,
+							articleIds: articleIds.length ? articleIds : undefined,
+						}),
+					});
+					const data = await res.json();
+					renderRagResult(data, "rag-index");
+				} catch (e) {
+					console.error(e);
+				} finally {
+					loader.style.display = "none";
+				}
+			}
+
+			async function deleteFromRagIndex(articleId) {
+				if (!(await showConfirm('Delete this article from vector index?'))) return;
+				const baseUrl = document.getElementById("baseUrl").value;
+				try {
+					const res = await smartFetch(`${baseUrl}/ai/rag/index/articles/${articleId}`, { method: 'DELETE' });
+					if (res.status === 204) {
+						showSystemAlert('Article removed from index', 3000);
+						fetchArticles();
+					} else {
+						const err = await res.json();
+						showMsg(err.message || 'Deletion failed', 'error');
+					}
+				} catch (e) { showMsg(e.message, 'error'); }
+			}
+
+			function renderResult(data, type) {
+				const display = document.getElementById("result-content");
+				display.innerHTML = "";
+
+				if (data.error || data.statusCode >= 400 || data._isError) {
+					display.innerHTML = `
+						<div class="result-item" style="border-color: var(--error); grid-column: 1/-1">
+							<span class="result-label">API Error ${data.statusCode || ""}</span>
+							<div class="result-value" style="color: var(--error)">${data.message || "Unknown error"}</div>
+						</div>
+					`;
+					return;
+				}
+
+				let html = "";
+				if (type === "summarize") {
+					html = `
+						<div class="result-item" style="grid-column: 1/-1"><span class="result-label">Summary</span><div class="result-value">${data.summary}</div></div>
+						<div class="result-item"><span class="result-label">Original Length</span><div class="result-value">${data.originalLength} chars</div></div>
+						<div class="result-item"><span class="result-label">Summary Length</span><div class="result-value">${data.summaryLength} chars</div></div>
+					`;
+				} else if (type === "translate") {
+					html = `
+						<div class="result-item" style="grid-column: 1/-1"><span class="result-label">Translation</span><div class="result-value">${data.translatedText}</div></div>
+						<div class="result-item"><span class="result-label">Detected Language</span><div class="result-value">${data.detectedLanguage}</div></div>
+					`;
+				} else if (type === "analyze") {
+					html = `
+						<div class="result-item" style="grid-column: 1/-1"><span class="result-label">Analysis</span><div class="result-value">${data.analysis}</div></div>
+						<div class="result-item" style="grid-column: 1/-1"><span class="result-label">Suggestions</span><div class="result-value">${Array.isArray(data.suggestions) ? data.suggestions.join("<br>") : data.suggestions}</div></div>
+					`;
+				} else if (type === "chat") {
+					html = `
+						<div class="result-item" style="grid-column: 1/-1">
+							<span class="result-label">AI Response</span>
+							<div class="result-value" style="font-size: 1.1rem">${data.message}</div>
+						</div>
+					`;
+				} else {
+					html = `<div class="result-item" style="grid-column: 1/-1"><pre style="color: white; white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre></div>`;
+				}
+
+				display.innerHTML = html;
+				resultsCache[type] = html;
+			}
+
+			function renderRagResult(data, type) {
+				const display = document.getElementById("result-content");
+				let html = "";
+				if (type === "rag-search") {
+					html = (data.results || [])
+						.map(
+							(r) => `
+						<div class="rag-result-card">
+							<span class="rag-badge">${r.articleTitle}</span>
+							<p>${r.chunk}</p>
+							<div style="display: flex; justify-content: flex-end; margin-bottom: 2px">
+								<span style="font-size: 0.6rem; font-weight: 800; color: var(--success); opacity: 0.9">${Math.round(r.similarity * 100)}% Match</span>
+							</div>
+							<div class="similarity-meter"><div class="similarity-fill" style="width: ${r.similarity * 100}%"></div></div>
+						</div>
+					`,
+						)
+						.join("");
+				} else if (type === "rag-chat") {
+					html = `
+						<div class="rag-result-card" style="background: transparent; padding: 0; border: none; box-shadow: none">
+							<div style="font-size: 1rem; line-height: 1.6; margin-bottom: 2rem; color: var(--text)">${data.answer}</div>
+							
+							<div style="padding-top: 1.5rem; border-top: 1px solid var(--border)">
+								<span class="section-label" style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; color: var(--primary); font-weight: 800">
+									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+									Verified Sources
+								</span>
+								<div style="display: flex; flex-direction: column; gap: 1.25rem">
+									${data.sources.map((s) => `
+										<div class="chat-source" style="margin: 0; padding: 0; border: none; background: transparent; box-shadow: none">
+											<div style="font-weight: 800; color: var(--primary); font-size: 0.7rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em">
+												${s.articleTitle}
+											</div>
+											<div style="line-height: 1.6; font-size: 0.85rem; color: var(--text-muted)">${s.relevantChunk}</div>
+										</div>
+									`).join("")}
+								</div>
+							</div>
+							
+							<div style="margin-top: 2rem; font-size: 0.6rem; color: var(--text-muted); font-family: monospace; text-align: right; opacity: 0.4">
+								Session: ${data.conversationId}
+							</div>
+						</div>
+					`;
+				} else if (type === "rag-index") {
+					html = `
+						<div class="result-item" style="grid-column: 1/-1; border-color: var(--success)">
+							<span class="result-label" style="color: var(--success)">Indexing Complete</span>
+							<div class="result-value" style="font-size: 1rem; margin-top: 0.35rem">Index updated successfully</div>
+						</div>
+						<div class="result-item">
+							<span class="result-label">Articles</span>
+							<div class="result-value" style="font-size: 1.2rem">${data.indexedArticles}</div>
+						</div>
+						<div class="result-item">
+							<span class="result-label">Total Chunks</span>
+							<div class="result-value" style="font-size: 1.2rem">${data.indexedChunks}</div>
+						</div>
+						<div class="result-item" style="grid-column: 1/-1">
+							<span class="result-label">Vector Collection</span>
+							<div class="result-value" style="font-family: monospace; opacity: 0.8">${data.vectorCollection}</div>
+						</div>
+					`;
+				} else {
+					html = `<div class="result-item" style="grid-column: 1/-1"><pre style="color: white; white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre></div>`;
+				}
+				display.innerHTML = html;
+				resultsCache[type] = html;
 			}
 
 			async function fetchStatistics() {
@@ -1062,39 +2056,22 @@
 
 				try {
 					const res = await smartFetch(`${baseUrl}/ai/statistics?timestamp=${Date.now()}`);
-					if (!res.ok) {
-						const errData = await res.json().catch(() => ({}));
-						let msg = errData.message || `Stats failed: ${res.status}`;
-						if (res.status === 429) {
-							const retryAfter = res.headers.get("Retry-After");
-							if (retryAfter) msg += `. Retry in ${retryAfter}s`;
-						}
-						showGlobalError(msg);
-						return;
-					}
+					if (!res.ok) return;
 					const data = await res.json();
 
 					// Update Total Badge in Header
 					badge.innerHTML = `
 						<div style="display: flex; align-items: center; gap: 0.35rem; padding-right: 0.5rem; border-right: 1px solid rgba(99, 102, 241, 0.3);">
 							<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-							<span style="font-size: 0.75rem; font-weight: 800; color: white; letter-spacing: -0.02em;">${data.totalRequests || 0}</span>
-							<span style="font-size: 0.55rem; font-weight: 600; color: #818cf8; text-transform: uppercase; letter-spacing: 0.05em;">reqs</span>
+							<span style="font-size: 0.75rem; font-weight: 800; color: white;">${data.totalRequests || 0}</span>
 						</div>
 						<div style="display: flex; align-items: center; gap: 0.35rem; padding: 0 0.5rem; border-right: 1px solid rgba(99, 102, 241, 0.3);">
 							<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>
-							<span style="font-size: 0.75rem; font-weight: 800; color: white; letter-spacing: -0.02em;">${(data.totalTokens || 0).toLocaleString()}</span>
-							<span style="font-size: 0.55rem; font-weight: 600; color: #818cf8; text-transform: uppercase; letter-spacing: 0.05em;">tokens</span>
-						</div>
-						<div style="display: flex; align-items: center; gap: 0.35rem; padding: 0 0.5rem; border-right: 1px solid rgba(99, 102, 241, 0.3);">
-							<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-							<span style="font-size: 0.75rem; font-weight: 800; color: white; letter-spacing: -0.02em;">${(parseFloat(data.cacheHitRatio || 0) * 100).toFixed(0)}%</span>
-							<span style="font-size: 0.55rem; font-weight: 600; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">cache</span>
+							<span style="font-size: 0.75rem; font-weight: 800; color: white;">${(data.totalTokens || 0).toLocaleString()}</span>
 						</div>
 						<div style="display: flex; align-items: center; gap: 0.35rem; padding-left: 0.15rem;">
 							<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-							<span style="font-size: 0.75rem; font-weight: 800; color: white; letter-spacing: -0.02em;">${data.avgLatencyMs || 0}</span>
-							<span style="font-size: 0.55rem; font-weight: 600; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.05em;">ms</span>
+							<span style="font-size: 0.75rem; font-weight: 800; color: white;">${data.avgLatencyMs || 0}ms</span>
 						</div>
 					`;
 
@@ -1110,44 +2087,41 @@
 						const stats = endpointMap[key] || { requests: 0, tokens: 0 };
 						const container = document.getElementById(containerId);
 						if (container) {
-							container.innerHTML = `
-								<div style="display: flex; align-items: center; gap: 0.25rem; padding-right: 0.35rem; border-right: 1px solid rgba(255,255,255,0.05);">
-									<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-									<span style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); opacity: 0.9;">${stats.requests}</span>
-								</div>
-								<div style="display: flex; align-items: center; gap: 0.25rem; padding-left: 0.1rem;">
-									<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>
-									<span style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); opacity: 0.9;">${stats.tokens.toLocaleString()}</span>
-								</div>
-							`;
+							container.innerHTML = `<span>REQ: ${stats.requests}</span> <span>TOK: ${stats.tokens}</span>`;
 						}
 					}
 				} catch (e) {
-					console.error("Stats fetch failed", e);
-					showGlobalError("Failed to fetch statistics. Check your connection.");
+					console.error(e);
 				}
 			}
 
+			let isRefreshingToken = false;
 			async function smartFetch(url, options = {}) {
 				let token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-				const headers = {
-					...options.headers,
-					"Content-Type": "application/json",
-				};
-				if (token) {
-					headers["Authorization"] = `Bearer ${token}`;
-				}
+				const headers = { ...options.headers, "Content-Type": "application/json" };
+				if (token) headers["Authorization"] = `Bearer ${token}`;
+
 				let response = await fetch(url, { ...options, headers });
-				if (response.status === 401) {
-					const refreshed = await refreshTokens();
-					if (refreshed) {
-						token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-						headers["Authorization"] = `Bearer ${token}`;
-						response = await fetch(url, { ...options, headers });
-					} else {
-						handleLogout();
-						openAuthModal();
-						throw new Error("Session expired. Please login again.");
+
+				if (response.status === 429) {
+					const retryAfter = response.headers.get("Retry-After") || 1;
+					showSystemAlert(`Rate limit exceeded. Please wait ${retryAfter}s.`);
+				}
+
+				if (response.status === 401 && !isRefreshingToken) {
+					isRefreshingToken = true;
+					try {
+						const refreshed = await refreshTokens();
+						if (refreshed) {
+							token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+							headers["Authorization"] = `Bearer ${token}`;
+							response = await fetch(url, { ...options, headers });
+						} else {
+							handleLogout();
+							openAuthModal();
+						}
+					} finally {
+						isRefreshingToken = false;
 					}
 				}
 				return response;
@@ -1169,56 +2143,185 @@
 						return true;
 					}
 				} catch (e) {
-					console.error("Refresh failed", e);
+					console.error(e);
 				}
 				return false;
 			}
 
-			function saveTokens(data) {
+			function parseJwt(token) {
+				try {
+					var base64Url = token.split('.')[1];
+					var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+					var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+						return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+					}).join(''));
+					return JSON.parse(jsonPayload);
+				} catch(e) { return null; }
+			}
+
+			function saveTokens(data, login) {
 				localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
 				localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
 				document.getElementById("authToken").value = data.accessToken;
-				try {
-					const payload = JSON.parse(atob(data.accessToken.split(".")[1]));
-					localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(payload));
-					updateAuthUI();
-				} catch (e) {}
+				
+				const payload = parseJwt(data.accessToken);
+				if (payload) {
+					localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify({ 
+						login: payload.login || login, 
+						id: payload.userId,
+						role: payload.role 
+					}));
+				} else if (login) {
+					localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify({ login }));
+				}
+				updateAuthUI();
 			}
 
-			function updateAuthUI() {
+			async function updateAuthUI() {
 				const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER));
-				const guestProfile = document.getElementById("guestProfile");
-				const userProfile = document.getElementById("userProfile");
-				const statsBar = document.getElementById("statsBarContainer");
 				const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 
+				document.getElementById("userProfile").style.display = user && token ? "flex" : "none";
+				document.getElementById("guestProfile").style.display = user && token ? "none" : "flex";
+				document.getElementById("statsBarContainer").style.display =
+					user && token ? "block" : "none";
+
 				if (user && token) {
-					guestProfile.style.display = "none";
-					userProfile.style.display = "flex";
-					statsBar.style.display = "block";
 					document.getElementById("userName").innerText = user.login;
-					document.getElementById("userInitials").innerText = user.login
-						.substring(0, 2)
-						.toUpperCase();
-					fetchStatistics();
-				} else {
-					guestProfile.style.display = "flex";
-					userProfile.style.display = "none";
-					statsBar.style.display = "none";
+					try { await fetchStatistics(); } catch(e) { console.error("Stats fail", e); }
 				}
 			}
 
-			function openAuthModal() {
-				const status = document.getElementById("authStatus");
-				const form = document.querySelector("#authModal .action-form");
+			async function fetchArticles(retry = true) {
+				const baseUrl = document.getElementById("baseUrl").value;
+				try {
+					const res = await smartFetch(`${baseUrl}/article`);
+					const data = await res.json();
+					let articles = data.data || data;
 
-				status.style.display = "none";
-				form.style.display = "flex";
+					// Retry once if empty (could be a race condition with DB)
+					if (retry && (!articles || articles.length === 0)) {
+						await new Promise(r => setTimeout(r, 500));
+						return fetchArticles(false);
+					}
+					
+					if (!articles) articles = [];
+					hubCache.articles = articles;
 
-				document.getElementById("authModal").style.display = "flex";
-				document.getElementById("authTitle").innerText = "Sign In / Sign Up";
+					// Populate dropdowns
+					document.querySelectorAll(".article-select").forEach((s) => {
+						s.innerHTML = articles
+							.map((a) => `<option value="${a.id}">${a.title}</option>`)
+							.join("");
+					});
+
+					// Populate RAG Index Checklist
+					const checklist = document.getElementById("rag-index-checklist");
+					if (checklist) {
+						checklist.innerHTML = articles.map(a => `
+							<div class="checklist-item" onclick="const i = this.querySelector('input'); i.checked = !i.checked; event.stopPropagation();">
+								<input type="checkbox" value="${a.id}" onclick="event.stopPropagation();">
+								<label>${a.title}</label>
+								<button class="btn-delete-rag" onclick="deleteFromRagIndex('${a.id}'); event.stopPropagation();" title="Remove from vector index">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+								</button>
+							</div>
+						`).join("");
+					}
+
+					// Populate Hub List
+					const hubList = document.getElementById("hub-articles-list");
+					if (hubList) {
+						hubList.innerHTML = articles.map(a => `
+							<div class="hub-card">
+								<div class="card-id-container">
+									<span class="card-id">#${a.id}</span>
+									<button class="btn-copy-id" onclick="copyToClipboard('${a.id}', this)" title="Copy ID">
+										<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+									</button>
+								</div>
+								<div class="hub-card-title">${a.title}</div>
+								<div class="hub-card-desc">${a.content ? a.content.substring(0, 100) + '...' : 'No content'}</div>
+								<div class="hub-card-meta">
+									<div>
+										${(a.tags || []).map(t => `<span class="tag-badge">${t.name || t}</span>`).join("")}
+									</div>
+									<span style="opacity: 0.7">Status: ${a.status}</span>
+									<div class="hub-card-actions">
+										<button class="btn-mini" onclick="openHubModal('article', '${a.id}')">Edit</button>
+										<button class="btn-mini" onclick="hubDelete('article', '${a.id}')">Delete</button>
+									</div>
+								</div>
+							</div>
+						`).join("");
+					}
+					return articles;
+				} catch (e) {
+					console.error(e);
+					return [];
+				}
 			}
 
+			function toggleAllArticlesToIndex() {
+				const checklist = document.getElementById("rag-index-checklist");
+				const checkboxes = checklist.querySelectorAll("input[type='checkbox']");
+				const btn = document.getElementById("btn-select-all");
+				
+				const anyUnchecked = Array.from(checkboxes).some(c => !c.checked);
+				checkboxes.forEach(c => c.checked = anyUnchecked);
+				
+				btn.innerText = anyUnchecked ? "Deselect All" : "Select All";
+			}
+
+			async function fetchCategories() {
+				const baseUrl = document.getElementById("baseUrl").value;
+				try {
+					const res = await smartFetch(`${baseUrl}/category`);
+					const data = await res.json();
+					const categories = data.data || data;
+					hubCache.categories = categories;
+					
+					// Populate dropdowns
+					const catOptions = categories.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
+					document.getElementById("rag-search-category").innerHTML = '<option value="">All</option>' + catOptions;
+					document.getElementById("edit-art-category").innerHTML = catOptions;
+
+					// Populate Hub List
+					const hubList = document.getElementById("hub-categories-list");
+					if (hubList) {
+						hubList.innerHTML = categories.map(c => `
+							<div class="hub-card">
+								<div class="card-id-container">
+									<span class="card-id">#${c.id}</span>
+									<button class="btn-copy-id" onclick="copyToClipboard('${c.id}', this)" title="Copy ID">
+										<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+									</button>
+								</div>
+								<div class="hub-card-title">${c.name}</div>
+								<div class="hub-card-desc">${c.description || 'No description'}</div>
+								<div class="hub-card-meta">
+									<div class="hub-card-actions">
+										<button class="btn-mini" onclick="openHubModal('category', '${c.id}')">Edit</button>
+										<button class="btn-mini" onclick="hubDelete('category', '${c.id}')">Delete</button>
+									</div>
+								</div>
+							</div>
+						`).join("");
+					}
+				} catch (e) {}
+			}
+
+			function handleTokenInput(v) {
+				localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, v);
+				updateAuthUI();
+			}
+			function handleLogout() {
+				localStorage.clear();
+				updateAuthUI();
+			}
+			function openAuthModal() {
+				document.getElementById("authModal").style.display = "flex";
+			}
 			function closeAuthModal() {
 				document.getElementById("authModal").style.display = "none";
 			}
@@ -1232,24 +2335,21 @@
 				if (!login || !password) {
 					status.innerText = "Fields required!";
 					status.style.display = "block";
-					status.style.background = "rgba(239, 68, 68, 0.1)";
 					status.style.color = "var(--error)";
 					return;
 				}
 
 				try {
 					status.style.display = "none";
-
-					// Step 1: Try signup
+					// Try Signup
 					let signupRes = await fetch(`${baseUrl}/auth/signup`, {
 						method: "POST",
 						headers: { "Content-Type": "application/json" },
 						body: JSON.stringify({ login, password }),
 					});
 
-					// Step 2: If signup failed with 409 (Conflict), user already exists - proceed to login
-					// If signup succeeded, also proceed to login (auto-login)
 					if (signupRes.ok || signupRes.status === 409) {
+						// Try Login
 						const loginRes = await fetch(`${baseUrl}/auth/login`, {
 							method: "POST",
 							headers: { "Content-Type": "application/json" },
@@ -1259,247 +2359,39 @@
 						const loginData = await loginRes.json();
 						if (!loginRes.ok) throw new Error(loginData.message || "Login failed");
 
-						saveTokens(loginData);
+						saveTokens(loginData, login);
 						closeAuthModal();
 						fetchArticles();
 					} else {
-						// Other signup error
 						const signupData = await signupRes.json();
 						throw new Error(signupData.message || "Registration failed");
 					}
 				} catch (e) {
 					status.innerText = e.message;
 					status.style.display = "block";
-					status.style.background = "rgba(239, 68, 68, 0.1)";
 					status.style.color = "var(--error)";
+					status.style.background = "rgba(239, 68, 68, 0.1)";
 				}
 			}
-
-			function handleLogout() {
-				localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-				localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-				localStorage.removeItem(STORAGE_KEYS.USER);
-				document.getElementById("authToken").value = "";
-				updateAuthUI();
+			function clearField(id) {
+				document.getElementById(id).value = "";
 			}
 
-			async function fetchArticles() {
-				const baseUrl = document.getElementById("baseUrl").value;
+			async function copyToClipboard(text, btn) {
 				try {
-					const res = await smartFetch(`${baseUrl}/article`);
-					const data = await res.json();
-					const articles = Array.isArray(data) ? data : data.data || [];
-					const selects = document.querySelectorAll(".article-select");
-					selects.forEach((s) => {
-						s.innerHTML = articles
-							.map((a) => `<option value="${a.id}">${a.title}</option>`)
-							.join("");
-					});
-				} catch (e) {
-					console.error("Failed to fetch articles", e);
-				}
-			}
-
-			function showGlobalError(message) {
-				const containers = document.querySelectorAll(".global-error");
-				containers.forEach((container) => {
-					const text = container.querySelector(".error-text");
-					if (text) text.innerText = message;
-					container.style.display = "flex";
-				});
-
-				setTimeout(() => {
-					containers.forEach((container) => {
-						container.style.display = "none";
-					});
-				}, 10000);
-			}
-
-			function renderResult(data, type) {
-				const display = document.getElementById("result-content");
-				if (!data) return;
-
-				const isError = data._isError || data.statusCode || data.error;
-
-				if (isError) {
-					let errorMessage = Array.isArray(data.message)
-						? data.message.join(", ")
-						: data.message || "API Error";
-
-					if (data._statusCode === 429 && data._retryAfter) {
-						errorMessage += `. Try again in ${data._retryAfter}s`;
-					}
-
-					showGlobalError(errorMessage);
-					return;
-				}
-
-				display.innerHTML = "";
-				let html = "";
-
-				if (isError) {
-					const errorTitle =
-						data.error || (data._statusCode ? `Error ${data._statusCode}` : "API Error");
-					const errorMessage = Array.isArray(data.message)
-						? data.message.join(", ")
-						: data.message || "Unknown error";
-
-					html = `
-						<div class="result-item" style="border-color: var(--error); grid-column: 1/-1;">
-							<span class="result-label">${errorTitle}</span>
-							<div class="result-value" style="color: var(--error)">${errorMessage}</div>
-						</div>
-					`;
-				} else if (type === "summarize") {
-					const items = [
-						{ label: "Summary", value: data.summary },
-						{ label: "Original Length", value: `${data.originalLength} chars` },
-						{ label: "Summary Length", value: `${data.summaryLength} chars` },
-						{ label: "Article ID", value: data.articleId },
-					];
-					html = items
-						.map(
-							(i) => `
-			                 <div class="result-item" ${i.label === "Summary" ? 'style="grid-column: 1/-1;"' : ""}>
-			                     <span class="result-label">${i.label}</span>
-			                     <div class="result-value">${i.value}</div>
-			                 </div>
-			             `,
-						)
-						.join("");
-				} else if (type === "translate") {
-					const items = [
-						{ label: "Detected Language", value: data.detectedLanguage },
-						{ label: "Translated Text", value: data.translatedText },
-						{ label: "Article ID", value: data.articleId },
-					];
-					html = items
-						.map(
-							(i) => `
-			                 <div class="result-item" ${i.label === "Translated Text" ? 'style="grid-column: 1/-1;"' : ""}>
-			                     <span class="result-label">${i.label}</span>
-			                     <div class="result-value">${i.value}</div>
-			                 </div>
-			             `,
-						)
-						.join("");
-				} else if (type === "analyze") {
-					const items = [
-						{ label: "Analysis", value: data.analysis },
-						{
-							label: "Suggestions",
-							value: Array.isArray(data.suggestions)
-								? data.suggestions.join("<br>")
-								: data.suggestions,
-						},
-						{ label: "Severity", value: data.severity },
-						{ label: "Article ID", value: data.articleId },
-					];
-					html = items
-						.map(
-							(i) => `
-			                 <div class="result-item" ${i.label === "Analysis" || i.label === "Suggestions" ? 'style="grid-column: 1/-1;"' : ""}>
-			                     <span class="result-label">${i.label}</span>
-			                     <div class="result-value">${i.value}</div>
-			                 </div>
-			             `,
-						)
-						.join("");
-				} else if (type === "chat") {
-					html = `
-			                 <div class="result-item" style="grid-column: 1/-1;">
-			                     <span class="result-label">AI Response</span>
-			                     <div class="result-value">${data.message}</div>
-			                 </div>
-			             `;
-				} else {
-					html = `<div class="result-item" style="grid-column: 1/-1;"><pre style="color: white; white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre></div>`;
-				}
-
-				display.innerHTML = html;
-				resultsCache[type] = html;
-
-				// Clear total badge
-				document.getElementById("resultTotal").innerText = "";
-			}
-
-			async function apiCall(type) {
-				const baseUrl = document.getElementById("baseUrl").value;
-				const token = document.getElementById("authToken").value.trim();
-				const loader = document.getElementById("loader");
-				const display = document.getElementById("result-content");
-				if (!token) {
-					openAuthModal();
-					return;
-				}
-				let url = "",
-					body = {};
-				let chatBackup = "";
-
-				const getArticleId = (id) => {
-					const val = document.getElementById(id).value;
-					if (!val) {
-						alert("Please select an article!");
-						throw new Error("No article selected");
-					}
-					return val;
-				};
-
-				try {
-					switch (type) {
-						case "summarize":
-							url = `${baseUrl}/ai/articles/${getArticleId("sum-article")}/summarize`;
-							body = { maxLength: document.getElementById("sum-length").value };
-							break;
-						case "translate":
-							url = `${baseUrl}/ai/articles/${getArticleId("trans-article")}/translate`;
-							body = {
-								targetLanguage: document.getElementById("trans-target").value,
-								sourceLanguage: document.getElementById("trans-source").value || undefined,
-							};
-							break;
-						case "analyze":
-							url = `${baseUrl}/ai/articles/${getArticleId("analyze-article")}/analyze`;
-							body = { task: document.getElementById("analyze-task").value };
-							break;
-						case "chat":
-							url = `${baseUrl}/ai/generate`;
-							const chatInput = document.getElementById("chat-msg");
-							chatBackup = chatInput.value;
-							body = { message: chatBackup };
-							chatInput.value = "";
-							break;
-					}
-
-					loader.style.display = "block";
-					const res = await smartFetch(url, {
-						method: "POST",
-						body: JSON.stringify(body),
-					});
-					let data;
-					try {
-						data = await res.json();
-					} catch (e) {
-						data = { message: (await res.text()) || res.statusText };
-					}
-					data._isError = !res.ok;
-					data._statusCode = res.status;
-					if (!res.ok && res.status === 429) {
-						const retryAfter = res.headers.get("Retry-After");
-						if (retryAfter) data._retryAfter = retryAfter;
-					}
-					if (!res.ok && type === "chat") {
-						document.getElementById("chat-msg").value = chatBackup;
-					}
-					renderResult(data, type);
-					if (!data._isError) fetchStatistics(); // Auto-refresh stats
+					await navigator.clipboard.writeText(text);
+					const originalIcon = btn.innerHTML;
+					btn.innerHTML =
+						'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+					setTimeout(() => {
+						btn.innerHTML = originalIcon;
+					}, 2000);
 				} catch (err) {
-					if (type === "chat" && chatBackup)
-						document.getElementById("chat-msg").value = chatBackup;
-					showGlobalError(err.message || "Network Error");
-				} finally {
-					loader.style.display = "none";
+					console.error("Failed to copy!", err);
 				}
+			}
+			function refreshAll() {
+				fetchArticles();
 			}
 		</script>
 	</body>
